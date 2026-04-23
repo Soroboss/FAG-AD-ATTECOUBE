@@ -71,6 +71,16 @@ const DEFAULT_CONFIG = {
 
 const money = (value) => `${new Intl.NumberFormat("fr-FR").format(Number(value || 0))} F CFA`;
 const toNumber = (v) => Number.parseFloat(v) || 0;
+const normalizeWhatsAppNumber = (input, defaultCountryCode = "225") => {
+  const raw = String(input || "").trim();
+  if (!raw) return "";
+  let digits = raw.replace(/[^\d]/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith(defaultCountryCode)) return digits;
+  if (digits.length === 8) return `${defaultCountryCode}${digits}`;
+  if (digits.length === 10 && digits.startsWith("0")) return `${defaultCountryCode}${digits.slice(1)}`;
+  return digits;
+};
 const LOCAL_STORAGE_KEY = `fag_local_${appId}`;
 const APP_SESSION_KEY = `fag_session_${appId}`;
 const LOCAL_TEAM_USERS_KEY = `fag_team_users_${appId}`;
@@ -1145,9 +1155,9 @@ const [storageMode] = useState("online");
         `"Fortifiez-vous dans le Seigneur." (Éphésiens 6:10).`
     };
     const finalMessage = messages[type] || messages.thanks;
-    const normalizedPhone = String(member.whatsapp || "").replace(/[^\d]/g, "");
+    const normalizedPhone = normalizeWhatsAppNumber(member.whatsapp);
     if (!normalizedPhone) {
-      alert("Numéro WhatsApp invalide pour ce fidèle.");
+      notify("error", "Numéro WhatsApp invalide. Format attendu: 07XXXXXXXX ou 225XXXXXXXXX.");
       return;
     }
 
@@ -1166,7 +1176,7 @@ const [storageMode] = useState("online");
       if (!response.ok || !payload?.ok) {
         throw new Error(payload?.error || "Envoi backend indisponible");
       }
-      alert("Message WhatsApp envoyé avec succès.");
+      notify("success", "Message WhatsApp envoyé avec succès.");
       writeAuditLog({
         action: "ENVOI_WHATSAPP",
         scope: "communication",
@@ -1179,7 +1189,7 @@ const [storageMode] = useState("online");
     } catch (error) {
       console.warn("WhatsApp backend fallback:", error?.message || error);
       window.open(`https://wa.me/${normalizedPhone}?text=${encodeURIComponent(finalMessage)}`, "_blank");
-      alert("Ouverture WhatsApp Web. Validez l'envoi manuellement.");
+      notify("success", "WhatsApp ouvert. Validez l'envoi manuellement.");
       writeAuditLog({
         action: "ENVOI_WHATSAPP",
         scope: "communication",

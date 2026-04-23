@@ -117,7 +117,13 @@ async function logMessage(entry) {
 
 function normalizePhone(input) {
   if (!input) return "";
-  return String(input).replace(/[^\d]/g, "");
+  const defaultCountryCode = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "225";
+  let digits = String(input).replace(/[^\d]/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith(defaultCountryCode)) return digits;
+  if (digits.length === 8) return `${defaultCountryCode}${digits}`;
+  if (digits.length === 10 && digits.startsWith("0")) return `${defaultCountryCode}${digits.slice(1)}`;
+  return digits;
 }
 
 function jsonResponse(body, status = 200) {
