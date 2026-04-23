@@ -29,7 +29,8 @@ import {
   Receipt,
   Landmark,
   HandCoins,
-  PiggyBank
+  PiggyBank,
+  FileClock
 } from "lucide-react";
 
 const firebaseRawConfig =
@@ -52,6 +53,7 @@ const insforgeFunctionsBase =
   typeof __insforge_functions_base !== "undefined" && __insforge_functions_base
     ? __insforge_functions_base
     : "https://7sr4t2xf.functions.insforge.app";
+const managementApiUrl = `${insforgeFunctionsBase}/management-api`;
 
 const DEFAULT_CONFIG = {
   year: 2026,
@@ -72,6 +74,7 @@ const toNumber = (v) => Number.parseFloat(v) || 0;
 const LOCAL_STORAGE_KEY = `fag_local_${appId}`;
 const APP_SESSION_KEY = `fag_session_${appId}`;
 const LOCAL_TEAM_USERS_KEY = `fag_team_users_${appId}`;
+const LOCAL_AUDIT_LOGS_KEY = `fag_audit_logs_${appId}`;
 const DEFAULT_TEAM_USERS = [
   {
     id: "u-admin",
@@ -221,6 +224,9 @@ const App = () => {
   const [loginData, setLoginData] = useState({ identifier: "", password: "", remember: true });
   const [loginError, setLoginError] = useState("");
   const [teamUsers, setTeamUsers] = useState(DEFAULT_TEAM_USERS);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditSearchTerm, setAuditSearchTerm] = useState("");
+  const [auditFilter, setAuditFilter] = useState("all");
   const [newTeamUser, setNewTeamUser] = useState({
     fullName: "",
     username: "",
@@ -229,6 +235,7 @@ const App = () => {
     role: "tresorier"
   });
   const [editingTeamUser, setEditingTeamUser] = useState(null);
+  const [managementBackendReady, setManagementBackendReady] = useState(false);
 
   const [members, setMembers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -303,6 +310,19 @@ const App = () => {
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextState));
   };
 
+  const callManagementApi = async (action, payload = {}) => {
+    const response = await fetch(managementApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, payload })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.ok === false) {
+      throw new Error(data?.error || "Management API indisponible");
+    }
+    return data;
+  };
+
   useEffect(() => {
     try {
       const rawSession = window.localStorage.getItem(APP_SESSION_KEY);
@@ -341,8 +361,64 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    const syncManagementBackend = async () => {
+      try {
+        const apiData = await callManagementApi("bootstrap", {});
+        if (Array.isArray(apiData.users) && apiData.users.length > 0) {
+          const users = apiData.users.map((item) => ({
+            id: item.id,
+            fullName: item.full_name || item.fullName || "",
+            username: item.email || item.username || "",
+            phone: item.phone || "",
+            role: item.role || "consultation",
+            isActive: item.is_active !== false,
+            password: ""
+          }));
+          setTeamUsers(users);
+        }
+        if (Array.isArray(apiData.logs)) {
+          const logs = apiData.logs.map((item) => ({
+            id: item.id,
+            timestamp: item.created_at || item.timestamp,
+            actorId: item.actor_user_id || item.actorId || "",
+            actorName: item.actor_name || item.actorName || "Système",
+            actorRole: item.actor_role || item.actorRole || "",
+            action: item.action,
+            scope: item.scope || "general",
+            targetType: item.target_type || item.targetType || "",
+            targetId: item.target_id || item.targetId || "",
+            targetLabel: item.target_label || item.targetLabel || "",
+            details: item.details || ""
+          }));
+          setAuditLogs(logs);
+        }
+        setManagementBackendReady(true);
+      } catch (error) {
+        console.warn("Management backend offline, using local fallback:", error?.message || error);
+        setManagementBackendReady(false);
+      }
+    };
+    syncManagementBackend();
+  }, []);
+
+  useEffect(() => {
     window.localStorage.setItem(LOCAL_TEAM_USERS_KEY, JSON.stringify(teamUsers));
   }, [teamUsers]);
+
+  useEffect(() => {
+    try {
+      const rawLogs = window.localStorage.getItem(LOCAL_AUDIT_LOGS_KEY);
+      if (!rawLogs) return;
+      const parsedLogs = JSON.parse(rawLogs);
+      if (Array.isArray(parsedLogs)) setAuditLogs(parsedLogs);
+    } catch {
+      // ignore invalid logs payload
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(LOCAL_AUDIT_LOGS_KEY, JSON.stringify(auditLogs));
+  }, [auditLogs]);
 
   useEffect(() => {
     const init = async () => {
@@ -405,6 +481,11 @@ const App = () => {
     const unsubConfig = onSnapshot(configRef, (snap) => {
       if (snap.exists()) setConfig({ ...DEFAULT_CONFIG, ...snap.data() });
     });
+    const unsubLogs = onSnapshot(basePath("audit_logs"), (snap) => {
+      const nextLogs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      nextLogs.sort((a, b) => new Date(b.timestamp || b.created_at || 0) - new Date(a.timestamp || a.created_at || 0));
+      setAuditLogs(nextLogs);
+    });
 
     setLoading(false);
     return () => {
@@ -412,6 +493,7 @@ const App = () => {
       unsubDeposits();
       unsubExpenses();
       unsubConfig();
+      unsubLogs();
     };
   }, [user]);
 
@@ -523,19 +605,89 @@ const App = () => {
     await setDoc(doc(db, "artifacts", appId, "public", "data", "settings", "main"), next);
   };
 
-  const handleAppLogin = (e) => {
+  const writeAuditLog = async ({
+    action,
+    scope = "general",
+    targetType = "",
+    targetId = "",
+    targetLabel = "",
+    details = ""
+  }) => {
+    const actor = sessionUser || {};
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      actorId: actor.id || "system",
+      actorName: actor.fullName || actor.username || "Système",
+      actorRole: actor.role || "system",
+      action,
+      scope,
+      targetType,
+      targetId,
+      targetLabel,
+      details
+    };
+    try {
+      await callManagementApi("createLog", {
+        actorUserId: logEntry.actorId,
+        actorName: logEntry.actorName,
+        actorRole: logEntry.actorRole,
+        action: logEntry.action,
+        scope: logEntry.scope,
+        targetType: logEntry.targetType,
+        targetId: logEntry.targetId,
+        targetLabel: logEntry.targetLabel,
+        details: logEntry.details
+      });
+      setAuditLogs((prev) => [logEntry, ...prev].slice(0, 1000));
+      return;
+    } catch {
+      setAuditLogs((prev) => [logEntry, ...prev].slice(0, 1000));
+    }
+  };
+
+  const handleAppLogin = async (e) => {
     e.preventDefault();
     const normalizedIdentifier = loginData.identifier.trim().toLowerCase();
     const normalizedDigits = loginData.identifier.replace(/[^\d]/g, "");
-    const matchedUser = teamUsers.find(
-      (item) =>
-        (item.username.toLowerCase() === normalizedIdentifier ||
-          (item.phone && item.phone.replace(/[^\d]/g, "") === normalizedDigits)) &&
-        item.password === loginData.password &&
-        item.isActive !== false
-    );
+    let matchedUser = null;
+    if (managementBackendReady) {
+      try {
+        const result = await callManagementApi("login", {
+          identifier: loginData.identifier,
+          password: loginData.password
+        });
+        matchedUser = result.user
+          ? {
+              id: result.user.id,
+              fullName: result.user.full_name || result.user.fullName || "",
+              username: result.user.email || result.user.username || "",
+              phone: result.user.phone || "",
+              role: result.user.role || "consultation",
+              isActive: result.user.is_active !== false
+            }
+          : null;
+      } catch {
+        matchedUser = null;
+      }
+    }
+    if (!matchedUser) {
+      matchedUser = teamUsers.find(
+        (item) =>
+          (item.username.toLowerCase() === normalizedIdentifier ||
+            (item.phone && item.phone.replace(/[^\d]/g, "") === normalizedDigits)) &&
+          item.password === loginData.password &&
+          item.isActive !== false
+      );
+    }
     if (!matchedUser) {
       setLoginError("Identifiants invalides. Utilisez email/téléphone et mot de passe.");
+      await writeAuditLog({
+        action: "ECHEC_CONNEXION",
+        scope: "access",
+        targetType: "management_user",
+        targetLabel: normalizedIdentifier || normalizedDigits || "N/A",
+        details: "Tentative avec identifiants invalides."
+      });
       return;
     }
     const safeSession = {
@@ -554,9 +706,17 @@ const App = () => {
       window.localStorage.removeItem(APP_SESSION_KEY);
     }
     setLoginData((prev) => ({ ...prev, password: "" }));
+    await writeAuditLog({
+      action: "CONNEXION",
+      scope: "access",
+      targetType: "management_user",
+      targetId: matchedUser.id,
+      targetLabel: matchedUser.fullName || matchedUser.username,
+      details: "Connexion réussie au logiciel."
+    });
   };
 
-  const createTeamUser = (e) => {
+  const createTeamUser = async (e) => {
     e.preventDefault();
     const normalizedUsername = newTeamUser.username.trim().toLowerCase();
     const normalizedPhone = newTeamUser.phone.replace(/[^\d]/g, "");
@@ -568,7 +728,7 @@ const App = () => {
       alert("Un compte existe déjà avec cet email ou ce téléphone.");
       return;
     }
-    const createdUser = {
+    let createdUser = {
       id: `u-${Date.now()}`,
       fullName: newTeamUser.fullName.trim(),
       username: normalizedUsername || `${normalizedPhone}@fag.local`,
@@ -577,26 +737,91 @@ const App = () => {
       role: newTeamUser.role,
       isActive: true
     };
+    if (managementBackendReady) {
+      try {
+        const result = await callManagementApi("createUser", {
+          fullName: createdUser.fullName,
+          email: normalizedUsername || null,
+          phone: normalizedPhone || null,
+          password: createdUser.password,
+          role: createdUser.role
+        });
+        if (result?.user) {
+          createdUser = {
+            id: result.user.id,
+            fullName: result.user.full_name || createdUser.fullName,
+            username: result.user.email || createdUser.username,
+            phone: result.user.phone || createdUser.phone,
+            password: "",
+            role: result.user.role || createdUser.role,
+            isActive: result.user.is_active !== false
+          };
+        }
+      } catch {
+        // fallback local state
+      }
+    }
     setTeamUsers((prev) => [...prev, createdUser]);
     setNewTeamUser({ fullName: "", username: "", phone: "", password: "", role: "tresorier" });
+    await writeAuditLog({
+      action: "CREATION_COMPTE_GESTION",
+      scope: "users",
+      targetType: "management_user",
+      targetId: createdUser.id,
+      targetLabel: createdUser.fullName,
+      details: `Rôle ${createdUser.role}.`
+    });
   };
 
-  const toggleTeamUserStatus = (userId) => {
+  const toggleTeamUserStatus = async (userId) => {
+    const target = teamUsers.find((u) => u.id === userId);
+    const nextStatus = !(target?.isActive !== false);
+    if (managementBackendReady) {
+      try {
+        await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
+      } catch {
+        // fallback local state only
+      }
+    }
     setTeamUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, isActive: !(u.isActive !== false) } : u))
+      prev.map((u) => (u.id === userId ? { ...u, isActive: nextStatus } : u))
     );
+    await writeAuditLog({
+      action: nextStatus ? "ACTIVATION_COMPTE_GESTION" : "DESACTIVATION_COMPTE_GESTION",
+      scope: "users",
+      targetType: "management_user",
+      targetId: userId,
+      targetLabel: target?.fullName || target?.username || userId,
+      details: nextStatus ? "Compte réactivé." : "Compte désactivé."
+    });
   };
 
-  const updateTeamUserRole = (userId, role) => {
+  const updateTeamUserRole = async (userId, role) => {
+    const target = teamUsers.find((u) => u.id === userId);
+    if (managementBackendReady) {
+      try {
+        await callManagementApi("updateUser", { userId, role });
+      } catch {
+        // fallback local state only
+      }
+    }
     setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
     if (sessionUser?.id === userId) {
       setSessionUser((prev) => ({ ...prev, role }));
       const updatedSession = { ...(sessionUser || {}), role };
       window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
     }
+    await writeAuditLog({
+      action: "CHANGEMENT_ROLE_COMPTE_GESTION",
+      scope: "users",
+      targetType: "management_user",
+      targetId: userId,
+      targetLabel: target?.fullName || target?.username || userId,
+      details: `Nouveau rôle: ${role}.`
+    });
   };
 
-  const updateTeamUser = (userId, patch) => {
+  const updateTeamUser = async (userId, patch) => {
     const normalizedUsername = (patch.username || "").trim().toLowerCase();
     const normalizedPhone = (patch.phone || "").replace(/[^\d]/g, "");
     const duplicate = teamUsers.some(
@@ -617,24 +842,71 @@ const App = () => {
       ...(patch.role !== undefined && { role: patch.role }),
       ...(patch.isActive !== undefined && { isActive: patch.isActive })
     };
+    if (managementBackendReady) {
+      try {
+        await callManagementApi("updateUser", {
+          userId,
+          fullName: cleanPatch.fullName,
+          email: cleanPatch.username,
+          phone: cleanPatch.phone,
+          password: cleanPatch.password,
+          role: cleanPatch.role
+        });
+      } catch {
+        // fallback local state only
+      }
+    }
     setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, ...cleanPatch } : u)));
     if (sessionUser?.id === userId) {
       const updatedSession = { ...(sessionUser || {}), ...cleanPatch };
       setSessionUser(updatedSession);
       window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
     }
+    const target = teamUsers.find((u) => u.id === userId);
+    writeAuditLog({
+      action: "MODIFICATION_COMPTE_GESTION",
+      scope: "users",
+      targetType: "management_user",
+      targetId: userId,
+      targetLabel: target?.fullName || target?.username || userId,
+      details: "Modification profil, accès ou mot de passe."
+    });
     return true;
   };
 
-  const removeTeamUser = (userId) => {
+  const removeTeamUser = async (userId) => {
     if (sessionUser?.id === userId) {
       alert("Vous ne pouvez pas supprimer votre propre compte actif.");
       return;
     }
+    const target = teamUsers.find((u) => u.id === userId);
+    if (managementBackendReady) {
+      try {
+        await callManagementApi("deleteUser", { userId });
+      } catch {
+        // fallback local state only
+      }
+    }
     setTeamUsers((prev) => prev.filter((u) => u.id !== userId));
+    writeAuditLog({
+      action: "SUPPRESSION_COMPTE_GESTION",
+      scope: "users",
+      targetType: "management_user",
+      targetId: userId,
+      targetLabel: target?.fullName || target?.username || userId,
+      details: "Compte supprimé par administrateur."
+    });
   };
 
   const handleAppLogout = () => {
+    writeAuditLog({
+      action: "DECONNEXION",
+      scope: "access",
+      targetType: "management_user",
+      targetId: sessionUser?.id || "",
+      targetLabel: sessionUser?.fullName || sessionUser?.username || "Session",
+      details: "Déconnexion de la session active."
+    });
     window.localStorage.removeItem(APP_SESSION_KEY);
     setIsAppAuthenticated(false);
     setSessionUser(null);
@@ -657,6 +929,13 @@ const App = () => {
       setMembers((prev) => [...prev, localMember]);
       setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
       setIsMemberModalOpen(false);
+      writeAuditLog({
+        action: "CREATION_FIDELE",
+        scope: "finance",
+        targetType: "member",
+        targetLabel: preparedMember.name,
+        details: "Nouveau fidèle enregistré (local)."
+      });
       return;
     }
     if (!user) return;
@@ -667,6 +946,13 @@ const App = () => {
     });
     setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
     setIsMemberModalOpen(false);
+    writeAuditLog({
+      action: "CREATION_FIDELE",
+      scope: "finance",
+      targetType: "member",
+      targetLabel: preparedMember.name,
+      details: "Nouveau fidèle enregistré."
+    });
   };
 
   const handlePayment = async (e) => {
@@ -686,6 +972,14 @@ const App = () => {
       setSelectedMember((prev) => ({ ...prev, payments: [...(prev?.payments || []), payment] }));
       setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
       setIsPaymentModalOpen(false);
+      writeAuditLog({
+        action: "ENREGISTREMENT_PAIEMENT",
+        scope: "finance",
+        targetType: "member",
+        targetId: selectedMember.id,
+        targetLabel: selectedMember.name,
+        details: `${money(payment.amount)} via ${payment.method}.`
+      });
       return;
     }
     if (!user) return;
@@ -694,6 +988,14 @@ const App = () => {
     });
     setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
     setIsPaymentModalOpen(false);
+    writeAuditLog({
+      action: "ENREGISTREMENT_PAIEMENT",
+      scope: "finance",
+      targetType: "member",
+      targetId: selectedMember.id,
+      targetLabel: selectedMember.name,
+      details: `${money(payment.amount)} via ${payment.method}.`
+    });
   };
 
   const handleExpense = async (e) => {
@@ -709,6 +1011,13 @@ const App = () => {
         method: "Espèces"
       });
       setIsExpenseModalOpen(false);
+      writeAuditLog({
+        action: "AJOUT_DEPENSE",
+        scope: "finance",
+        targetType: "expense",
+        targetLabel: newExpense.description,
+        details: `${money(newExpense.amount)} (${newExpense.category}).`
+      });
       return;
     }
     if (!user) return;
@@ -721,6 +1030,13 @@ const App = () => {
       method: "Espèces"
     });
     setIsExpenseModalOpen(false);
+    writeAuditLog({
+      action: "AJOUT_DEPENSE",
+      scope: "finance",
+      targetType: "expense",
+      targetLabel: newExpense.description,
+      details: `${money(newExpense.amount)} (${newExpense.category}).`
+    });
   };
 
   const handleDeposit = async (e) => {
@@ -730,6 +1046,13 @@ const App = () => {
       setDeposits((prev) => [...prev, { ...newDeposit, id: Date.now().toString(), isDeposited: !!newDeposit.bordereauRef }]);
       setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "" });
       setIsDepositModalOpen(false);
+      writeAuditLog({
+        action: "AJOUT_REMISE_COMITE",
+        scope: "finance",
+        targetType: "deposit",
+        targetLabel: newDeposit.recipient,
+        details: `${money(newDeposit.amount)}${newDeposit.bordereauRef ? `, bordereau ${newDeposit.bordereauRef}` : ""}.`
+      });
       return;
     }
     if (!user) return;
@@ -739,6 +1062,13 @@ const App = () => {
     });
     setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "" });
     setIsDepositModalOpen(false);
+    writeAuditLog({
+      action: "AJOUT_REMISE_COMITE",
+      scope: "finance",
+      targetType: "deposit",
+      targetLabel: newDeposit.recipient,
+      details: `${money(newDeposit.amount)}${newDeposit.bordereauRef ? `, bordereau ${newDeposit.bordereauRef}` : ""}.`
+    });
   };
 
   const sendWhatsApp = async (member, type) => {
@@ -804,11 +1134,27 @@ const App = () => {
         throw new Error(payload?.error || "Envoi backend indisponible");
       }
       alert("Message WhatsApp envoyé avec succès.");
+      writeAuditLog({
+        action: "ENVOI_WHATSAPP",
+        scope: "communication",
+        targetType: "member",
+        targetId: member.id,
+        targetLabel: member.name,
+        details: `Message ${type} envoyé via backend.`
+      });
       return;
     } catch (error) {
       console.warn("WhatsApp backend fallback:", error?.message || error);
       window.open(`https://wa.me/${normalizedPhone}?text=${encodeURIComponent(finalMessage)}`, "_blank");
       alert("Ouverture WhatsApp Web. Validez l'envoi manuellement.");
+      writeAuditLog({
+        action: "ENVOI_WHATSAPP",
+        scope: "communication",
+        targetType: "member",
+        targetId: member.id,
+        targetLabel: member.name,
+        details: `Fallback WhatsApp Web pour message ${type}.`
+      });
     }
   };
 
@@ -969,6 +1315,86 @@ const App = () => {
   const currentRole = sessionUser?.role || "consultation";
   const accessibleTabs = ROLE_PERMISSIONS[currentRole] || ROLE_PERMISSIONS.consultation;
   const canManageUsers = currentRole === "admin";
+  const filteredAuditLogs = useMemo(() => {
+    return auditLogs.filter((log) => {
+      const byScope = auditFilter === "all" || log.scope === auditFilter;
+      const haystack = `${log.actorName || ""} ${log.action || ""} ${log.targetLabel || ""} ${log.details || ""}`.toLowerCase();
+      const bySearch = haystack.includes((auditSearchTerm || "").toLowerCase());
+      return byScope && bySearch;
+    });
+  }, [auditLogs, auditFilter, auditSearchTerm]);
+
+  const exportAuditCsv = () => {
+    const lines = [
+      ["date", "acteur", "role", "action", "scope", "cible_type", "cible", "details"].join(","),
+      ...filteredAuditLogs.map((log) =>
+        [
+          `"${new Date(log.timestamp || Date.now()).toISOString()}"`,
+          `"${(log.actorName || "Systeme").replace(/"/g, '""')}"`,
+          `"${(log.actorRole || "").replace(/"/g, '""')}"`,
+          `"${(log.action || "").replace(/"/g, '""')}"`,
+          `"${(log.scope || "").replace(/"/g, '""')}"`,
+          `"${(log.targetType || "").replace(/"/g, '""')}"`,
+          `"${(log.targetLabel || "").replace(/"/g, '""')}"`,
+          `"${(log.details || "").replace(/"/g, '""')}"`
+        ].join(",")
+      )
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `fag-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportAuditPdf = () => {
+    const rows = filteredAuditLogs
+      .slice(0, 300)
+      .map(
+        (log) => `
+          <tr>
+            <td>${new Date(log.timestamp || Date.now()).toLocaleString("fr-FR")}</td>
+            <td>${log.actorName || "Système"}<br/><small>${log.actorRole || ""}</small></td>
+            <td>${log.action || ""}</td>
+            <td>${log.targetLabel || ""}<br/><small>${log.targetType || ""}</small></td>
+            <td>${log.details || ""}</td>
+          </tr>`
+      )
+      .join("");
+    const win = window.open("", "_blank", "width=1280,height=800");
+    if (!win) return;
+    win.document.write(`
+      <html>
+        <head>
+          <title>Historique Audit FAG</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
+            h1 { margin: 0 0 12px; font-size: 18px; }
+            p { margin: 0 0 16px; font-size: 12px; color: #555; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+            th { background: #0f172a; color: #fff; text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+            small { color: #666; }
+          </style>
+        </head>
+        <body>
+          <h1>FAG - Historique des logs d'audit</h1>
+          <p>Généré le ${new Date().toLocaleString("fr-FR")} • ${filteredAuditLogs.length} éléments</p>
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Acteur</th><th>Action</th><th>Cible</th><th>Détails</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </body>
+      </html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+  };
 
   useEffect(() => {
     if (!accessibleTabs.includes(activeTab)) {
@@ -977,27 +1403,78 @@ const App = () => {
   }, [activeTab, accessibleTabs]);
 
   const removeMember = async (memberId) => {
+    const member = members.find((m) => m.id === memberId);
     if (storageMode === "local") {
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
+      writeAuditLog({
+        action: "SUPPRESSION_FIDELE",
+        scope: "finance",
+        targetType: "member",
+        targetId: memberId,
+        targetLabel: member?.name || memberId,
+        details: "Fiche fidèle supprimée (local)."
+      });
       return;
     }
     await deleteDoc(doc(db, "artifacts", appId, "public", "data", "members", memberId));
+    writeAuditLog({
+      action: "SUPPRESSION_FIDELE",
+      scope: "finance",
+      targetType: "member",
+      targetId: memberId,
+      targetLabel: member?.name || memberId,
+      details: "Fiche fidèle supprimée."
+    });
   };
 
   const removeExpense = async (expenseId) => {
+    const expense = expenses.find((e) => e.id === expenseId);
     if (storageMode === "local") {
       setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+      writeAuditLog({
+        action: "SUPPRESSION_DEPENSE",
+        scope: "finance",
+        targetType: "expense",
+        targetId: expenseId,
+        targetLabel: expense?.description || expenseId,
+        details: "Sortie supprimée."
+      });
       return;
     }
     await deleteDoc(doc(db, "artifacts", appId, "public", "data", "expenses", expenseId));
+    writeAuditLog({
+      action: "SUPPRESSION_DEPENSE",
+      scope: "finance",
+      targetType: "expense",
+      targetId: expenseId,
+      targetLabel: expense?.description || expenseId,
+      details: "Sortie supprimée."
+    });
   };
 
   const removeDeposit = async (depositId) => {
+    const deposit = deposits.find((d) => d.id === depositId);
     if (storageMode === "local") {
       setDeposits((prev) => prev.filter((d) => d.id !== depositId));
+      writeAuditLog({
+        action: "SUPPRESSION_REMISE",
+        scope: "finance",
+        targetType: "deposit",
+        targetId: depositId,
+        targetLabel: deposit?.recipient || depositId,
+        details: "Remise supprimée."
+      });
       return;
     }
     await deleteDoc(doc(db, "artifacts", appId, "public", "data", "deposits", depositId));
+    writeAuditLog({
+      action: "SUPPRESSION_REMISE",
+      scope: "finance",
+      targetType: "deposit",
+      targetId: depositId,
+      targetLabel: deposit?.recipient || depositId,
+      details: "Remise supprimée."
+    });
   };
 
   const setDepositReceiptRef = async (depositId, ref) => {
@@ -1005,11 +1482,27 @@ const App = () => {
       setDeposits((prev) =>
         prev.map((d) => (d.id === depositId ? { ...d, bordereauRef: ref, isDeposited: true } : d))
       );
+      writeAuditLog({
+        action: "AJOUT_BORDEREAU",
+        scope: "finance",
+        targetType: "deposit",
+        targetId: depositId,
+        targetLabel: depositId,
+        details: `Référence bordereau: ${ref}.`
+      });
       return;
     }
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "deposits", depositId), {
       bordereauRef: ref,
       isDeposited: true
+    });
+    writeAuditLog({
+      action: "AJOUT_BORDEREAU",
+      scope: "finance",
+      targetType: "deposit",
+      targetId: depositId,
+      targetLabel: depositId,
+      details: `Référence bordereau: ${ref}.`
     });
   };
 
@@ -1019,10 +1512,26 @@ const App = () => {
     if (storageMode === "local") {
       setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, payments: updated } : m)));
       setSelectedMember((prev) => ({ ...prev, payments: updated }));
+      writeAuditLog({
+        action: "SUPPRESSION_PAIEMENT",
+        scope: "finance",
+        targetType: "member",
+        targetId: memberId,
+        targetLabel: currentMember?.name || memberId,
+        details: `Paiement ${paymentId} supprimé.`
+      });
       return;
     }
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "members", memberId), { payments: updated });
     setSelectedMember((prev) => ({ ...prev, payments: updated }));
+    writeAuditLog({
+      action: "SUPPRESSION_PAIEMENT",
+      scope: "finance",
+      targetType: "member",
+      targetId: memberId,
+      targetLabel: currentMember?.name || memberId,
+      details: `Paiement ${paymentId} supprimé.`
+    });
   };
 
   if (!isAppAuthenticated) {
@@ -2509,6 +3018,104 @@ const App = () => {
                       </>
                     )}
                   </div>
+
+                  <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h4 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-800">
+                          <FileClock size={15} className="text-blue-600" />
+                          Historique des logs d&apos;audit
+                        </h4>
+                        <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                          Traçabilité des accès et actions sensibles du logiciel
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                          {filteredAuditLogs.length} logs affichés
+                        </p>
+                        <button
+                          onClick={exportAuditCsv}
+                          className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-700"
+                        >
+                          Export CSV
+                        </button>
+                        <button
+                          onClick={exportAuditPdf}
+                          className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700"
+                        >
+                          Export PDF
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                      <div className="md:col-span-2">
+                        <input
+                          value={auditSearchTerm}
+                          onChange={(e) => setAuditSearchTerm(e.target.value)}
+                          placeholder="Rechercher: acteur, action, cible, détail..."
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-semibold outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <select
+                        value={auditFilter}
+                        onChange={(e) => setAuditFilter(e.target.value)}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500"
+                      >
+                        <option value="all">Tous les logs</option>
+                        <option value="access">Accès</option>
+                        <option value="users">Comptes équipe</option>
+                        <option value="finance">Finance</option>
+                        <option value="communication">Communication</option>
+                      </select>
+                    </div>
+
+                    <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-100">
+                      <table className="w-full min-w-[980px]">
+                        <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                          <tr>
+                            <th className="px-4 py-3 text-left">Date</th>
+                            <th className="px-4 py-3 text-left">Acteur</th>
+                            <th className="px-4 py-3 text-left">Action</th>
+                            <th className="px-4 py-3 text-left">Cible</th>
+                            <th className="px-4 py-3 text-left">Détails</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 bg-white text-[11px] font-semibold">
+                          {filteredAuditLogs.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                                Aucun log pour ce filtre
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredAuditLogs.slice(0, 400).map((log, idx) => (
+                              <tr key={`${log.id || log.timestamp || "log"}-${idx}`} className="hover:bg-slate-50/70">
+                                <td className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                  {new Date(log.timestamp || Date.now()).toLocaleString("fr-FR")}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <p className="font-black uppercase text-slate-900">{log.actorName || "Système"}</p>
+                                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{log.actorRole || "N/A"}</p>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-700">
+                                    {log.action || "ACTION"}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <p className="font-black uppercase text-slate-800">{log.targetLabel || "N/A"}</p>
+                                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{log.targetType || "N/A"}</p>
+                                </td>
+                                <td className="px-4 py-3 text-slate-600">{log.details || "-"}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               )}
             </>
@@ -2520,9 +3127,9 @@ const App = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingTeamUser(null)} />
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              const ok = updateTeamUser(editingTeamUser.id, {
+              const ok = await updateTeamUser(editingTeamUser.id, {
                 fullName: editingTeamUser.fullName,
                 username: editingTeamUser.username,
                 phone: editingTeamUser.phone,

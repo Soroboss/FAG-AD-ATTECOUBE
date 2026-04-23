@@ -76,7 +76,7 @@ export default async function handler(req) {
 }
 
 async function logMessage(entry) {
-  const dbUrl = process.env.DATABASE_URL;
+  const dbUrl = process.env.DATABASE_URL || process.env.INSFORGE_BASE_URL;
   if (!dbUrl) return;
 
   try {
