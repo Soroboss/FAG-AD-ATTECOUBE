@@ -228,6 +228,7 @@ const App = () => {
     password: "",
     role: "tresorier"
   });
+  const [editingTeamUser, setEditingTeamUser] = useState(null);
 
   const [members, setMembers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -593,6 +594,36 @@ const App = () => {
       const updatedSession = { ...(sessionUser || {}), role };
       window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
     }
+  };
+
+  const updateTeamUser = (userId, patch) => {
+    const normalizedUsername = (patch.username || "").trim().toLowerCase();
+    const normalizedPhone = (patch.phone || "").replace(/[^\d]/g, "");
+    const duplicate = teamUsers.some(
+      (u) =>
+        u.id !== userId &&
+        ((normalizedUsername && (u.username || "").toLowerCase() === normalizedUsername) ||
+          (normalizedPhone && (u.phone || "").replace(/[^\d]/g, "") === normalizedPhone))
+    );
+    if (duplicate) {
+      alert("Un autre compte utilise déjà cet email ou ce téléphone.");
+      return false;
+    }
+    const cleanPatch = {
+      ...(patch.fullName !== undefined && { fullName: patch.fullName.trim() }),
+      ...(patch.username !== undefined && { username: normalizedUsername }),
+      ...(patch.phone !== undefined && { phone: normalizedPhone }),
+      ...(patch.password !== undefined && patch.password !== "" && { password: patch.password }),
+      ...(patch.role !== undefined && { role: patch.role }),
+      ...(patch.isActive !== undefined && { isActive: patch.isActive })
+    };
+    setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, ...cleanPatch } : u)));
+    if (sessionUser?.id === userId) {
+      const updatedSession = { ...(sessionUser || {}), ...cleanPatch };
+      setSessionUser(updatedSession);
+      window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
+    }
+    return true;
   };
 
   const removeTeamUser = (userId) => {
@@ -994,66 +1025,6 @@ const App = () => {
     setSelectedMember((prev) => ({ ...prev, payments: updated }));
   };
 
-  const forceLocalMode = () => {
-    const cached = loadLocalState();
-    if (cached) {
-      setMembers(cached.members);
-      setDeposits(cached.deposits);
-      setExpenses(cached.expenses);
-      setConfig(cached.config);
-    }
-    setStorageMode("local");
-    setLoading(false);
-  };
-
-  const seedLocalDemoData = () => {
-    const demoMembers = [
-      {
-        id: "m1",
-        name: "Kouadio Jean",
-        churchFunction: "Diacre",
-        whatsapp: "2250700000001",
-        categoryId: "cat1",
-        customAmount: "",
-        dateJoined: new Date().toISOString(),
-        payments: [
-          { id: "p11", amount: 20000, method: "Espèces", date: "2026-04-10", timestamp: new Date().toISOString() },
-          { id: "p12", amount: 30000, method: "Mobile Money", date: "2026-05-10", timestamp: new Date().toISOString() }
-        ]
-      },
-      {
-        id: "m2",
-        name: "Ahou Elise",
-        churchFunction: "Chorale",
-        whatsapp: "2250700000002",
-        categoryId: "cat3",
-        customAmount: "",
-        dateJoined: new Date().toISOString(),
-        payments: [{ id: "p21", amount: 10000, method: "Virement", date: "2026-04-12", timestamp: new Date().toISOString() }]
-      }
-    ];
-    const demoExpenses = [
-      { id: "e1", description: "Impression affiches", amount: 25000, date: "2026-04-13", category: "Communication", method: "Espèces" }
-    ];
-    const demoDeposits = [
-      { id: "d1", recipient: "Comité FAG", amount: 30000, date: "2026-04-15", bordereauRef: "BR-2026-001", isDeposited: true }
-    ];
-    setMembers(demoMembers);
-    setExpenses(demoExpenses);
-    setDeposits(demoDeposits);
-    setStorageMode("local");
-    setLoading(false);
-  };
-
-  const resetLocalData = () => {
-    window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-    setMembers([]);
-    setDeposits([]);
-    setExpenses([]);
-    setConfig(DEFAULT_CONFIG);
-    setStorageMode("local");
-  };
-
   if (!isAppAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 text-white" style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal" }}>
@@ -1324,26 +1295,6 @@ const App = () => {
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  onClick={forceLocalMode}
-                  className="rounded-xl border border-purple-200 bg-purple-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-purple-700 transition hover:bg-purple-100"
-                >
-                  Forcer local
-                </button>
-                <button
-                  onClick={seedLocalDemoData}
-                  className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-blue-700 transition hover:bg-blue-100"
-                >
-                  Charger données test
-                </button>
-                <button
-                  onClick={resetLocalData}
-                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-red-700 transition hover:bg-red-100"
-                >
-                  Vider données locales
-                </button>
-              </div>
             </div>
             {activeTab === "dashboard" && (
               <div className="hidden shrink-0 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm md:flex md:items-center md:gap-4">
@@ -2478,14 +2429,14 @@ const App = () => {
                         </form>
 
                         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-                          <table className="w-full min-w-[860px]">
+                          <table className="w-full min-w-[960px]">
                             <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                               <tr>
                                 <th className="px-4 py-3 text-left">Utilisateur</th>
                                 <th className="px-4 py-3 text-left">Rôle</th>
                                 <th className="px-4 py-3 text-left">Accès modules</th>
                                 <th className="px-4 py-3 text-center">Statut</th>
-                                <th className="px-4 py-3 text-center">Action</th>
+                                <th className="px-4 py-3 text-center">Actions</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 text-[11px] font-bold">
@@ -2522,16 +2473,33 @@ const App = () => {
                                       {u.isActive !== false ? "Actif" : "Inactif"}
                                     </button>
                                   </td>
-                                  <td className="px-4 py-3 text-center">
-                                    <button
-                                      onClick={() => {
-                                        if (!window.confirm("Supprimer ce compte utilisateur ?")) return;
-                                        removeTeamUser(u.id);
-                                      }}
-                                      className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-600"
-                                    >
-                                      Supprimer
-                                    </button>
+                                  <td className="px-4 py-3">
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                      <button
+                                        onClick={() =>
+                                          setEditingTeamUser({
+                                            id: u.id,
+                                            fullName: u.fullName || "",
+                                            username: u.username || "",
+                                            phone: u.phone || "",
+                                            password: "",
+                                            role: u.role || "tresorier"
+                                          })
+                                        }
+                                        className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700 hover:bg-blue-100"
+                                      >
+                                        Modifier
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (!window.confirm("Supprimer ce compte utilisateur ?")) return;
+                                          removeTeamUser(u.id);
+                                        }}
+                                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-600 hover:bg-red-100"
+                                      >
+                                        Supprimer
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -2547,6 +2515,106 @@ const App = () => {
           )}
         </main>
       </div>
+
+      {editingTeamUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingTeamUser(null)} />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const ok = updateTeamUser(editingTeamUser.id, {
+                fullName: editingTeamUser.fullName,
+                username: editingTeamUser.username,
+                phone: editingTeamUser.phone,
+                password: editingTeamUser.password,
+                role: editingTeamUser.role
+              });
+              if (ok) setEditingTeamUser(null);
+            }}
+            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10"
+          >
+            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setEditingTeamUser(null)}>
+              <X />
+            </button>
+            <h3 className="text-2xl font-black uppercase text-slate-900">Modifier le compte</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
+              Mettez à jour l&apos;identité, les identifiants, le mot de passe et le niveau d&apos;accès du membre de gestion.
+            </p>
+            <div className="mt-6 grid grid-cols-1 gap-3">
+              <div>
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Nom complet</label>
+                <input
+                  required
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  value={editingTeamUser.fullName}
+                  onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div>
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Email</label>
+                  <input
+                    type="email"
+                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                    value={editingTeamUser.username}
+                    onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, username: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Téléphone</label>
+                  <input
+                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                    value={editingTeamUser.phone}
+                    onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, phone: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Nouveau mot de passe (optionnel)</label>
+                <input
+                  type="password"
+                  placeholder="Laisser vide pour conserver le mot de passe actuel"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  value={editingTeamUser.password}
+                  onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, password: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Rôle & accès</label>
+                <select
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-emerald-500"
+                  value={editingTeamUser.role}
+                  onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, role: e.target.value }))}
+                >
+                  {ROLE_OPTIONS.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.label} — {role.description}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                  Modules accessibles : {(ROLE_PERMISSIONS[editingTeamUser.role] || []).join(" • ") || "Aucun"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setEditingTeamUser(null)}
+                className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-900/20"
+              >
+                Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {isMemberModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
