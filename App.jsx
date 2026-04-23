@@ -487,9 +487,10 @@ const [storageMode] = useState("online");
       const rawSession = readSessionRaw();
       if (!rawSession) return;
       const parsedSession = JSON.parse(rawSession);
-      if (parsedSession?.username) {
+      if (parsedSession && (parsedSession.username || parsedSession.id)) {
         setSessionUser(parsedSession);
         setIsAppAuthenticated(true);
+        setLoading(false);
       }
     } catch {
       // ignore invalid session payload
@@ -798,6 +799,7 @@ const [storageMode] = useState("online");
     };
     setSessionUser(safeSession);
     setIsAppAuthenticated(true);
+    setLoading(false);
     setShowLoginModal(false);
     setLoginError("");
     if (loginData.remember) {
@@ -2630,7 +2632,7 @@ const [storageMode] = useState("online");
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Activity size={40} className="animate-spin text-emerald-500" />
-              <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Connexion Firebase...</p>
+              <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Chargement des données FAG…</p>
             </div>
           ) : (
             <>
