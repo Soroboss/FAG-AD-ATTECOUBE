@@ -2092,7 +2092,10 @@ const [storageMode] = useState("online");
   };
 
   const tryUploadDepositFile = async (file) => {
-    const base = import.meta.env?.VITE_INSFORGE_URL;
+    const base =
+      import.meta.env?.VITE_INSFORGE_URL ||
+      import.meta.env?.VITE_INSFORGE_BASE_URL ||
+      import.meta.env?.VITE_INSFORGE_OSS_HOST;
     const ak = import.meta.env?.VITE_INSFORGE_ANON_KEY;
     if (!base || !ak) {
       return { error: "Variables VITE_INSFORGE_URL et VITE_INSFORGE_ANON_KEY requises (build) pour l’upload." };
