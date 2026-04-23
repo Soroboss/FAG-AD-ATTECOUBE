@@ -405,7 +405,9 @@ const [storageMode] = useState("online");
     }
     const token = getSessionTokenFromStorage();
     const headers = { "Content-Type": "application/json" };
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if (token && !publicActions.includes(action)) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     const response = await fetch(managementApiUrl, {
       method: "POST",
       headers,
@@ -428,7 +430,51 @@ const [storageMode] = useState("online");
     if (!response.ok || data?.ok === false) {
       throw new Error(data?.error || "Management API indisponible");
     }
+    if (action === "login" && response.ok) {
+      if (data?.ok !== true || !data?.user) {
+        throw new Error(
+          data?.error ||
+            "Identifiants invalides ou compte inactif. Vérifiez l'email, le numéro (chiffres seuls) et le mot de passe."
+        );
+      }
+    }
     return data;
+  };
+
+  const mergeBootstrapData = (apiData) => {
+    if (Array.isArray(apiData.users) && apiData.users.length > 0) {
+      const users = apiData.users.map((item) => ({
+        id: item.id,
+        fullName: item.full_name || item.fullName || "",
+        username: item.email || item.username || "",
+        phone: item.phone || "",
+        role: item.role || "consultation",
+        isActive: item.is_active !== false,
+        password: ""
+      }));
+      setTeamUsers(users);
+    }
+    if (Array.isArray(apiData.logs)) {
+      const logs = apiData.logs.map((item) => ({
+        id: item.id,
+        timestamp: item.created_at || item.timestamp,
+        actorId: item.actor_user_id || item.actorId || "",
+        actorName: item.actor_name || item.actorName || "Système",
+        actorRole: item.actor_role || item.actorRole || "",
+        action: item.action,
+        scope: item.scope || "general",
+        targetType: item.target_type || item.targetType || "",
+        targetId: item.target_id || item.targetId || "",
+        targetLabel: item.target_label || item.targetLabel || "",
+        details: item.details || ""
+      }));
+      setAuditLogs(logs);
+    }
+    if (Array.isArray(apiData.members)) setMembers(apiData.members);
+    if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
+    if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
+    if (apiData.config) setConfig((prev) => ({ ...DEFAULT_CONFIG, ...prev, ...apiData.config }));
+    if (Array.isArray(apiData.whatsAppLogs)) setWhatsAppLogs(apiData.whatsAppLogs);
   };
 
   const notify = (type, message) => {
@@ -499,42 +545,14 @@ const [storageMode] = useState("online");
           (u) => u && u.fullName && (u.username || u.phone) && u.password
         );
         if (toMigrate.length > 0) {
-          await callManagementApi("migrateUsers", { users: toMigrate });
+          try {
+            await callManagementApi("migrateUsers", { users: toMigrate });
+          } catch (migErr) {
+            console.warn("Migration des comptes locaux ignorée (non bloquant) :", migErr?.message || migErr);
+          }
         }
         const apiData = await callManagementApi("bootstrap", {});
-        if (Array.isArray(apiData.users) && apiData.users.length > 0) {
-          const users = apiData.users.map((item) => ({
-            id: item.id,
-            fullName: item.full_name || item.fullName || "",
-            username: item.email || item.username || "",
-            phone: item.phone || "",
-            role: item.role || "consultation",
-            isActive: item.is_active !== false,
-            password: ""
-          }));
-          setTeamUsers(users);
-        }
-        if (Array.isArray(apiData.logs)) {
-          const logs = apiData.logs.map((item) => ({
-            id: item.id,
-            timestamp: item.created_at || item.timestamp,
-            actorId: item.actor_user_id || item.actorId || "",
-            actorName: item.actor_name || item.actorName || "Système",
-            actorRole: item.actor_role || item.actorRole || "",
-            action: item.action,
-            scope: item.scope || "general",
-            targetType: item.target_type || item.targetType || "",
-            targetId: item.target_id || item.targetId || "",
-            targetLabel: item.target_label || item.targetLabel || "",
-            details: item.details || ""
-          }));
-          setAuditLogs(logs);
-        }
-        if (Array.isArray(apiData.members)) setMembers(apiData.members);
-        if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
-        if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
-        if (apiData.config) setConfig((prev) => ({ ...DEFAULT_CONFIG, ...prev, ...apiData.config }));
-        if (Array.isArray(apiData.whatsAppLogs)) setWhatsAppLogs(apiData.whatsAppLogs);
+        mergeBootstrapData(apiData);
         setLoading(false);
         setManagementBackendReady(true);
         setBackendError("");
@@ -719,40 +737,55 @@ const [storageMode] = useState("online");
 
   const handleAppLogin = async (e) => {
     e.preventDefault();
+    setLoginError("");
     const normalizedIdentifier = loginData.identifier.trim().toLowerCase();
     const normalizedDigits = loginData.identifier.replace(/[^\d]/g, "");
+    const hadBackendSnapshot = managementBackendReady;
     let matchedUser = null;
     let newSessionToken = null;
-    if (managementBackendReady) {
-      try {
-        const result = await callManagementApi("login", {
-          identifier: loginData.identifier,
-          password: loginData.password
-        });
-        newSessionToken = result.sessionToken || null;
-        matchedUser = result.user
-          ? {
-              id: result.user.id,
-              fullName: result.user.full_name || result.user.fullName || "",
-              username: result.user.email || result.user.username || "",
-              phone: result.user.phone || "",
-              role: result.user.role || "consultation",
-              isActive: result.user.is_active !== false
-            }
-          : null;
-      } catch {
-        matchedUser = null;
-      }
+    let loginApiError = "";
+    try {
+      const result = await callManagementApi("login", {
+        identifier: loginData.identifier,
+        password: loginData.password
+      });
+      newSessionToken = result.sessionToken || null;
+      matchedUser = result.user
+        ? {
+            id: result.user.id,
+            fullName: result.user.full_name || result.user.fullName || "",
+            username: result.user.email || result.user.username || "",
+            phone: result.user.phone || "",
+            role: result.user.role || "consultation",
+            isActive: result.user.is_active !== false
+          }
+        : null;
+    } catch (err) {
+      loginApiError = (err && err.message) || String(err);
     }
-    if (!managementBackendReady) matchedUser = null;
     if (!matchedUser) {
-      setLoginError("Identifiants invalides. Utilisez email/téléphone et mot de passe.");
+      if (loginApiError) {
+        if (/Hors connexion|network|Failed to fetch|fetch/i.test(loginApiError)) {
+          setLoginError("Aucune connexion au serveur. Vérifiez le réseau et réessayez.");
+        } else if (
+          /indisponible|503|502|500|non configur|DATABASE|timeout/i.test(loginApiError) ||
+          loginApiError === "Management API indisponible"
+        ) {
+          setLoginError("Le service de connexion ne répond pas. Réessayez dans un instant.");
+        } else {
+          setLoginError(loginApiError);
+        }
+      } else {
+        setLoginError("Réponse inattendue du serveur. Rafraîchissez la page et réessayez.");
+      }
       await writeAuditLog({
         action: "ECHEC_CONNEXION",
         scope: "access",
         targetType: "management_user",
         targetLabel: normalizedIdentifier || normalizedDigits || "N/A",
-        details: "Tentative avec identifiants invalides."
+        details: loginApiError
+          ? `Tentative échouée (${loginApiError}).`
+          : "Tentative avec identifiants invalides."
       });
       return;
     }
@@ -777,6 +810,19 @@ const [storageMode] = useState("online");
       window.localStorage.removeItem(APP_SESSION_KEY);
     }
     setLoginData((prev) => ({ ...prev, password: "" }));
+    if (!hadBackendSnapshot) {
+      try {
+        const apiData = await callManagementApi("bootstrap", {});
+        mergeBootstrapData(apiData);
+        setManagementBackendReady(true);
+        setBackendError("");
+      } catch (hydrateErr) {
+        console.warn("Chargement des données après connexion :", hydrateErr?.message || hydrateErr);
+        setManagementBackendReady(true);
+        setBackendError("Chargement des données incomplet. Rafraîchissez la page (F5) si les listes restent vides.");
+        notify("error", "Session ouverte, mais rechargement des données échoué. Rafraîchissez la page.");
+      }
+    }
     await writeAuditLog({
       action: "CONNEXION",
       scope: "access",

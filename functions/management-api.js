@@ -267,24 +267,71 @@ async function assertFinanceNotLockedForMembers(dbUrl, ctx) {
   return assertFinanceNotLockedForNonAdmin(dbUrl, ctx);
 }
 
+/** Variantes de chiffres pour CI (ex. 0757… vs 225757… vs 757…). */
+function phoneDigitVariants(raw) {
+  const digits = String(raw || "").replace(/\D/g, "");
+  if (!digits) return [];
+  const v = new Set([digits]);
+  if (digits.length === 10 && digits.startsWith("0")) {
+    v.add(digits.slice(1));
+    v.add("225" + digits.slice(1));
+  }
+  if (digits.length === 9) {
+    v.add("0" + digits);
+    v.add("225" + digits);
+  }
+  if (digits.length >= 11 && digits.startsWith("225")) {
+    const rest = digits.slice(3);
+    if (rest.length === 10 && rest.startsWith("0")) {
+      v.add(rest);
+      v.add(rest.slice(1));
+    }
+    if (rest.length === 9) {
+      v.add("0" + rest);
+    }
+  }
+  return [...v];
+}
+
 async function handleLogin(dbUrl, payload) {
-  const identifier = String(payload.identifier || "").trim().toLowerCase();
-  const digits = String(payload.identifier || "").replace(/[^\d]/g, "");
+  const rawId = String(payload.identifier || "").trim();
+  const identifier = rawId.toLowerCase();
   const password = String(payload.password || "");
   if (!identifier || !password) {
     return jsonResponse({ ok: false, error: "Identifiants requis" }, 400);
   }
+  const phoneVariants = phoneDigitVariants(rawId);
+  const phoneClauses =
+    phoneVariants.length > 0
+      ? phoneVariants
+          .map(
+            (_, i) =>
+              `regexp_replace(coalesce(phone, ''), '\\D', '', 'g') = $${i + 2}`
+          )
+          .join(" or ")
+      : "false";
+  const userParams = [identifier, ...phoneVariants];
   const users = await runQuery(
     dbUrl,
     `select id, full_name, email, phone, role, is_active, password_hash
      from public.management_users
-     where (lower(coalesce(email, '')) = $1 or regexp_replace(coalesce(phone, ''), '\D', '', 'g') = $2)
+     where (
+       lower(coalesce(email, '')) = $1
+       or (${phoneClauses})
+     )
      limit 1`,
-    [identifier, digits]
+    userParams
   );
   const user = users[0];
+  const auditLogin = async (data) => {
+    try {
+      await insertAuditLog(dbUrl, data);
+    } catch (e) {
+      console.error("audit_logs (login):", e?.message || e);
+    }
+  };
   if (!user || user.is_active === false) {
-    await insertAuditLog(dbUrl, {
+    await auditLogin({
       actorName: "Anonyme",
       actorRole: "unknown",
       action: "ECHEC_CONNEXION",
@@ -299,7 +346,7 @@ async function handleLogin(dbUrl, payload) {
   const valid =
     user.password_hash === passwordHash || user.password_hash === md5(password) || user.password_hash === password;
   if (!valid) {
-    await insertAuditLog(dbUrl, {
+    await auditLogin({
       actorUserId: user.id,
       actorName: user.full_name || user.email || "Utilisateur",
       actorRole: user.role || "unknown",
@@ -314,7 +361,7 @@ async function handleLogin(dbUrl, payload) {
   }
 
   await runQuery(dbUrl, "update public.management_users set last_login_at = now(), updated_at = now() where id = $1", [user.id]);
-  await insertAuditLog(dbUrl, {
+  await auditLogin({
     actorUserId: user.id,
     actorName: user.full_name || user.email || "Utilisateur",
     actorRole: user.role || "unknown",
