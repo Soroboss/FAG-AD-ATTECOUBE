@@ -69,6 +69,7 @@ const DEFAULT_TEAM_USERS = [
     id: "u-admin",
     fullName: "Administrateur FAG",
     username: "admin@fag.local",
+    phone: "2250700000000",
     password: "FAG2026@admin",
     role: "admin",
     isActive: true
@@ -143,12 +144,13 @@ const App = () => {
   const [isAppAuthenticated, setIsAppAuthenticated] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginData, setLoginData] = useState({ username: "", password: "", remember: true });
+  const [loginData, setLoginData] = useState({ identifier: "", password: "", remember: true });
   const [loginError, setLoginError] = useState("");
   const [teamUsers, setTeamUsers] = useState(DEFAULT_TEAM_USERS);
   const [newTeamUser, setNewTeamUser] = useState({
     fullName: "",
     username: "",
+    phone: "",
     password: "",
     role: "tresorier"
   });
@@ -442,15 +444,17 @@ const App = () => {
 
   const handleAppLogin = (e) => {
     e.preventDefault();
-    const normalizedUsername = loginData.username.trim().toLowerCase();
+    const normalizedIdentifier = loginData.identifier.trim().toLowerCase();
+    const normalizedDigits = loginData.identifier.replace(/[^\d]/g, "");
     const matchedUser = teamUsers.find(
       (item) =>
-        item.username.toLowerCase() === normalizedUsername &&
+        (item.username.toLowerCase() === normalizedIdentifier ||
+          (item.phone && item.phone.replace(/[^\d]/g, "") === normalizedDigits)) &&
         item.password === loginData.password &&
         item.isActive !== false
     );
     if (!matchedUser) {
-      setLoginError("Identifiants invalides. Vérifiez l'email et le mot de passe.");
+      setLoginError("Identifiants invalides. Utilisez email/téléphone et mot de passe.");
       return;
     }
     const safeSession = {
@@ -474,21 +478,26 @@ const App = () => {
   const createTeamUser = (e) => {
     e.preventDefault();
     const normalizedUsername = newTeamUser.username.trim().toLowerCase();
-    if (!newTeamUser.fullName.trim() || !normalizedUsername || !newTeamUser.password) return;
-    if (teamUsers.some((u) => u.username.toLowerCase() === normalizedUsername)) {
-      alert("Un compte existe déjà avec cet email.");
+    const normalizedPhone = newTeamUser.phone.replace(/[^\d]/g, "");
+    if (!newTeamUser.fullName.trim() || (!normalizedUsername && !normalizedPhone) || !newTeamUser.password) return;
+    if (
+      (normalizedUsername && teamUsers.some((u) => u.username.toLowerCase() === normalizedUsername)) ||
+      (normalizedPhone && teamUsers.some((u) => (u.phone || "").replace(/[^\d]/g, "") === normalizedPhone))
+    ) {
+      alert("Un compte existe déjà avec cet email ou ce téléphone.");
       return;
     }
     const createdUser = {
       id: `u-${Date.now()}`,
       fullName: newTeamUser.fullName.trim(),
-      username: normalizedUsername,
+      username: normalizedUsername || `${normalizedPhone}@fag.local`,
+      phone: normalizedPhone,
       password: newTeamUser.password,
       role: newTeamUser.role,
       isActive: true
     };
     setTeamUsers((prev) => [...prev, createdUser]);
-    setNewTeamUser({ fullName: "", username: "", password: "", role: "tresorier" });
+    setNewTeamUser({ fullName: "", username: "", phone: "", password: "", role: "tresorier" });
   };
 
   const toggleTeamUserStatus = (userId) => {
@@ -519,7 +528,7 @@ const App = () => {
     setIsAppAuthenticated(false);
     setSessionUser(null);
     setShowLoginModal(false);
-    setLoginData({ username: "", password: "", remember: true });
+    setLoginData({ identifier: "", password: "", remember: true });
   };
 
   const addMember = async (e) => {
@@ -972,7 +981,7 @@ const App = () => {
         <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-10 md:px-10">
           <header className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-emerald-500 p-3"><Church size={24} /></div>
+              <img src="/logos/logo-ad-att.png" alt="Logo AD Attécoubé" className="h-14 w-14 rounded-2xl object-cover shadow-lg" />
               <div>
                 <h1 className="text-xl font-black uppercase leading-none">FAG {DEFAULT_CONFIG.year}</h1>
                 <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Festival d&apos;Action de Grâce</p>
@@ -987,23 +996,27 @@ const App = () => {
           </header>
 
           <main className="mt-14 grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
-            <section className="rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-7">
+            <section className="relative overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-7">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
               <p className="inline-flex rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
                 Logiciel de trésorerie FAG
               </p>
-              <h2 className="mt-5 text-4xl font-black uppercase leading-tight text-white md:text-5xl">
-                Pilotage professionnel de la levée de fonds de l&apos;église
+              <h2 className="mt-5 text-5xl font-black uppercase leading-tight text-white md:text-6xl">
+                Bienvenue
               </h2>
+              <p className="mt-3 max-w-2xl text-lg font-black uppercase tracking-wider text-emerald-300">
+                Entrez dans la porte de l&apos;action de grâce.
+              </p>
               <p className="mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-slate-300">
-                Suivi en temps réel des engagements, des encaissements, des dépenses, des remises comité et des campagnes WhatsApp.
-                Une solution claire, fraternelle et sécurisée pour la gestion de votre projet FAG.
+                « Entrez dans ses portes avec des louanges, dans ses parvis avec des cantiques ! » (Psaume 100:4).
+                Cette plateforme accompagne votre équipe pour honorer Dieu avec excellence, transparence et amour fraternel.
               </p>
               <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
                 {[
-                  "Tableau de bord temps réel",
-                  "Gestion complète des fidèles",
-                  "Pilotage Banque/Comité",
-                  "Communication WhatsApp personnalisée"
+                  "Suivi en temps réel des engagements",
+                  "Gestion fidèle et transparente de la trésorerie",
+                  "Vision claire pour le comité de pilotage",
+                  "Communication WhatsApp fraternelle et biblique"
                 ].map((item) => (
                   <div key={item} className="rounded-2xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-200">
                     {item}
@@ -1027,6 +1040,9 @@ const App = () => {
             </section>
 
             <section className="rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-5">
+              <div className="mb-4 flex items-center justify-center">
+                <img src="/logos/logo-att.png" alt="Logo ATT ECOUBE" className="h-28 w-28 rounded-2xl object-cover shadow-lg" />
+              </div>
               <h3 className="text-lg font-black uppercase text-white">Accès au logiciel</h3>
               <p className="mt-2 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
                 Authentification comité
@@ -1040,7 +1056,7 @@ const App = () => {
                 </button>
                 <p className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-[11px] font-semibold leading-relaxed text-slate-300">
                   Compte de démonstration local:{" "}
-                  <span className="font-black">{teamUsers[0]?.username || "admin@fag.local"}</span> /{" "}
+                  <span className="font-black">{teamUsers[0]?.phone || teamUsers[0]?.username || "2250700000000"}</span> /{" "}
                   <span className="font-black">{teamUsers[0]?.password || "FAG2026@admin"}</span>
                 </p>
               </div>
@@ -1056,14 +1072,14 @@ const App = () => {
                 <X />
               </button>
               <h3 className="text-2xl font-black uppercase text-white">Connexion</h3>
-              <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Comité FAG</p>
+              <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Membre équipe de gestion FAG</p>
               <input
-                type="email"
+                type="text"
                 required
-                placeholder="Email"
+                placeholder="Numéro de téléphone ou email"
                 className="mt-5 w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 font-bold text-white outline-none focus:border-emerald-500"
-                value={loginData.username}
-                onChange={(e) => setLoginData((prev) => ({ ...prev, username: e.target.value }))}
+                value={loginData.identifier}
+                onChange={(e) => setLoginData((prev) => ({ ...prev, identifier: e.target.value }))}
               />
               <input
                 type="password"
@@ -1101,7 +1117,7 @@ const App = () => {
       <div className="min-h-screen md:flex">
         <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
           <div className="flex items-center gap-2">
-            <div className="rounded-xl bg-emerald-500 p-2 text-white"><Church size={16} /></div>
+            <img src="/logos/logo-ad-att.png" alt="Logo AD" className="h-9 w-9 rounded-xl object-cover" />
             <div>
               <p className="text-sm font-black uppercase leading-none text-slate-900">FAG {config.year}</p>
               <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Trésorerie</p>
@@ -1124,7 +1140,7 @@ const App = () => {
           }`}
         >
           <div className="mb-8 flex items-center gap-3">
-            <div className="rounded-2xl bg-emerald-500 p-3 shadow-lg"><Church size={24} /></div>
+            <img src="/logos/logo-att.png" alt="Logo ATT" className="h-14 w-14 rounded-2xl object-cover shadow-lg" />
             <div>
               <h1 className="text-lg font-black uppercase leading-none">FAG {config.year}</h1>
               <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">Festival d&apos;Action de Grâce</p>
@@ -2185,7 +2201,7 @@ const App = () => {
                       </p>
                     ) : (
                       <>
-                        <form onSubmit={createTeamUser} className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-4">
+                        <form onSubmit={createTeamUser} className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-5">
                           <input
                             required
                             placeholder="Nom complet"
@@ -2194,12 +2210,17 @@ const App = () => {
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
                           />
                           <input
-                            required
                             type="email"
-                            placeholder="Email connexion"
+                            placeholder="Email connexion (optionnel)"
                             className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.username}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, username: e.target.value }))}
+                          />
+                          <input
+                            placeholder="Téléphone connexion (optionnel)"
+                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            value={newTeamUser.phone}
+                            onChange={(e) => setNewTeamUser((prev) => ({ ...prev, phone: e.target.value }))}
                           />
                           <input
                             required
@@ -2247,6 +2268,7 @@ const App = () => {
                                   <td className="px-4 py-3">
                                     <p className="font-black uppercase text-slate-900">{u.fullName}</p>
                                     <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{u.username}</p>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{u.phone || "Téléphone non défini"}</p>
                                   </td>
                                   <td className="px-4 py-3">
                                     <select
