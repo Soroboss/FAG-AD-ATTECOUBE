@@ -64,7 +64,10 @@ export default async function handler(req) {
         return jsonResponse({ ok: false, error: "Identifiants invalides" }, 401);
       }
       const passwordHash = sha256(password);
-      const valid = user.password_hash === passwordHash || user.password_hash === password;
+      const valid =
+        user.password_hash === passwordHash ||
+        user.password_hash === md5(password) ||
+        user.password_hash === password;
       if (!valid) {
         await insertAuditLog(dbUrl, {
           actorUserId: user.id,
@@ -126,6 +129,37 @@ export default async function handler(req) {
         [fullName, email, phone, sha256(password), role]
       );
       return jsonResponse({ ok: true, user: inserted[0] }, 200);
+    }
+
+    if (action === "migrateUsers") {
+      const users = Array.isArray(payload.users) ? payload.users : [];
+      let migrated = 0;
+      for (const item of users) {
+        const fullName = String(item.fullName || "").trim();
+        const email = nullableEmail(item.username || item.email);
+        const phone = nullablePhone(item.phone);
+        const role = normalizeRole(item.role);
+        const password = String(item.password || "");
+        if (!fullName || (!email && !phone) || !password) continue;
+        const existing = await runQuery(
+          dbUrl,
+          `select id from public.management_users
+           where (coalesce(email, '') = coalesce($1, '') and $1 is not null)
+              or (coalesce(phone, '') = coalesce($2, '') and $2 is not null)
+           limit 1`,
+          [email, phone]
+        );
+        if (existing.length > 0) continue;
+        await runQuery(
+          dbUrl,
+          `insert into public.management_users
+            (full_name, email, phone, password_hash, role, is_active)
+           values ($1, $2, $3, $4, $5, $6)`,
+          [fullName, email, phone, sha256(password), role, item.isActive !== false]
+        );
+        migrated += 1;
+      }
+      return jsonResponse({ ok: true, migrated }, 200);
     }
 
     if (action === "updateUser") {
@@ -195,9 +229,14 @@ export default async function handler(req) {
 }
 
 async function runQuery(dbUrl, query, params) {
-  const res = await fetch(`${dbUrl}/rpc/query`, {
+  const apiKey = process.env.API_KEY;
+  const res = await fetch(`${dbUrl}/api/database/advance/rawsql`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      apikey: apiKey
+    },
     body: JSON.stringify({ query, params })
   });
   if (!res.ok) {
@@ -262,6 +301,10 @@ function normalizeRole(input) {
 
 function sha256(value) {
   return crypto.createHash("sha256").update(String(value || "")).digest("hex");
+}
+
+function md5(value) {
+  return crypto.createHash("md5").update(String(value || "")).digest("hex");
 }
 
 function jsonResponse(body, status = 200) {

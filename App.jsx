@@ -363,6 +363,21 @@ const App = () => {
   useEffect(() => {
     const syncManagementBackend = async () => {
       try {
+        const localUsers = (() => {
+          try {
+            const raw = window.localStorage.getItem(LOCAL_TEAM_USERS_KEY);
+            const parsed = JSON.parse(raw || "[]");
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })();
+        const toMigrate = localUsers.filter(
+          (u) => u && u.fullName && (u.username || u.phone) && u.password
+        );
+        if (toMigrate.length > 0) {
+          await callManagementApi("migrateUsers", { users: toMigrate });
+        }
         const apiData = await callManagementApi("bootstrap", {});
         if (Array.isArray(apiData.users) && apiData.users.length > 0) {
           const users = apiData.users.map((item) => ({

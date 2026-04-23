@@ -77,7 +77,9 @@ export default async function handler(req) {
 
 async function logMessage(entry) {
   const dbUrl = process.env.DATABASE_URL || process.env.INSFORGE_BASE_URL;
+  const apiKey = process.env.API_KEY;
   if (!dbUrl) return;
+  if (!apiKey) return;
 
   try {
     const sql = `
@@ -99,9 +101,13 @@ async function logMessage(entry) {
       ]
     };
 
-    await fetch(`${dbUrl}/rpc/query`, {
+    await fetch(`${dbUrl}/api/database/advance/rawsql`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        apikey: apiKey
+      },
       body: JSON.stringify(payload)
     });
   } catch {
