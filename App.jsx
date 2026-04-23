@@ -8,7 +8,6 @@ import {
   BellRing,
   Building2,
   CheckCircle,
-  Church,
   Clock,
   Coins,
   DollarSign,
@@ -998,6 +997,8 @@ const App = () => {
           <main className="mt-14 grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
             <section className="relative overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-7">
               <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-700/40 bg-gradient-to-r from-slate-950 to-slate-900/40" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-700/40 bg-gradient-to-l from-slate-950 to-slate-900/40" />
               <p className="inline-flex rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
                 Logiciel de trésorerie FAG
               </p>
@@ -1037,6 +1038,16 @@ const App = () => {
                   <p className="mt-2 text-xl font-black text-blue-400">Cloud/Comité</p>
                 </div>
               </div>
+              <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+                {[
+                  "« Dieu aime celui qui donne avec joie. » - 2 Cor 9:7",
+                  "« Ne nous lassons pas de faire le bien. » - Gal 6:9"
+                ].map((quote) => (
+                  <div key={quote} className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[11px] font-bold text-emerald-100">
+                    {quote}
+                  </div>
+                ))}
+              </div>
             </section>
 
             <section className="rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-5">
@@ -1055,9 +1066,13 @@ const App = () => {
                   Ouvrir le formulaire de connexion
                 </button>
                 <p className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-[11px] font-semibold leading-relaxed text-slate-300">
-                  Compte de démonstration local:{" "}
-                  <span className="font-black">{teamUsers[0]?.phone || teamUsers[0]?.username || "2250700000000"}</span> /{" "}
+                  Compte de démonstration local (téléphone ou email):{" "}
+                  <span className="font-black">{teamUsers[0]?.phone || "2250700000000"}</span> ou{" "}
+                  <span className="font-black">{teamUsers[0]?.username || "admin@fag.local"}</span> /{" "}
                   <span className="font-black">{teamUsers[0]?.password || "FAG2026@admin"}</span>
+                </p>
+                <p className="rounded-2xl border border-blue-700/40 bg-blue-900/20 p-4 text-[11px] font-semibold leading-relaxed text-slate-200">
+                  Bienvenue dans l&apos;espace de pilotage FAG. Ici, chaque contribution est suivie avec rigueur et gratitude pour la gloire de Dieu.
                 </p>
               </div>
             </section>
