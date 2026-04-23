@@ -20,7 +20,16 @@ import {
   ShoppingBag,
   Trash2,
   Wallet,
-  X
+  X,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Sparkles,
+  Users,
+  Receipt,
+  Landmark,
+  HandCoins,
+  PiggyBank
 } from "lucide-react";
 
 const firebaseRawConfig =
@@ -111,24 +120,41 @@ function CircularProgress({ value }) {
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference - (clamped / 100) * circumference;
+  const stroke = clamped >= 75 ? "url(#gradEmerald)" : clamped >= 40 ? "url(#gradBlue)" : "url(#gradOrange)";
 
   return (
-    <div className="relative h-44 w-44">
-      <svg className="h-44 w-44 -rotate-90" viewBox="0 0 180 180">
-        <circle cx="90" cy="90" r={radius} className="fill-none stroke-slate-100" strokeWidth="16" />
+    <div className="relative h-48 w-48">
+      <svg className="h-48 w-48 -rotate-90" viewBox="0 0 180 180">
+        <defs>
+          <linearGradient id="gradEmerald" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#34d399" />
+            <stop offset="100%" stopColor="#059669" />
+          </linearGradient>
+          <linearGradient id="gradBlue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#60a5fa" />
+            <stop offset="100%" stopColor="#2563eb" />
+          </linearGradient>
+          <linearGradient id="gradOrange" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#fb923c" />
+            <stop offset="100%" stopColor="#ea580c" />
+          </linearGradient>
+        </defs>
+        <circle cx="90" cy="90" r={radius} className="fill-none stroke-slate-100" strokeWidth="18" />
         <circle
           cx="90"
           cy="90"
           r={radius}
-          className="fill-none stroke-emerald-500 transition-all duration-700"
-          strokeWidth="16"
+          fill="none"
+          stroke={stroke}
+          strokeWidth="18"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
+          style={{ transition: "stroke-dashoffset 900ms ease-out" }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-black leading-none text-slate-900">{clamped.toFixed(1)}%</span>
+        <span className="text-4xl font-black leading-none text-slate-900">{clamped.toFixed(1)}%</span>
         <span className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Objectif global</span>
       </div>
     </div>
@@ -1123,12 +1149,12 @@ const App = () => {
                 >
                   Ouvrir le formulaire de connexion
                 </button>
-                <p className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-[11px] font-semibold leading-relaxed text-slate-300">
-                  Compte de démonstration local (téléphone ou email):{" "}
-                  <span className="font-black">{teamUsers[0]?.phone || "2250700000000"}</span> ou{" "}
-                  <span className="font-black">{teamUsers[0]?.username || "admin@fag.local"}</span> /{" "}
-                  <span className="font-black">{teamUsers[0]?.password || "FAG2026@admin"}</span>
-                </p>
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Accès sécurisé</p>
+                  <p className="mt-2 text-[11px] font-semibold leading-relaxed text-emerald-50">
+                    Utilisez votre numéro de téléphone ou votre email professionnel et votre mot de passe fournis par l&apos;administrateur du comité FAG.
+                  </p>
+                </div>
                 <p className="rounded-2xl border border-blue-700/40 bg-blue-900/20 p-4 text-[11px] font-semibold leading-relaxed text-slate-200">
                   Bienvenue dans l&apos;espace de pilotage FAG. Ici, chaque contribution est suivie avec rigueur et gratitude pour la gloire de Dieu.
                 </p>
@@ -1208,21 +1234,23 @@ const App = () => {
         {isMobileMenuOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-slate-900 p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 ${
+          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="mb-8 flex items-center gap-3">
-            <img src="/logos/logo-att.png" alt="Logo ATT" className="h-14 w-14 rounded-2xl object-cover shadow-lg" />
+          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="relative mb-8 flex items-center gap-3">
+            <img src="/logos/logo-att.png" alt="Logo ATT" className="h-14 w-14 rounded-2xl object-cover shadow-lg ring-1 ring-emerald-400/20" />
             <div>
-              <h1 className="text-lg font-black uppercase leading-none">FAG {config.year}</h1>
-              <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">Festival d&apos;Action de Grâce</p>
+              <h1 className="text-lg font-black uppercase leading-none tracking-wide">FAG {config.year}</h1>
+              <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-400">Action de Grâce</p>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="ml-auto rounded-xl border border-slate-700 p-2 text-slate-300 md:hidden" aria-label="Fermer le menu">
               <X size={16} />
             </button>
           </div>
-          <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
+          <nav className="relative flex-1 space-y-1.5 overflow-y-auto pr-1">
             {[
               ["dashboard", "Dashboard", LayoutDashboard],
               ["members", "Fidèles", Wallet],
@@ -1232,25 +1260,34 @@ const App = () => {
               ["settings", "Configuration", SettingsIcon]
             ]
               .filter(([id]) => accessibleTabs.includes(id))
-              .map(([id, label, Icon]) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setActiveTab(id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition ${
-                  activeTab === id ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-800"
-                }`}
-              >
-                <Icon size={16} />
-                {label}
-              </button>
-            ))}
+              .map(([id, label, Icon]) => {
+                const isActive = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => {
+                      setActiveTab(id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition ${
+                      isActive
+                        ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/40"
+                        : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                    }`}
+                  >
+                    {isActive && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-white/80" />}
+                    <Icon size={16} className={isActive ? "text-white" : "text-emerald-400"} />
+                    <span className="flex-1 text-left">{label}</span>
+                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  </button>
+                );
+              })}
           </nav>
-          <div className="mt-6 rounded-[2.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">
+          <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent p-5">
+            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-emerald-400/20 blur-2xl" />
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Caisse réelle</p>
             <p className="mt-2 text-2xl font-black text-white">{money(stats.cashInHand)}</p>
+            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300/80">à sécuriser</p>
           </div>
           <div className="mt-4 border-t border-slate-800 pt-4">
             {sessionUser && (
@@ -1268,43 +1305,59 @@ const App = () => {
         </aside>
 
         <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
-          <header className="sticky top-0 z-30 mb-6 flex flex-col gap-4 bg-slate-50/95 pb-4 pt-1 backdrop-blur md:mb-8 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 md:text-3xl">
-                {activeTab === "dashboard" && "Cockpit de Pilotage"}
-                {activeTab === "members" && "Gestion des Fidèles"}
-                {activeTab === "expenses" && "Gestion des Dépenses"}
-                {activeTab === "deposits" && "Suivi Comité et Banque"}
-                {activeTab === "marketing" && "Communication Marketing"}
-                {activeTab === "settings" && "Configuration FAG"}
-              </h2>
-              <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
-                Trésorerie cloud synchronisée temps réel
-              </p>
-              <p className={`mt-3 inline-flex rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${storageMode === "local" ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"}`}>
-                {storageMode === "local" ? "Mode local actif" : "Mode cloud actif"}
+          <header className="sticky top-0 z-30 mb-6 flex flex-col gap-4 bg-gradient-to-b from-slate-50 via-slate-50/95 to-slate-50/70 pb-4 pt-1 backdrop-blur md:mb-8 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 md:text-3xl">
+                  {activeTab === "dashboard" && "Cockpit de Pilotage"}
+                  {activeTab === "members" && "Gestion des Fidèles"}
+                  {activeTab === "expenses" && "Gestion des Dépenses"}
+                  {activeTab === "deposits" && "Suivi Comité et Banque"}
+                  {activeTab === "marketing" && "Communication Marketing"}
+                  {activeTab === "settings" && "Configuration FAG"}
+                </h2>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${storageMode === "local" ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"}`}>
+                  <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${storageMode === "local" ? "bg-purple-500" : "bg-emerald-500"}`} />
+                  {storageMode === "local" ? "Mode local" : "Mode cloud"}
+                </span>
+              </div>
+              <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
+                Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   onClick={forceLocalMode}
-                  className="rounded-xl border border-purple-200 bg-purple-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-purple-700"
+                  className="rounded-xl border border-purple-200 bg-purple-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-purple-700 transition hover:bg-purple-100"
                 >
                   Forcer local
                 </button>
                 <button
                   onClick={seedLocalDemoData}
-                  className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-blue-700"
+                  className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-blue-700 transition hover:bg-blue-100"
                 >
                   Charger données test
                 </button>
                 <button
                   onClick={resetLocalData}
-                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-red-700"
+                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-red-700 transition hover:bg-red-100"
                 >
                   Vider données locales
                 </button>
               </div>
             </div>
+            {activeTab === "dashboard" && (
+              <div className="hidden shrink-0 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm md:flex md:items-center md:gap-4">
+                <div className="text-right">
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Progression</p>
+                  <p className="text-xl font-black text-emerald-600">{stats.progression.toFixed(1)}%</p>
+                </div>
+                <div className="h-10 w-px bg-slate-200" />
+                <div className="text-right">
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Fidèles</p>
+                  <p className="text-xl font-black text-slate-900">{members.length}</p>
+                </div>
+              </div>
+            )}
           </header>
 
           {loading ? (
@@ -1316,32 +1369,84 @@ const App = () => {
             <>
               {activeTab === "dashboard" && (
                 <div className="space-y-8">
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-6">
-                    <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Total encaissé</p>
-                      <p className="mt-3 text-3xl font-black text-emerald-600">{money(stats.totalCollected)}</p>
-                    </div>
-                    <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Dépenses validées</p>
-                      <p className="mt-3 text-3xl font-black text-red-600">{money(stats.totalExpenses)}</p>
-                    </div>
-                    <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Versements comité</p>
-                      <p className="mt-3 text-3xl font-black text-blue-600">{money(stats.totalHandedOver)}</p>
-                    </div>
-                    <div className="rounded-[2.5rem] bg-slate-900 p-6 shadow-xl">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Cash en main</p>
-                      <p className="mt-3 text-3xl font-black text-emerald-400">{money(stats.cashInHand)}</p>
-                    </div>
-                    <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Taux de recouvrement</p>
-                      <p className={`mt-3 text-3xl font-black ${stats.recoveryRate >= 60 ? "text-emerald-600" : "text-orange-500"}`}>
-                        {stats.recoveryRate.toFixed(1)}%
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+                    <div className="group relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><HandCoins size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Total encaissé</p>
+                      </div>
+                      <p className="mt-4 text-[28px] font-black leading-none text-emerald-600">{money(stats.totalCollected)}</p>
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
+                        {stats.progression.toFixed(1)}% de l&apos;objectif
                       </p>
                     </div>
-                    <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Reste à mobiliser</p>
-                      <p className="mt-3 text-3xl font-black text-slate-800">{money(stats.remainingGoal)}</p>
+
+                    <div className="group relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><Receipt size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Dépenses validées</p>
+                      </div>
+                      <p className="mt-4 text-[28px] font-black leading-none text-red-600">{money(stats.totalExpenses)}</p>
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-red-500/80">
+                        {stats.totalCollected > 0 ? ((stats.totalExpenses / stats.totalCollected) * 100).toFixed(1) : "0.0"}% du collecté
+                      </p>
+                    </div>
+
+                    <div className="group relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Landmark size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Versements comité</p>
+                      </div>
+                      <p className="mt-4 text-[28px] font-black leading-none text-blue-600">{money(stats.totalHandedOver)}</p>
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-500/80">Banque & comité FAG</p>
+                    </div>
+
+                    <div className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-6 text-white shadow-2xl transition hover:-translate-y-1 hover:shadow-emerald-900/40">
+                      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-400/20 blur-3xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-emerald-400/20 p-2.5 text-emerald-300"><PiggyBank size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Cash en main</p>
+                      </div>
+                      <p className="mt-4 text-[30px] font-black leading-none text-emerald-300">{money(stats.cashInHand)}</p>
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80">À déposer / sécuriser</p>
+                    </div>
+
+                    <div className={`group relative overflow-hidden rounded-[2rem] border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${stats.recoveryRate >= 60 ? "border-emerald-100 bg-gradient-to-br from-emerald-50 to-white" : "border-orange-100 bg-gradient-to-br from-orange-50 to-white"}`}>
+                      <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${stats.recoveryRate >= 60 ? "bg-emerald-400/10" : "bg-orange-400/10"}`} />
+                      <div className="flex items-center gap-3">
+                        <div className={`rounded-2xl p-2.5 ${stats.recoveryRate >= 60 ? "bg-emerald-500/15 text-emerald-600" : "bg-orange-500/15 text-orange-600"}`}>
+                          <Target size={20} />
+                        </div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Taux recouvrement</p>
+                      </div>
+                      <p className={`mt-4 text-[28px] font-black leading-none ${stats.recoveryRate >= 60 ? "text-emerald-600" : "text-orange-600"}`}>
+                        {stats.recoveryRate.toFixed(1)}%
+                      </p>
+                      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-700 ${stats.recoveryRate >= 60 ? "bg-emerald-500" : "bg-orange-500"}`}
+                          style={{ width: `${Math.min(100, stats.recoveryRate)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-slate-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-slate-900/90 p-2.5 text-white"><Sparkles size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Reste à mobiliser</p>
+                      </div>
+                      <p className="mt-4 text-[28px] font-black leading-none text-slate-900">{money(stats.remainingGoal)}</p>
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                        {stats.monthlyGrowth >= 0 ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-600"><TrendingUp size={12} /> +{stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-red-600"><TrendingDown size={12} /> {stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
+                        )}
+                      </p>
                     </div>
                   </div>
 
@@ -1616,22 +1721,38 @@ const App = () => {
 
               {activeTab === "members" && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Fidèles enregistrés</p>
-                      <p className="mt-2 text-2xl font-black text-slate-900">{members.length}</p>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="group relative overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><Users size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Fidèles enregistrés</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-slate-900">{members.length}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Engagements soldés</p>
-                      <p className="mt-2 text-2xl font-black text-emerald-600">{memberInsights.completed}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Engagements soldés</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-emerald-600">{memberInsights.completed}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Reliquats actifs</p>
-                      <p className="mt-2 text-2xl font-black text-orange-500">{memberInsights.pending}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Clock size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Reliquats actifs</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-orange-600">{memberInsights.pending}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Meilleur contributeur</p>
-                      <p className="mt-2 text-sm font-black uppercase text-slate-900">{memberInsights.topContributorName}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Sparkles size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Meilleur contributeur</p>
+                      </div>
+                      <p className="mt-3 text-base font-black uppercase text-slate-900">{memberInsights.topContributorName}</p>
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{money(memberInsights.topContributorAmount)}</p>
                     </div>
                   </div>
@@ -1777,24 +1898,40 @@ const App = () => {
 
               {activeTab === "expenses" && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Total dépenses</p>
-                      <p className="mt-2 text-2xl font-black text-red-600">{money(stats.totalExpenses)}</p>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><Receipt size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Total dépenses</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-red-600">{money(stats.totalExpenses)}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Dépenses filtrées</p>
-                      <p className="mt-2 text-2xl font-black text-slate-900">
+                    <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><BarChart3 size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Dépenses filtrées</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-slate-900">
                         {money(filteredExpenses.reduce((sum, e) => sum + toNumber(e.amount), 0))}
                       </p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Nombre d&apos;opérations</p>
-                      <p className="mt-2 text-2xl font-black text-slate-900">{filteredExpenses.length}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Activity size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Opérations</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-slate-900">{filteredExpenses.length}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Ticket moyen</p>
-                      <p className="mt-2 text-2xl font-black text-slate-900">
+                    <div className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Coins size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Ticket moyen</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-slate-900">
                         {money(
                           filteredExpenses.length > 0
                             ? filteredExpenses.reduce((sum, e) => sum + toNumber(e.amount), 0) / filteredExpenses.length
@@ -1906,22 +2043,38 @@ const App = () => {
 
               {activeTab === "deposits" && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Caisse réelle à remettre</p>
-                      <p className="mt-2 text-2xl font-black text-slate-900">{money(stats.cashInHand)}</p>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-5 text-white shadow-xl transition hover:-translate-y-1">
+                      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-emerald-400/20 p-2.5 text-emerald-300"><PiggyBank size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Caisse à remettre</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-emerald-300">{money(stats.cashInHand)}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Remises avec bordereau</p>
-                      <p className="mt-2 text-2xl font-black text-emerald-600">{depositInsights.withRef}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Avec bordereau</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-emerald-600">{depositInsights.withRef}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Bordereaux manquants</p>
-                      <p className="mt-2 text-2xl font-black text-red-600">{depositInsights.missingRef}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><BellRing size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Bordereaux manquants</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-red-600">{depositInsights.missingRef}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Montant filtré</p>
-                      <p className="mt-2 text-2xl font-black text-blue-600">{money(depositInsights.totalFiltered)}</p>
+                    <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Landmark size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Montant filtré</p>
+                      </div>
+                      <p className="mt-3 text-3xl font-black text-blue-600">{money(depositInsights.totalFiltered)}</p>
                     </div>
                   </div>
 
