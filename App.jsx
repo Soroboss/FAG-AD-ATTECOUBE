@@ -87,7 +87,7 @@ const DEFAULT_TEAM_USERS = [
   }
 ];
 const ROLE_OPTIONS = [
-  { id: "admin", label: "Administrateur", description: "Accès complet à tous les modules" },
+  { id: "admin", label: "Super Admin", description: "Accès complet à tous les modules" },
   { id: "tresorier", label: "Trésorier", description: "Fidèles, dépenses, banque/comité, dashboard" },
   { id: "communication", label: "Communication", description: "Dashboard + communication + lecture fidèles" },
   { id: "consultation", label: "Consultation", description: "Lecture tableau de bord uniquement" }
