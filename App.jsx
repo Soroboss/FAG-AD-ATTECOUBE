@@ -237,6 +237,7 @@ const [storageMode] = useState("online");
   const [editingTeamUser, setEditingTeamUser] = useState(null);
   const [managementBackendReady, setManagementBackendReady] = useState(false);
   const [backendError, setBackendError] = useState("");
+  const [flashMessage, setFlashMessage] = useState(null);
 
   const [members, setMembers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -322,6 +323,11 @@ const [storageMode] = useState("online");
       throw new Error(data?.error || "Management API indisponible");
     }
     return data;
+  };
+
+  const notify = (type, message) => {
+    setFlashMessage({ type, message });
+    window.setTimeout(() => setFlashMessage(null), 2800);
   };
 
   useEffect(() => {
@@ -670,7 +676,7 @@ const [storageMode] = useState("online");
       return;
     }
     if (!managementBackendReady) {
-      alert("Serveur de données indisponible. Création impossible.");
+      notify("error", "Serveur de données indisponible. Création impossible.");
       return;
     }
     let createdUser = {
@@ -702,6 +708,7 @@ const [storageMode] = useState("online");
     }
     setTeamUsers((prev) => [...prev, createdUser]);
     setNewTeamUser({ fullName: "", username: "", phone: "", password: "", role: "tresorier" });
+    notify("success", "Compte de gestion créé avec succès.");
     await writeAuditLog({
       action: "CREATION_COMPTE_GESTION",
       scope: "users",
@@ -839,7 +846,7 @@ const [storageMode] = useState("online");
   const addMember = async (e) => {
     e.preventDefault();
     if (!newMember.name || !newMember.whatsapp) {
-      alert("Veuillez renseigner le nom et le téléphone du fidèle.");
+      notify("error", "Veuillez renseigner le nom et le téléphone du fidèle.");
       return;
     }
     const preparedMember = {
@@ -857,11 +864,12 @@ const [storageMode] = useState("online");
           setMembers((prev) => [...prev, { ...cloudMember, id: result.id }]);
           setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
           setIsMemberModalOpen(false);
+          notify("success", "Fidèle créé avec succès.");
         } else {
           throw new Error("Création refusée par le serveur.");
         }
       } catch (error) {
-        alert(`Création impossible pour le moment. ${error?.message || ""}`.trim());
+        notify("error", `Création impossible. ${error?.message || ""}`.trim());
         return;
       }
       await writeAuditLog({
@@ -935,6 +943,7 @@ const [storageMode] = useState("online");
         targetLabel: selectedMember.name,
         details: `${money(payment.amount)} via ${payment.method}.`
       });
+      notify("success", "Paiement enregistré avec succès.");
       return;
     }
     if (storageMode === "local") {
@@ -997,6 +1006,7 @@ const [storageMode] = useState("online");
         targetLabel: optimistic.description,
         details: `${money(optimistic.amount)} (${optimistic.category}).`
       });
+      notify("success", "Dépense enregistrée avec succès.");
       return;
     }
     e.preventDefault();
@@ -1060,6 +1070,7 @@ const [storageMode] = useState("online");
         targetLabel: optimistic.recipient,
         details: `${money(optimistic.amount)}${optimistic.bordereauRef ? `, bordereau ${optimistic.bordereauRef}` : ""}.`
       });
+      notify("success", "Remise enregistrée avec succès.");
       return;
     }
     e.preventDefault();
@@ -3237,6 +3248,20 @@ const [storageMode] = useState("online");
           )}
         </main>
       </div>
+
+      {flashMessage && (
+        <div className="fixed right-4 top-4 z-[70]">
+          <div
+            className={`rounded-2xl border px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest shadow-xl ${
+              flashMessage.type === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border-red-200 bg-red-50 text-red-700"
+            }`}
+          >
+            {flashMessage.message}
+          </div>
+        </div>
+      )}
 
       {editingTeamUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
