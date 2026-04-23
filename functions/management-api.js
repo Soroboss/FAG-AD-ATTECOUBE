@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 
 export default async function handler(req) {
+  if (req.method === "OPTIONS") {
+    return corsResponse(204);
+  }
   if (req.method !== "POST") {
     return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
   }
@@ -520,7 +523,23 @@ function md5(value) {
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" }
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey"
+    }
+  });
+}
+
+function corsResponse(status = 204) {
+  return new Response(null, {
+    status,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey"
+    }
   });
 }
 
