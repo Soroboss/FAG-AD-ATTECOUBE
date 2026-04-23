@@ -837,18 +837,32 @@ const [storageMode] = useState("online");
   };
 
   const addMember = async (e) => {
+    e.preventDefault();
+    if (!newMember.name || !newMember.whatsapp) {
+      alert("Veuillez renseigner le nom et le téléphone du fidèle.");
+      return;
+    }
+    const preparedMember = {
+      ...newMember,
+      churchFunction:
+        newMember.churchFunctionType === "__other__"
+          ? newMember.churchFunction
+          : newMember.churchFunctionType || newMember.churchFunction
+    };
     if (managementBackendReady) {
-      const cloudMember = { ...preparedMember, id: Date.now().toString(), dateJoined: new Date().toISOString(), payments: [] };
-      setMembers((prev) => [...prev, cloudMember]);
-      setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
-      setIsMemberModalOpen(false);
+      const cloudMember = { ...preparedMember, dateJoined: new Date().toISOString(), payments: [] };
       try {
         const result = await callManagementApi("addMember", { member: cloudMember });
         if (result?.id) {
-          setMembers((prev) => prev.map((m) => (m.id === cloudMember.id ? { ...m, id: result.id } : m)));
+          setMembers((prev) => [...prev, { ...cloudMember, id: result.id }]);
+          setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
+          setIsMemberModalOpen(false);
+        } else {
+          throw new Error("Création refusée par le serveur.");
         }
-      } catch {
-        // keep optimistic state
+      } catch (error) {
+        alert(`Création impossible pour le moment. ${error?.message || ""}`.trim());
+        return;
       }
       await writeAuditLog({
         action: "CREATION_FIDELE",
@@ -859,15 +873,6 @@ const [storageMode] = useState("online");
       });
       return;
     }
-    e.preventDefault();
-    if (!newMember.name || !newMember.whatsapp) return;
-    const preparedMember = {
-      ...newMember,
-      churchFunction:
-        newMember.churchFunctionType === "__other__"
-          ? newMember.churchFunction
-          : newMember.churchFunctionType || newMember.churchFunction
-    };
     if (storageMode === "local") {
       const localMember = { ...preparedMember, id: Date.now().toString(), dateJoined: new Date().toISOString(), payments: [] };
       setMembers((prev) => [...prev, localMember]);
@@ -900,6 +905,15 @@ const [storageMode] = useState("online");
   };
 
   const handlePayment = async (e) => {
+    e.preventDefault();
+    if (!selectedMember || !paymentData.amount) return;
+    const payment = {
+      id: Date.now().toString(),
+      amount: toNumber(paymentData.amount),
+      method: paymentData.method,
+      date: paymentData.date,
+      timestamp: new Date().toISOString()
+    };
     if (managementBackendReady) {
       const updatedPayments = [...(selectedMember.payments || []), payment];
       setMembers((prev) =>
@@ -923,15 +937,6 @@ const [storageMode] = useState("online");
       });
       return;
     }
-    e.preventDefault();
-    if (!selectedMember || !paymentData.amount) return;
-    const payment = {
-      id: Date.now().toString(),
-      amount: toNumber(paymentData.amount),
-      method: paymentData.method,
-      date: paymentData.date,
-      timestamp: new Date().toISOString()
-    };
     if (storageMode === "local") {
       setMembers((prev) =>
         prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: [...(m.payments || []), payment] } : m))
