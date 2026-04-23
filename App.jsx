@@ -217,7 +217,7 @@ const App = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [storageMode] = useState("insforge");
+const [storageMode] = useState("online");
   const [isAppAuthenticated, setIsAppAuthenticated] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -418,7 +418,7 @@ const App = () => {
       } catch (error) {
         console.warn("Management backend offline, using local fallback:", error?.message || error);
         setManagementBackendReady(false);
-        setBackendError("Connexion InsForge indisponible. Vérifiez le backend.");
+        setBackendError("Connexion au serveur indisponible. Vérifiez le réseau.");
         setLoading(false);
       }
     };
@@ -444,7 +444,7 @@ const App = () => {
     window.localStorage.setItem(LOCAL_AUDIT_LOGS_KEY, JSON.stringify(auditLogs));
   }, [auditLogs]);
 
-  // Donnees metier gerees uniquement par InsForge management-api.
+  // Donnees metier gerees uniquement par le backend principal.
 
   useEffect(() => {
     if (storageMode !== "local") return;
@@ -547,7 +547,7 @@ const App = () => {
 
   const saveConfig = async (next) => {
     if (!managementBackendReady) {
-      alert("Base InsForge indisponible. Modification non enregistrée.");
+      alert("Serveur de données indisponible. Modification non enregistrée.");
       return;
     }
     setConfig(next);
@@ -670,7 +670,7 @@ const App = () => {
       return;
     }
     if (!managementBackendReady) {
-      alert("Base InsForge indisponible. Création impossible.");
+      alert("Serveur de données indisponible. Création impossible.");
       return;
     }
     let createdUser = {
@@ -715,7 +715,7 @@ const App = () => {
   const toggleTeamUserStatus = async (userId) => {
     const target = teamUsers.find((u) => u.id === userId);
     const nextStatus = !(target?.isActive !== false);
-    if (!managementBackendReady) return alert("Base InsForge indisponible.");
+    if (!managementBackendReady) return alert("Serveur de données indisponible.");
     await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
     setTeamUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, isActive: nextStatus } : u))
@@ -732,7 +732,7 @@ const App = () => {
 
   const updateTeamUserRole = async (userId, role) => {
     const target = teamUsers.find((u) => u.id === userId);
-    if (!managementBackendReady) return alert("Base InsForge indisponible.");
+    if (!managementBackendReady) return alert("Serveur de données indisponible.");
     await callManagementApi("updateUser", { userId, role });
     setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
     if (sessionUser?.id === userId) {
@@ -772,7 +772,7 @@ const App = () => {
       ...(patch.isActive !== undefined && { isActive: patch.isActive })
     };
     if (!managementBackendReady) {
-      alert("Base InsForge indisponible.");
+      alert("Serveur de données indisponible.");
       return false;
     }
     await callManagementApi("updateUser", {
@@ -807,7 +807,7 @@ const App = () => {
       return;
     }
     const target = teamUsers.find((u) => u.id === userId);
-    if (!managementBackendReady) return alert("Base InsForge indisponible.");
+    if (!managementBackendReady) return alert("Serveur de données indisponible.");
     await callManagementApi("deleteUser", { userId });
     setTeamUsers((prev) => prev.filter((u) => u.id !== userId));
     writeAuditLog({
@@ -1697,7 +1697,7 @@ const App = () => {
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
                   <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Base de données</p>
-                  <p className="mt-2 text-xl font-black text-emerald-400">InsForge</p>
+                  <p className="mt-2 text-xl font-black text-emerald-400">Sécurisée</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
                   <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Accès multi-postes</p>
@@ -1903,7 +1903,7 @@ const App = () => {
                 </h2>
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                   <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-500" : "bg-red-500"}`} />
-                  {managementBackendReady ? "InsForge en ligne" : "InsForge indisponible"}
+                  {managementBackendReady ? "Service en ligne" : "Service indisponible"}
                 </span>
               </div>
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
