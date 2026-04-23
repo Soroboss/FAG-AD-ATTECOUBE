@@ -407,6 +407,12 @@ const App = () => {
           }));
           setAuditLogs(logs);
         }
+        if (Array.isArray(apiData.members)) setMembers(apiData.members);
+        if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
+        if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
+        if (apiData.config) setConfig((prev) => ({ ...prev, ...apiData.config }));
+        setStorageMode("cloud");
+        setLoading(false);
         setManagementBackendReady(true);
       } catch (error) {
         console.warn("Management backend offline, using local fallback:", error?.message || error);
@@ -436,6 +442,7 @@ const App = () => {
   }, [auditLogs]);
 
   useEffect(() => {
+    if (managementBackendReady) return;
     const init = async () => {
       try {
         if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
@@ -475,9 +482,10 @@ const App = () => {
       setUser(nextUser);
     });
     return () => unsub();
-  }, [storageMode]);
+  }, [storageMode, managementBackendReady]);
 
   useEffect(() => {
+    if (managementBackendReady) return;
     if (storageMode === "local") return;
     if (!user) return;
 
@@ -510,7 +518,7 @@ const App = () => {
       unsubConfig();
       unsubLogs();
     };
-  }, [user]);
+  }, [user, managementBackendReady]);
 
   useEffect(() => {
     if (storageMode !== "local") return;
@@ -612,6 +620,15 @@ const App = () => {
   }, [members, deposits, expenses, config]);
 
   const saveConfig = async (next) => {
+    if (managementBackendReady) {
+      setConfig(next);
+      try {
+        await callManagementApi("saveConfig", { config: next });
+      } catch {
+        // keep optimistic state
+      }
+      return;
+    }
     if (storageMode === "local") {
       setConfig(next);
       return;
@@ -930,6 +947,28 @@ const App = () => {
   };
 
   const addMember = async (e) => {
+    if (managementBackendReady) {
+      const cloudMember = { ...preparedMember, id: Date.now().toString(), dateJoined: new Date().toISOString(), payments: [] };
+      setMembers((prev) => [...prev, cloudMember]);
+      setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
+      setIsMemberModalOpen(false);
+      try {
+        const result = await callManagementApi("addMember", { member: cloudMember });
+        if (result?.id) {
+          setMembers((prev) => prev.map((m) => (m.id === cloudMember.id ? { ...m, id: result.id } : m)));
+        }
+      } catch {
+        // keep optimistic state
+      }
+      await writeAuditLog({
+        action: "CREATION_FIDELE",
+        scope: "finance",
+        targetType: "member",
+        targetLabel: preparedMember.name,
+        details: "Nouveau fidèle enregistré (cloud)."
+      });
+      return;
+    }
     e.preventDefault();
     if (!newMember.name || !newMember.whatsapp) return;
     const preparedMember = {
@@ -971,6 +1010,29 @@ const App = () => {
   };
 
   const handlePayment = async (e) => {
+    if (managementBackendReady) {
+      const updatedPayments = [...(selectedMember.payments || []), payment];
+      setMembers((prev) =>
+        prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: updatedPayments } : m))
+      );
+      setSelectedMember((prev) => ({ ...prev, payments: updatedPayments }));
+      setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
+      setIsPaymentModalOpen(false);
+      try {
+        await callManagementApi("replaceMemberPayments", { memberId: selectedMember.id, payments: updatedPayments });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "ENREGISTREMENT_PAIEMENT",
+        scope: "finance",
+        targetType: "member",
+        targetId: selectedMember.id,
+        targetLabel: selectedMember.name,
+        details: `${money(payment.amount)} via ${payment.method}.`
+      });
+      return;
+    }
     e.preventDefault();
     if (!selectedMember || !paymentData.amount) return;
     const payment = {
@@ -1014,6 +1076,34 @@ const App = () => {
   };
 
   const handleExpense = async (e) => {
+    if (managementBackendReady) {
+      const optimistic = { ...newExpense, id: Date.now().toString() };
+      setExpenses((prev) => [optimistic, ...prev]);
+      setNewExpense({
+        description: "",
+        amount: "",
+        date: new Date().toISOString().split("T")[0],
+        category: "Logistique",
+        method: "Espèces"
+      });
+      setIsExpenseModalOpen(false);
+      try {
+        const result = await callManagementApi("addExpense", { expense: optimistic });
+        if (result?.id) {
+          setExpenses((prev) => prev.map((e) => (e.id === optimistic.id ? { ...e, id: result.id } : e)));
+        }
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "AJOUT_DEPENSE",
+        scope: "finance",
+        targetType: "expense",
+        targetLabel: optimistic.description,
+        details: `${money(optimistic.amount)} (${optimistic.category}).`
+      });
+      return;
+    }
     e.preventDefault();
     if (!newExpense.description || !newExpense.amount) return;
     if (storageMode === "local") {
@@ -1055,6 +1145,28 @@ const App = () => {
   };
 
   const handleDeposit = async (e) => {
+    if (managementBackendReady) {
+      const optimistic = { ...newDeposit, id: Date.now().toString(), isDeposited: !!newDeposit.bordereauRef };
+      setDeposits((prev) => [optimistic, ...prev]);
+      setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "" });
+      setIsDepositModalOpen(false);
+      try {
+        const result = await callManagementApi("addDeposit", { deposit: optimistic });
+        if (result?.id) {
+          setDeposits((prev) => prev.map((d) => (d.id === optimistic.id ? { ...d, id: result.id } : d)));
+        }
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "AJOUT_REMISE_COMITE",
+        scope: "finance",
+        targetType: "deposit",
+        targetLabel: optimistic.recipient,
+        details: `${money(optimistic.amount)}${optimistic.bordereauRef ? `, bordereau ${optimistic.bordereauRef}` : ""}.`
+      });
+      return;
+    }
     e.preventDefault();
     if (!newDeposit.recipient || !newDeposit.amount) return;
     if (storageMode === "local") {
@@ -1418,6 +1530,23 @@ const App = () => {
   }, [activeTab, accessibleTabs]);
 
   const removeMember = async (memberId) => {
+    if (managementBackendReady) {
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+      try {
+        await callManagementApi("deleteMember", { memberId });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "SUPPRESSION_FIDELE",
+        scope: "finance",
+        targetType: "member",
+        targetId: memberId,
+        targetLabel: member?.name || memberId,
+        details: "Fiche fidèle supprimée."
+      });
+      return;
+    }
     const member = members.find((m) => m.id === memberId);
     if (storageMode === "local") {
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
@@ -1443,6 +1572,23 @@ const App = () => {
   };
 
   const removeExpense = async (expenseId) => {
+    if (managementBackendReady) {
+      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+      try {
+        await callManagementApi("deleteExpense", { expenseId });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "SUPPRESSION_DEPENSE",
+        scope: "finance",
+        targetType: "expense",
+        targetId: expenseId,
+        targetLabel: expense?.description || expenseId,
+        details: "Sortie supprimée."
+      });
+      return;
+    }
     const expense = expenses.find((e) => e.id === expenseId);
     if (storageMode === "local") {
       setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
@@ -1468,6 +1614,23 @@ const App = () => {
   };
 
   const removeDeposit = async (depositId) => {
+    if (managementBackendReady) {
+      setDeposits((prev) => prev.filter((d) => d.id !== depositId));
+      try {
+        await callManagementApi("deleteDeposit", { depositId });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "SUPPRESSION_REMISE",
+        scope: "finance",
+        targetType: "deposit",
+        targetId: depositId,
+        targetLabel: deposit?.recipient || depositId,
+        details: "Remise supprimée."
+      });
+      return;
+    }
     const deposit = deposits.find((d) => d.id === depositId);
     if (storageMode === "local") {
       setDeposits((prev) => prev.filter((d) => d.id !== depositId));
@@ -1493,6 +1656,25 @@ const App = () => {
   };
 
   const setDepositReceiptRef = async (depositId, ref) => {
+    if (managementBackendReady) {
+      setDeposits((prev) =>
+        prev.map((d) => (d.id === depositId ? { ...d, bordereauRef: ref, isDeposited: true } : d))
+      );
+      try {
+        await callManagementApi("updateDepositRef", { depositId, ref });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "AJOUT_BORDEREAU",
+        scope: "finance",
+        targetType: "deposit",
+        targetId: depositId,
+        targetLabel: depositId,
+        details: `Référence bordereau: ${ref}.`
+      });
+      return;
+    }
     if (storageMode === "local") {
       setDeposits((prev) =>
         prev.map((d) => (d.id === depositId ? { ...d, bordereauRef: ref, isDeposited: true } : d))
@@ -1522,6 +1704,24 @@ const App = () => {
   };
 
   const removeMemberPayment = async (memberId, paymentId) => {
+    if (managementBackendReady) {
+      setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, payments: updated } : m)));
+      setSelectedMember((prev) => ({ ...prev, payments: updated }));
+      try {
+        await callManagementApi("replaceMemberPayments", { memberId, payments: updated });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "SUPPRESSION_PAIEMENT",
+        scope: "finance",
+        targetType: "member",
+        targetId: memberId,
+        targetLabel: currentMember?.name || memberId,
+        details: `Paiement ${paymentId} supprimé.`
+      });
+      return;
+    }
     const currentMember = members.find((m) => m.id === memberId) || selectedMember;
     const updated = (currentMember?.payments || []).filter((pay) => pay.id !== paymentId);
     if (storageMode === "local") {

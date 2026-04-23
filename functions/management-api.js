@@ -32,7 +32,13 @@ export default async function handler(req) {
          limit 500`,
         []
       );
-      return jsonResponse({ ok: true, users, logs }, 200);
+      const appData = await loadAppData(dbUrl);
+      return jsonResponse({ ok: true, users, logs, ...appData }, 200);
+    }
+
+    if (action === "getAppData") {
+      const appData = await loadAppData(dbUrl);
+      return jsonResponse({ ok: true, ...appData }, 200);
     }
 
     if (action === "login") {
@@ -222,6 +228,129 @@ export default async function handler(req) {
       return jsonResponse({ ok: true, logs }, 200);
     }
 
+    if (action === "saveConfig") {
+      const config = payload.config || {};
+      await runQuery(
+        dbUrl,
+        `insert into public.settings (id, payload, updated_at)
+         values ('main', $1::jsonb, now())
+         on conflict (id) do update set payload = excluded.payload, updated_at = now()`,
+        [JSON.stringify(config)]
+      );
+      return jsonResponse({ ok: true }, 200);
+    }
+
+    if (action === "addMember") {
+      const member = payload.member || {};
+      const inserted = await runQuery(
+        dbUrl,
+        `insert into public.members
+          (name, church_function, district, whatsapp, category_id, custom_amount, date_joined)
+         values ($1, $2, $3, $4, $5, $6, $7)
+         returning id`,
+        [
+          member.name || "",
+          member.churchFunction || null,
+          member.district || null,
+          nullablePhone(member.whatsapp),
+          member.categoryId || "cat1",
+          Number(member.customAmount || 0),
+          member.dateJoined || new Date().toISOString()
+        ]
+      );
+      return jsonResponse({ ok: true, id: inserted?.[0]?.id || null }, 200);
+    }
+
+    if (action === "replaceMemberPayments") {
+      const memberId = String(payload.memberId || "");
+      const payments = Array.isArray(payload.payments) ? payload.payments : [];
+      if (!memberId) return jsonResponse({ ok: false, error: "memberId requis" }, 400);
+      await runQuery(dbUrl, "delete from public.payments where member_id = $1", [memberId]);
+      for (const pay of payments) {
+        await runQuery(
+          dbUrl,
+          `insert into public.payments (member_id, amount, method, payment_date)
+           values ($1, $2, $3, $4)`,
+          [
+            memberId,
+            Number(pay.amount || 0),
+            pay.method || "Espèces",
+            pay.date || new Date().toISOString().slice(0, 10)
+          ]
+        );
+      }
+      return jsonResponse({ ok: true }, 200);
+    }
+
+    if (action === "addExpense") {
+      const expense = payload.expense || {};
+      const inserted = await runQuery(
+        dbUrl,
+        `insert into public.expenses (description, amount, expense_date, category, method)
+         values ($1, $2, $3, $4, $5)
+         returning id`,
+        [
+          expense.description || "",
+          Number(expense.amount || 0),
+          expense.date || new Date().toISOString().slice(0, 10),
+          expense.category || "Logistique",
+          expense.method || "Espèces"
+        ]
+      );
+      return jsonResponse({ ok: true, id: inserted?.[0]?.id || null }, 200);
+    }
+
+    if (action === "addDeposit") {
+      const deposit = payload.deposit || {};
+      const inserted = await runQuery(
+        dbUrl,
+        `insert into public.deposits (recipient, amount, deposit_date, bordereau_ref, is_deposited)
+         values ($1, $2, $3, $4, $5)
+         returning id`,
+        [
+          deposit.recipient || "",
+          Number(deposit.amount || 0),
+          deposit.date || new Date().toISOString().slice(0, 10),
+          deposit.bordereauRef || null,
+          !!deposit.bordereauRef
+        ]
+      );
+      return jsonResponse({ ok: true, id: inserted?.[0]?.id || null }, 200);
+    }
+
+    if (action === "deleteMember") {
+      const memberId = String(payload.memberId || "");
+      if (!memberId) return jsonResponse({ ok: false, error: "memberId requis" }, 400);
+      await runQuery(dbUrl, "delete from public.members where id = $1", [memberId]);
+      return jsonResponse({ ok: true }, 200);
+    }
+
+    if (action === "deleteExpense") {
+      const expenseId = String(payload.expenseId || "");
+      if (!expenseId) return jsonResponse({ ok: false, error: "expenseId requis" }, 400);
+      await runQuery(dbUrl, "delete from public.expenses where id = $1", [expenseId]);
+      return jsonResponse({ ok: true }, 200);
+    }
+
+    if (action === "deleteDeposit") {
+      const depositId = String(payload.depositId || "");
+      if (!depositId) return jsonResponse({ ok: false, error: "depositId requis" }, 400);
+      await runQuery(dbUrl, "delete from public.deposits where id = $1", [depositId]);
+      return jsonResponse({ ok: true }, 200);
+    }
+
+    if (action === "updateDepositRef") {
+      const depositId = String(payload.depositId || "");
+      const ref = String(payload.ref || "").trim();
+      if (!depositId || !ref) return jsonResponse({ ok: false, error: "depositId/ref requis" }, 400);
+      await runQuery(
+        dbUrl,
+        "update public.deposits set bordereau_ref = $1, is_deposited = true where id = $2",
+        [ref, depositId]
+      );
+      return jsonResponse({ ok: true }, 200);
+    }
+
     return jsonResponse({ ok: false, error: "Action inconnue" }, 400);
   } catch (error) {
     return jsonResponse({ ok: false, error: error?.message || "Unexpected error" }, 500);
@@ -259,6 +388,87 @@ async function ensureDefaultAdmin(dbUrl) {
      values ($1, $2, $3, $4, 'admin', true)`,
     ["Administrateur FAG", "admin@fag.local", "2250700000000", sha256("FAG2026@admin")]
   );
+}
+
+async function loadAppData(dbUrl) {
+  const settingsRows = await runQuery(dbUrl, "select payload from public.settings where id = 'main' limit 1", []);
+  const members = await runQuery(
+    dbUrl,
+    `select id, name, church_function, district, whatsapp, category_id, custom_amount, date_joined
+     from public.members
+     order by created_at asc`,
+    []
+  );
+  const payments = await runQuery(
+    dbUrl,
+    `select id, member_id, amount, method, payment_date, created_at
+     from public.payments
+     order by created_at asc`,
+    []
+  );
+  const expenses = await runQuery(
+    dbUrl,
+    `select id, description, amount, expense_date, category, method
+     from public.expenses
+     order by created_at desc`,
+    []
+  );
+  const deposits = await runQuery(
+    dbUrl,
+    `select id, recipient, amount, deposit_date, bordereau_ref, is_deposited
+     from public.deposits
+     order by created_at desc`,
+    []
+  );
+
+  const payByMember = payments.reduce((acc, row) => {
+    if (!acc[row.member_id]) acc[row.member_id] = [];
+    acc[row.member_id].push({
+      id: row.id,
+      amount: Number(row.amount || 0),
+      method: row.method || "Espèces",
+      date: row.payment_date,
+      timestamp: row.created_at
+    });
+    return acc;
+  }, {});
+
+  const normalizedMembers = members.map((row) => ({
+    id: row.id,
+    name: row.name,
+    churchFunction: row.church_function || "",
+    district: row.district || "",
+    whatsapp: row.whatsapp || "",
+    categoryId: row.category_id || "cat1",
+    customAmount: Number(row.custom_amount || 0),
+    dateJoined: row.date_joined,
+    payments: payByMember[row.id] || []
+  }));
+
+  const normalizedExpenses = expenses.map((row) => ({
+    id: row.id,
+    description: row.description,
+    amount: Number(row.amount || 0),
+    date: row.expense_date,
+    category: row.category,
+    method: row.method || "Espèces"
+  }));
+
+  const normalizedDeposits = deposits.map((row) => ({
+    id: row.id,
+    recipient: row.recipient,
+    amount: Number(row.amount || 0),
+    date: row.deposit_date,
+    bordereauRef: row.bordereau_ref || "",
+    isDeposited: row.is_deposited === true
+  }));
+
+  return {
+    config: settingsRows?.[0]?.payload || null,
+    members: normalizedMembers,
+    expenses: normalizedExpenses,
+    deposits: normalizedDeposits
+  };
 }
 
 async function insertAuditLog(dbUrl, data) {
