@@ -40,6 +40,10 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const appId = typeof __app_id !== "undefined" ? __app_id : "fag-2026-prod";
+const insforgeFunctionsBase =
+  typeof __insforge_functions_base !== "undefined" && __insforge_functions_base
+    ? __insforge_functions_base
+    : "https://7sr4t2xf.functions.insforge.app";
 
 const DEFAULT_CONFIG = {
   year: 2026,
@@ -59,17 +63,33 @@ const money = (value) => `${new Intl.NumberFormat("fr-FR").format(Number(value |
 const toNumber = (v) => Number.parseFloat(v) || 0;
 const LOCAL_STORAGE_KEY = `fag_local_${appId}`;
 const APP_SESSION_KEY = `fag_session_${appId}`;
-const APP_USERS =
-  typeof __app_users !== "undefined" && Array.isArray(__app_users) && __app_users.length > 0
-    ? __app_users
-    : [
-        {
-          username: "admin@fag.local",
-          password: "FAG2026@admin",
-          fullName: "Administrateur FAG",
-          role: "Superviseur"
-        }
-      ];
+const LOCAL_TEAM_USERS_KEY = `fag_team_users_${appId}`;
+const DEFAULT_TEAM_USERS = [
+  {
+    id: "u-admin",
+    fullName: "Administrateur FAG",
+    username: "admin@fag.local",
+    password: "FAG2026@admin",
+    role: "admin",
+    isActive: true
+  }
+];
+const ROLE_OPTIONS = [
+  { id: "admin", label: "Administrateur", description: "Accès complet à tous les modules" },
+  { id: "tresorier", label: "Trésorier", description: "Fidèles, dépenses, banque/comité, dashboard" },
+  { id: "communication", label: "Communication", description: "Dashboard + communication + lecture fidèles" },
+  { id: "consultation", label: "Consultation", description: "Lecture tableau de bord uniquement" }
+];
+const ROLE_PERMISSIONS = {
+  admin: ["dashboard", "members", "expenses", "deposits", "marketing", "settings"],
+  tresorier: ["dashboard", "members", "expenses", "deposits"],
+  communication: ["dashboard", "members", "marketing"],
+  consultation: ["dashboard"]
+};
+const ROLE_LABELS = ROLE_OPTIONS.reduce((acc, item) => {
+  acc[item.id] = item.label;
+  return acc;
+}, {});
 const CHURCH_FUNCTION_OPTIONS = [
   "Pasteur",
   "Pasteur assistant",
@@ -125,6 +145,13 @@ const App = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginData, setLoginData] = useState({ username: "", password: "", remember: true });
   const [loginError, setLoginError] = useState("");
+  const [teamUsers, setTeamUsers] = useState(DEFAULT_TEAM_USERS);
+  const [newTeamUser, setNewTeamUser] = useState({
+    fullName: "",
+    username: "",
+    password: "",
+    role: "tresorier"
+  });
 
   const [members, setMembers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -211,6 +238,28 @@ const App = () => {
       // ignore invalid session payload
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const rawUsers = window.localStorage.getItem(LOCAL_TEAM_USERS_KEY);
+      if (!rawUsers) {
+        setTeamUsers(DEFAULT_TEAM_USERS);
+        return;
+      }
+      const parsedUsers = JSON.parse(rawUsers);
+      if (Array.isArray(parsedUsers) && parsedUsers.length > 0) {
+        setTeamUsers(parsedUsers);
+      } else {
+        setTeamUsers(DEFAULT_TEAM_USERS);
+      }
+    } catch {
+      setTeamUsers(DEFAULT_TEAM_USERS);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(LOCAL_TEAM_USERS_KEY, JSON.stringify(teamUsers));
+  }, [teamUsers]);
 
   useEffect(() => {
     const init = async () => {
@@ -394,8 +443,11 @@ const App = () => {
   const handleAppLogin = (e) => {
     e.preventDefault();
     const normalizedUsername = loginData.username.trim().toLowerCase();
-    const matchedUser = APP_USERS.find(
-      (item) => item.username.toLowerCase() === normalizedUsername && item.password === loginData.password
+    const matchedUser = teamUsers.find(
+      (item) =>
+        item.username.toLowerCase() === normalizedUsername &&
+        item.password === loginData.password &&
+        item.isActive !== false
     );
     if (!matchedUser) {
       setLoginError("Identifiants invalides. Vérifiez l'email et le mot de passe.");
@@ -404,7 +456,8 @@ const App = () => {
     const safeSession = {
       username: matchedUser.username,
       fullName: matchedUser.fullName || matchedUser.username,
-      role: matchedUser.role || "Opérateur"
+      role: matchedUser.role || "consultation",
+      id: matchedUser.id
     };
     setSessionUser(safeSession);
     setIsAppAuthenticated(true);
@@ -416,6 +469,49 @@ const App = () => {
       window.localStorage.removeItem(APP_SESSION_KEY);
     }
     setLoginData((prev) => ({ ...prev, password: "" }));
+  };
+
+  const createTeamUser = (e) => {
+    e.preventDefault();
+    const normalizedUsername = newTeamUser.username.trim().toLowerCase();
+    if (!newTeamUser.fullName.trim() || !normalizedUsername || !newTeamUser.password) return;
+    if (teamUsers.some((u) => u.username.toLowerCase() === normalizedUsername)) {
+      alert("Un compte existe déjà avec cet email.");
+      return;
+    }
+    const createdUser = {
+      id: `u-${Date.now()}`,
+      fullName: newTeamUser.fullName.trim(),
+      username: normalizedUsername,
+      password: newTeamUser.password,
+      role: newTeamUser.role,
+      isActive: true
+    };
+    setTeamUsers((prev) => [...prev, createdUser]);
+    setNewTeamUser({ fullName: "", username: "", password: "", role: "tresorier" });
+  };
+
+  const toggleTeamUserStatus = (userId) => {
+    setTeamUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, isActive: !(u.isActive !== false) } : u))
+    );
+  };
+
+  const updateTeamUserRole = (userId, role) => {
+    setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
+    if (sessionUser?.id === userId) {
+      setSessionUser((prev) => ({ ...prev, role }));
+      const updatedSession = { ...(sessionUser || {}), role };
+      window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
+    }
+  };
+
+  const removeTeamUser = (userId) => {
+    if (sessionUser?.id === userId) {
+      alert("Vous ne pouvez pas supprimer votre propre compte actif.");
+      return;
+    }
+    setTeamUsers((prev) => prev.filter((u) => u.id !== userId));
   };
 
   const handleAppLogout = () => {
@@ -525,7 +621,7 @@ const App = () => {
     setIsDepositModalOpen(false);
   };
 
-  const sendWhatsApp = (member, type) => {
+  const sendWhatsApp = async (member, type) => {
     const cat = config.categories.find((c) => c.id === member.categoryId);
     const monthly = member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
     const total = monthly * config.months;
@@ -566,7 +662,34 @@ const App = () => {
         `"Fortifiez-vous dans le Seigneur." (Éphésiens 6:10).`
     };
     const finalMessage = messages[type] || messages.thanks;
-    window.open(`https://wa.me/${String(member.whatsapp || "").replace(/\s/g, "")}?text=${encodeURIComponent(finalMessage)}`, "_blank");
+    const normalizedPhone = String(member.whatsapp || "").replace(/[^\d]/g, "");
+    if (!normalizedPhone) {
+      alert("Numéro WhatsApp invalide pour ce fidèle.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${insforgeFunctionsBase}/send-whatsapp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: normalizedPhone,
+          message: finalMessage,
+          messageType: type,
+          memberName: member.name
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || "Envoi backend indisponible");
+      }
+      alert("Message WhatsApp envoyé avec succès.");
+      return;
+    } catch (error) {
+      console.warn("WhatsApp backend fallback:", error?.message || error);
+      window.open(`https://wa.me/${normalizedPhone}?text=${encodeURIComponent(finalMessage)}`, "_blank");
+      alert("Ouverture WhatsApp Web. Validez l'envoi manuellement.");
+    }
   };
 
   const filteredMembers = useMemo(() => {
@@ -723,6 +846,15 @@ const App = () => {
   })();
   const maxCategoryCollected = Math.max(1, ...categorySheetRows.map((row) => row.collected));
   const maxCumulative = Math.max(1, ...cumulativeMonthlyRows.map((row) => row.cumulative));
+  const currentRole = sessionUser?.role || "consultation";
+  const accessibleTabs = ROLE_PERMISSIONS[currentRole] || ROLE_PERMISSIONS.consultation;
+  const canManageUsers = currentRole === "admin";
+
+  useEffect(() => {
+    if (!accessibleTabs.includes(activeTab)) {
+      setActiveTab(accessibleTabs[0] || "dashboard");
+    }
+  }, [activeTab, accessibleTabs]);
 
   const removeMember = async (memberId) => {
     if (storageMode === "local") {
@@ -866,6 +998,18 @@ const App = () => {
                 Suivi en temps réel des engagements, des encaissements, des dépenses, des remises comité et des campagnes WhatsApp.
                 Une solution claire, fraternelle et sécurisée pour la gestion de votre projet FAG.
               </p>
+              <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+                {[
+                  "Tableau de bord temps réel",
+                  "Gestion complète des fidèles",
+                  "Pilotage Banque/Comité",
+                  "Communication WhatsApp personnalisée"
+                ].map((item) => (
+                  <div key={item} className="rounded-2xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-200">
+                    {item}
+                  </div>
+                ))}
+              </div>
               <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
                   <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Modules</p>
@@ -895,7 +1039,9 @@ const App = () => {
                   Ouvrir le formulaire de connexion
                 </button>
                 <p className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-[11px] font-semibold leading-relaxed text-slate-300">
-                  Compte de démonstration local: <span className="font-black">admin@fag.local</span> / <span className="font-black">FAG2026@admin</span>
+                  Compte de démonstration local:{" "}
+                  <span className="font-black">{teamUsers[0]?.username || "admin@fag.local"}</span> /{" "}
+                  <span className="font-black">{teamUsers[0]?.password || "FAG2026@admin"}</span>
                 </p>
               </div>
             </section>
@@ -995,7 +1141,9 @@ const App = () => {
               ["deposits", "Comité/Banque", Building2],
               ["marketing", "Communication", Megaphone],
               ["settings", "Configuration", SettingsIcon]
-            ].map(([id, label, Icon]) => (
+            ]
+              .filter(([id]) => accessibleTabs.includes(id))
+              .map(([id, label, Icon]) => (
               <button
                 key={id}
                 onClick={() => {
@@ -1018,7 +1166,7 @@ const App = () => {
           <div className="mt-4 border-t border-slate-800 pt-4">
             {sessionUser && (
               <p className="mb-3 rounded-xl bg-slate-800 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-300">
-                {sessionUser.fullName} • {sessionUser.role}
+                {sessionUser.fullName} • {ROLE_LABELS[sessionUser.role] || sessionUser.role}
               </p>
             )}
             <button
@@ -2027,6 +2175,123 @@ const App = () => {
                     >
                       Réinitialiser configuration
                     </button>
+                  </div>
+
+                  <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50 p-5">
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-800">Comptes équipe & niveaux d&apos;accès</h4>
+                    {!canManageUsers ? (
+                      <p className="mt-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-[11px] font-bold text-orange-700">
+                        Seul le rôle Administrateur peut créer ou modifier les comptes utilisateurs.
+                      </p>
+                    ) : (
+                      <>
+                        <form onSubmit={createTeamUser} className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-4">
+                          <input
+                            required
+                            placeholder="Nom complet"
+                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            value={newTeamUser.fullName}
+                            onChange={(e) => setNewTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
+                          />
+                          <input
+                            required
+                            type="email"
+                            placeholder="Email connexion"
+                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            value={newTeamUser.username}
+                            onChange={(e) => setNewTeamUser((prev) => ({ ...prev, username: e.target.value }))}
+                          />
+                          <input
+                            required
+                            type="password"
+                            placeholder="Mot de passe"
+                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            value={newTeamUser.password}
+                            onChange={(e) => setNewTeamUser((prev) => ({ ...prev, password: e.target.value }))}
+                          />
+                          <div className="flex gap-2">
+                            <select
+                              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-emerald-500"
+                              value={newTeamUser.role}
+                              onChange={(e) => setNewTeamUser((prev) => ({ ...prev, role: e.target.value }))}
+                            >
+                              {ROLE_OPTIONS.map((role) => (
+                                <option key={role.id} value={role.id}>
+                                  {role.label}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="submit"
+                              className="rounded-2xl bg-emerald-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white"
+                            >
+                              Créer
+                            </button>
+                          </div>
+                        </form>
+
+                        <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
+                          <table className="w-full min-w-[860px]">
+                            <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                              <tr>
+                                <th className="px-4 py-3 text-left">Utilisateur</th>
+                                <th className="px-4 py-3 text-left">Rôle</th>
+                                <th className="px-4 py-3 text-left">Accès modules</th>
+                                <th className="px-4 py-3 text-center">Statut</th>
+                                <th className="px-4 py-3 text-center">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-[11px] font-bold">
+                              {teamUsers.map((u) => (
+                                <tr key={u.id}>
+                                  <td className="px-4 py-3">
+                                    <p className="font-black uppercase text-slate-900">{u.fullName}</p>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{u.username}</p>
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <select
+                                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-600"
+                                      value={u.role}
+                                      onChange={(e) => updateTeamUserRole(u.id, e.target.value)}
+                                    >
+                                      {ROLE_OPTIONS.map((role) => (
+                                        <option key={role.id} value={role.id}>
+                                          {role.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                    {(ROLE_PERMISSIONS[u.role] || []).join(" • ")}
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    <button
+                                      onClick={() => toggleTeamUserStatus(u.id)}
+                                      className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
+                                        u.isActive !== false ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                                      }`}
+                                    >
+                                      {u.isActive !== false ? "Actif" : "Inactif"}
+                                    </button>
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    <button
+                                      onClick={() => {
+                                        if (!window.confirm("Supprimer ce compte utilisateur ?")) return;
+                                        removeTeamUser(u.id);
+                                      }}
+                                      className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-600"
+                                    >
+                                      Supprimer
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
