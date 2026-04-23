@@ -120,6 +120,20 @@ function normalizePhone(input) {
   const defaultCountryCode = process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "225";
   let digits = String(input).replace(/[^\d]/g, "");
   if (digits.startsWith("00")) digits = digits.slice(2);
+
+  if (defaultCountryCode === "225") {
+    if (digits.startsWith("225")) {
+      const nsn = digits.slice(3);
+      if (nsn.length === 10) return digits;
+      if (nsn.length === 9 && /^[157]\d{8}$/.test(nsn)) return `2250${nsn}`;
+      return digits;
+    }
+    if (digits.length === 10) return `225${digits}`;
+    if (digits.length === 9 && /^[157]\d{8}$/.test(digits)) return `2250${digits}`;
+    if (digits.length === 8) return `225${digits}`;
+    return digits;
+  }
+
   if (digits.startsWith(defaultCountryCode)) return digits;
   if (digits.length === 8) return `${defaultCountryCode}${digits}`;
   if (digits.length === 10 && digits.startsWith("0")) return `${defaultCountryCode}${digits.slice(1)}`;

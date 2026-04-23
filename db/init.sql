@@ -12,6 +12,7 @@ create table if not exists public.members (
   whatsapp text not null,
   category_id text not null,
   custom_amount numeric(12,2) default 0,
+  comms_opt_in boolean not null default true,
   date_joined timestamptz not null default now(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -42,6 +43,7 @@ create table if not exists public.deposits (
   amount numeric(12,2) not null check (amount > 0),
   deposit_date date not null,
   bordereau_ref text,
+  bordereau_url text,
   is_deposited boolean not null default false,
   created_at timestamptz not null default now()
 );

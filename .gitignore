@@ -1,4 +1,12 @@
 node_modules
+dist
+
+# Variables d'environnement (secrets, clés) — ne pas committer
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
 
 # InsForge & AI agent skills
 .insforge

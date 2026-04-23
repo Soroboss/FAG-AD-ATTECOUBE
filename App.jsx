@@ -11,9 +11,11 @@ import {
   Clock,
   Coins,
   DollarSign,
+  Download,
   LayoutDashboard,
   Megaphone,
   Menu,
+  Pencil,
   Plus,
   Search,
   Settings as SettingsIcon,
@@ -30,7 +32,8 @@ import {
   Landmark,
   HandCoins,
   PiggyBank,
-  FileClock
+  FileClock,
+  ExternalLink
 } from "lucide-react";
 
 const firebaseRawConfig =
@@ -60,6 +63,7 @@ const DEFAULT_CONFIG = {
   months: 6,
   launchDate: "2026-04-19",
   globalGoal: 21000000,
+  financeLocked: false,
   categories: [
     { id: "cat1", label: "Platine", amount: 20000, targetPeople: 100 },
     { id: "cat2", label: "Or", amount: 15000, targetPeople: 50 },
@@ -71,11 +75,42 @@ const DEFAULT_CONFIG = {
 
 const money = (value) => `${new Intl.NumberFormat("fr-FR").format(Number(value || 0))} F CFA`;
 const toNumber = (v) => Number.parseFloat(v) || 0;
+const csvEscape = (v) => {
+  const s = String(v ?? "");
+  return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+const triggerCsvDownload = (filename, linesUtf8) => {
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + linesUtf8], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 const normalizeWhatsAppNumber = (input, defaultCountryCode = "225") => {
   const raw = String(input || "").trim();
   if (!raw) return "";
   let digits = raw.replace(/[^\d]/g, "");
   if (digits.startsWith("00")) digits = digits.slice(2);
+
+  // Côte d'Ivoire (+225) : depuis 2021 le N(S)N fait 10 chiffres (07/05/01/27…).
+  // Le « 0 » en tête (ex. 0757228731 = 07 57 22 87 31) fait partie du numéro — ne pas l'enlever.
+  if (defaultCountryCode === "225") {
+    if (digits.startsWith("225")) {
+      const nsn = digits.slice(3);
+      if (nsn.length === 10) return digits;
+      // Données déjà enregistrées avec l'ancien bug (0 supprimé) : 225757228731 → 2250757228731
+      if (nsn.length === 9 && /^[157]\d{8}$/.test(nsn)) return `2250${nsn}`;
+      return digits;
+    }
+    if (digits.length === 10) return `225${digits}`;
+    if (digits.length === 9 && /^[157]\d{8}$/.test(digits)) return `2250${digits}`;
+    if (digits.length === 8) return `225${digits}`;
+    return digits;
+  }
+
   if (digits.startsWith(defaultCountryCode)) return digits;
   if (digits.length === 8) return `${defaultCountryCode}${digits}`;
   if (digits.length === 10 && digits.startsWith("0")) return `${defaultCountryCode}${digits.slice(1)}`;
@@ -83,7 +118,37 @@ const normalizeWhatsAppNumber = (input, defaultCountryCode = "225") => {
 };
 const LOCAL_STORAGE_KEY = `fag_local_${appId}`;
 const APP_SESSION_KEY = `fag_session_${appId}`;
+const SESSION_PERSIST_KEY = `fag_session_persist_${appId}`;
 const LOCAL_TEAM_USERS_KEY = `fag_team_users_${appId}`;
+
+const readSessionRaw = () => {
+  if (typeof window === "undefined") return null;
+  const mode = window.localStorage.getItem(SESSION_PERSIST_KEY);
+  if (mode === "session") return window.sessionStorage.getItem(APP_SESSION_KEY);
+  return window.localStorage.getItem(APP_SESSION_KEY) || window.sessionStorage.getItem(APP_SESSION_KEY);
+};
+
+const getSessionTokenFromStorage = () => {
+  try {
+    const raw = readSessionRaw();
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    return s.sessionToken || null;
+  } catch {
+    return null;
+  }
+};
+
+const persistSessionObject = (obj) => {
+  if (typeof window === "undefined") return;
+  const mode = window.localStorage.getItem(SESSION_PERSIST_KEY) || "local";
+  const json = JSON.stringify(obj);
+  if (mode === "session") {
+    window.sessionStorage.setItem(APP_SESSION_KEY, json);
+  } else {
+    window.localStorage.setItem(APP_SESSION_KEY, json);
+  }
+};
 const LOCAL_AUDIT_LOGS_KEY = `fag_audit_logs_${appId}`;
 const DEFAULT_TEAM_USERS = [
   {
@@ -265,6 +330,7 @@ const [storageMode] = useState("online");
   const [marketingSearchTerm, setMarketingSearchTerm] = useState("");
 
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -281,7 +347,8 @@ const [storageMode] = useState("online");
     district: "",
     whatsapp: "",
     categoryId: "cat1",
-    customAmount: ""
+    customAmount: "",
+    commsOptIn: true
   });
   const [paymentData, setPaymentData] = useState({
     amount: "",
@@ -295,12 +362,21 @@ const [storageMode] = useState("online");
     category: "Logistique",
     method: "Espèces"
   });
+  const [editingExpense, setEditingExpense] = useState(null);
   const [newDeposit, setNewDeposit] = useState({
     recipient: "",
     amount: "",
     date: new Date().toISOString().split("T")[0],
-    bordereauRef: ""
+    bordereauRef: "",
+    bordereauUrl: ""
   });
+  const [whatsAppLogs, setWhatsAppLogs] = useState([]);
+  const [confirmState, setConfirmState] = useState(null);
+  const [urlAttachmentModal, setUrlAttachmentModal] = useState(null);
+  const [bordereauFormModal, setBordereauFormModal] = useState(null);
+  const [netOnline, setNetOnline] = useState(
+    () => typeof navigator === "undefined" || navigator.onLine
+  );
 
   const loadLocalState = () => {
     try {
@@ -323,12 +399,32 @@ const [storageMode] = useState("online");
   };
 
   const callManagementApi = async (action, payload = {}) => {
+    const publicActions = ["bootstrap", "login", "migrateUsers", "getAppData", "createLog"];
+    if (!publicActions.includes(action) && typeof navigator !== "undefined" && !navigator.onLine) {
+      throw new Error("Hors connexion. Réessayez lorsque le réseau est disponible.");
+    }
+    const token = getSessionTokenFromStorage();
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
     const response = await fetch(managementApiUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ action, payload })
     });
     const data = await response.json().catch(() => ({}));
+    if (response.status === 401 && !["login", "createLog"].includes(action)) {
+      try {
+        window.localStorage.removeItem(SESSION_PERSIST_KEY);
+        window.localStorage.removeItem(APP_SESSION_KEY);
+        window.sessionStorage.removeItem(APP_SESSION_KEY);
+      } catch {
+        // ignore
+      }
+      setSessionUser(null);
+      setIsAppAuthenticated(false);
+      setShowLoginModal(true);
+      setFlashMessage({ type: "error", message: "Session expirée. Reconnectez-vous." });
+    }
     if (!response.ok || data?.ok === false) {
       throw new Error(data?.error || "Management API indisponible");
     }
@@ -342,7 +438,7 @@ const [storageMode] = useState("online");
 
   useEffect(() => {
     try {
-      const rawSession = window.localStorage.getItem(APP_SESSION_KEY);
+      const rawSession = readSessionRaw();
       if (!rawSession) return;
       const parsedSession = JSON.parse(rawSession);
       if (parsedSession?.username) {
@@ -352,6 +448,16 @@ const [storageMode] = useState("online");
     } catch {
       // ignore invalid session payload
     }
+  }, []);
+
+  useEffect(() => {
+    const onOff = () => setNetOnline(typeof navigator !== "undefined" && navigator.onLine);
+    window.addEventListener("online", onOff);
+    window.addEventListener("offline", onOff);
+    return () => {
+      window.removeEventListener("online", onOff);
+      window.removeEventListener("offline", onOff);
+    };
   }, []);
 
   useEffect(() => {
@@ -427,7 +533,8 @@ const [storageMode] = useState("online");
         if (Array.isArray(apiData.members)) setMembers(apiData.members);
         if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
         if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
-        if (apiData.config) setConfig((prev) => ({ ...prev, ...apiData.config }));
+        if (apiData.config) setConfig((prev) => ({ ...DEFAULT_CONFIG, ...prev, ...apiData.config }));
+        if (Array.isArray(apiData.whatsAppLogs)) setWhatsAppLogs(apiData.whatsAppLogs);
         setLoading(false);
         setManagementBackendReady(true);
         setBackendError("");
@@ -563,7 +670,7 @@ const [storageMode] = useState("online");
 
   const saveConfig = async (next) => {
     if (!managementBackendReady) {
-      alert("Serveur de données indisponible. Modification non enregistrée.");
+      notify("error", "Serveur de données indisponible. Modification non enregistrée.");
       return;
     }
     setConfig(next);
@@ -615,12 +722,14 @@ const [storageMode] = useState("online");
     const normalizedIdentifier = loginData.identifier.trim().toLowerCase();
     const normalizedDigits = loginData.identifier.replace(/[^\d]/g, "");
     let matchedUser = null;
+    let newSessionToken = null;
     if (managementBackendReady) {
       try {
         const result = await callManagementApi("login", {
           identifier: loginData.identifier,
           password: loginData.password
         });
+        newSessionToken = result.sessionToken || null;
         matchedUser = result.user
           ? {
               id: result.user.id,
@@ -651,15 +760,20 @@ const [storageMode] = useState("online");
       username: matchedUser.username,
       fullName: matchedUser.fullName || matchedUser.username,
       role: matchedUser.role || "consultation",
-      id: matchedUser.id
+      id: matchedUser.id,
+      sessionToken: newSessionToken
     };
     setSessionUser(safeSession);
     setIsAppAuthenticated(true);
     setShowLoginModal(false);
     setLoginError("");
     if (loginData.remember) {
+      window.localStorage.setItem(SESSION_PERSIST_KEY, "local");
       window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(safeSession));
+      window.sessionStorage.removeItem(APP_SESSION_KEY);
     } else {
+      window.localStorage.setItem(SESSION_PERSIST_KEY, "session");
+      window.sessionStorage.setItem(APP_SESSION_KEY, JSON.stringify(safeSession));
       window.localStorage.removeItem(APP_SESSION_KEY);
     }
     setLoginData((prev) => ({ ...prev, password: "" }));
@@ -682,7 +796,7 @@ const [storageMode] = useState("online");
       (normalizedUsername && teamUsers.some((u) => u.username.toLowerCase() === normalizedUsername)) ||
       (normalizedPhone && teamUsers.some((u) => (u.phone || "").replace(/[^\d]/g, "") === normalizedPhone))
     ) {
-      alert("Un compte existe déjà avec cet email ou ce téléphone.");
+      notify("error", "Un compte existe déjà avec cet email ou ce téléphone.");
       return;
     }
     if (!managementBackendReady) {
@@ -732,7 +846,10 @@ const [storageMode] = useState("online");
   const toggleTeamUserStatus = async (userId) => {
     const target = teamUsers.find((u) => u.id === userId);
     const nextStatus = !(target?.isActive !== false);
-    if (!managementBackendReady) return alert("Serveur de données indisponible.");
+    if (!managementBackendReady) {
+      notify("error", "Serveur de données indisponible.");
+      return;
+    }
     await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
     setTeamUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, isActive: nextStatus } : u))
@@ -749,13 +866,16 @@ const [storageMode] = useState("online");
 
   const updateTeamUserRole = async (userId, role) => {
     const target = teamUsers.find((u) => u.id === userId);
-    if (!managementBackendReady) return alert("Serveur de données indisponible.");
+    if (!managementBackendReady) {
+      notify("error", "Serveur de données indisponible.");
+      return;
+    }
     await callManagementApi("updateUser", { userId, role });
     setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
     if (sessionUser?.id === userId) {
       setSessionUser((prev) => ({ ...prev, role }));
       const updatedSession = { ...(sessionUser || {}), role };
-      window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
+      persistSessionObject(updatedSession);
     }
     await writeAuditLog({
       action: "CHANGEMENT_ROLE_COMPTE_GESTION",
@@ -777,7 +897,7 @@ const [storageMode] = useState("online");
           (normalizedPhone && (u.phone || "").replace(/[^\d]/g, "") === normalizedPhone))
     );
     if (duplicate) {
-      alert("Un autre compte utilise déjà cet email ou ce téléphone.");
+      notify("error", "Un autre compte utilise déjà cet email ou ce téléphone.");
       return false;
     }
     const cleanPatch = {
@@ -789,7 +909,7 @@ const [storageMode] = useState("online");
       ...(patch.isActive !== undefined && { isActive: patch.isActive })
     };
     if (!managementBackendReady) {
-      alert("Serveur de données indisponible.");
+      notify("error", "Serveur de données indisponible.");
       return false;
     }
     await callManagementApi("updateUser", {
@@ -804,7 +924,7 @@ const [storageMode] = useState("online");
     if (sessionUser?.id === userId) {
       const updatedSession = { ...(sessionUser || {}), ...cleanPatch };
       setSessionUser(updatedSession);
-      window.localStorage.setItem(APP_SESSION_KEY, JSON.stringify(updatedSession));
+      persistSessionObject(updatedSession);
     }
     const target = teamUsers.find((u) => u.id === userId);
     writeAuditLog({
@@ -820,11 +940,14 @@ const [storageMode] = useState("online");
 
   const removeTeamUser = async (userId) => {
     if (sessionUser?.id === userId) {
-      alert("Vous ne pouvez pas supprimer votre propre compte actif.");
+      notify("error", "Vous ne pouvez pas supprimer votre propre compte actif.");
       return;
     }
     const target = teamUsers.find((u) => u.id === userId);
-    if (!managementBackendReady) return alert("Serveur de données indisponible.");
+    if (!managementBackendReady) {
+      notify("error", "Serveur de données indisponible.");
+      return;
+    }
     await callManagementApi("deleteUser", { userId });
     setTeamUsers((prev) => prev.filter((u) => u.id !== userId));
     writeAuditLog({
@@ -847,10 +970,36 @@ const [storageMode] = useState("online");
       details: "Déconnexion de la session active."
     });
     window.localStorage.removeItem(APP_SESSION_KEY);
+    window.localStorage.removeItem(SESSION_PERSIST_KEY);
+    window.sessionStorage.removeItem(APP_SESSION_KEY);
     setIsAppAuthenticated(false);
     setSessionUser(null);
     setShowLoginModal(false);
     setLoginData({ identifier: "", password: "", remember: true });
+  };
+
+  const askConfirm = (message) =>
+    new Promise((resolve) => {
+      setConfirmState({ message, resolve });
+    });
+
+  const exportDataBackup = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      year: config.year,
+      members,
+      expenses,
+      deposits,
+      config
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fag-sauvegarde-${config.year}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    notify("success", "Fichier de sauvegarde téléchargé.");
   };
 
   const addMember = async (e) => {
@@ -866,20 +1015,39 @@ const [storageMode] = useState("online");
           ? newMember.churchFunction
           : newMember.churchFunctionType || newMember.churchFunction
     };
+    const normW = normalizeWhatsAppNumber(preparedMember.whatsapp);
+    if (normW && members.some((m) => normalizeWhatsAppNumber(m.whatsapp) === normW)) {
+      notify("error", "Un fidèle avec ce numéro WhatsApp existe déjà.");
+      return;
+    }
     if (managementBackendReady) {
-      const cloudMember = { ...preparedMember, dateJoined: new Date().toISOString(), payments: [] };
+      const cloudMember = {
+        ...preparedMember,
+        dateJoined: new Date().toISOString(),
+        payments: [],
+        commsOptIn: newMember.commsOptIn !== false
+      };
       try {
         const result = await callManagementApi("addMember", { member: cloudMember });
         if (result?.id) {
           setMembers((prev) => [...prev, { ...cloudMember, id: result.id }]);
-          setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
+          setNewMember({
+            name: "",
+            churchFunctionType: "",
+            churchFunction: "",
+            district: "",
+            whatsapp: "",
+            categoryId: "cat1",
+            customAmount: "",
+            commsOptIn: true
+          });
           setIsMemberModalOpen(false);
           notify("success", "Fidèle créé avec succès.");
         } else {
           throw new Error("Création refusée par le serveur.");
         }
       } catch (error) {
-        notify("error", `Création impossible. ${error?.message || ""}`.trim());
+        notify("error", (error?.message || "Création impossible.").trim());
         return;
       }
       await writeAuditLog({
@@ -894,7 +1062,16 @@ const [storageMode] = useState("online");
     if (storageMode === "local") {
       const localMember = { ...preparedMember, id: Date.now().toString(), dateJoined: new Date().toISOString(), payments: [] };
       setMembers((prev) => [...prev, localMember]);
-      setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
+      setNewMember({
+        name: "",
+        churchFunctionType: "",
+        churchFunction: "",
+        district: "",
+        whatsapp: "",
+        categoryId: "cat1",
+        customAmount: "",
+        commsOptIn: true
+      });
       setIsMemberModalOpen(false);
       writeAuditLog({
         action: "CREATION_FIDELE",
@@ -911,7 +1088,16 @@ const [storageMode] = useState("online");
       dateJoined: new Date().toISOString(),
       payments: []
     });
-    setNewMember({ name: "", churchFunctionType: "", churchFunction: "", district: "", whatsapp: "", categoryId: "cat1", customAmount: "" });
+    setNewMember({
+      name: "",
+      churchFunctionType: "",
+      churchFunction: "",
+      district: "",
+      whatsapp: "",
+      categoryId: "cat1",
+      customAmount: "",
+      commsOptIn: true
+    });
     setIsMemberModalOpen(false);
     writeAuditLog({
       action: "CREATION_FIDELE",
@@ -919,6 +1105,122 @@ const [storageMode] = useState("online");
       targetType: "member",
       targetLabel: preparedMember.name,
       details: "Nouveau fidèle enregistré."
+    });
+  };
+
+  const openEditMemberModal = (m) => {
+    const fn = (m.churchFunction || "").trim();
+    const isPreset = CHURCH_FUNCTION_OPTIONS.includes(fn);
+    setEditingMember({
+      id: m.id,
+      name: m.name || "",
+      churchFunctionType: isPreset ? fn : fn ? "__other__" : "",
+      churchFunction: isPreset ? "" : fn,
+      district: m.district || "",
+      whatsapp: m.whatsapp || "",
+      categoryId: m.categoryId || "cat1",
+      customAmount: m.categoryId === "cat5" ? String(m.customAmount ?? "") : "",
+      commsOptIn: m.commsOptIn !== false
+    });
+  };
+
+  const saveMemberUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingMember?.name?.trim() || !editingMember?.whatsapp?.trim()) {
+      notify("error", "Veuillez renseigner le nom et le téléphone du fidèle.");
+      return;
+    }
+    const prepared = {
+      ...editingMember,
+      churchFunction:
+        editingMember.churchFunctionType === "__other__"
+          ? editingMember.churchFunction
+          : editingMember.churchFunctionType || editingMember.churchFunction
+    };
+    const memberId = editingMember.id;
+    const existing = members.find((mm) => mm.id === memberId);
+    if (!existing) {
+      notify("error", "Fidèle introuvable.");
+      return;
+    }
+    const patch = {
+      name: prepared.name.trim(),
+      churchFunction: (prepared.churchFunction || "").trim() || "Membre",
+      district: (prepared.district || "").trim(),
+      whatsapp: prepared.whatsapp.trim(),
+      categoryId: prepared.categoryId || "cat1",
+      customAmount: prepared.categoryId === "cat5" ? toNumber(prepared.customAmount) : 0,
+      commsOptIn: prepared.commsOptIn !== false
+    };
+    const nextMember = { ...existing, ...patch };
+
+    if (managementBackendReady) {
+      try {
+        await callManagementApi("updateMember", {
+          memberId,
+          member: {
+            name: nextMember.name,
+            churchFunction: nextMember.churchFunction,
+            district: nextMember.district || null,
+            whatsapp: nextMember.whatsapp,
+            categoryId: nextMember.categoryId,
+            customAmount: nextMember.customAmount,
+            commsOptIn: nextMember.commsOptIn !== false
+          }
+        });
+      } catch (error) {
+        notify("error", `Mise à jour impossible. ${error?.message || ""}`.trim());
+        return;
+      }
+      setMembers((prev) => prev.map((mm) => (mm.id === memberId ? nextMember : mm)));
+      if (selectedMember?.id === memberId) setSelectedMember(nextMember);
+      setEditingMember(null);
+      notify("success", "Fiche fidèle mise à jour.");
+      await writeAuditLog({
+        action: "MODIFICATION_FIDELE",
+        scope: "finance",
+        targetType: "member",
+        targetId: memberId,
+        targetLabel: nextMember.name,
+        details: "Informations du fidèle modifiées."
+      });
+      return;
+    }
+    if (storageMode === "local") {
+      setMembers((prev) => prev.map((mm) => (mm.id === memberId ? nextMember : mm)));
+      if (selectedMember?.id === memberId) setSelectedMember(nextMember);
+      setEditingMember(null);
+      notify("success", "Fiche fidèle mise à jour.");
+      writeAuditLog({
+        action: "MODIFICATION_FIDELE",
+        scope: "finance",
+        targetType: "member",
+        targetId: memberId,
+        targetLabel: nextMember.name,
+        details: "Informations du fidèle modifiées (local)."
+      });
+      return;
+    }
+    if (!user) return;
+    await updateDoc(doc(db, "artifacts", appId, "public", "data", "members", memberId), {
+      name: nextMember.name,
+      churchFunction: nextMember.churchFunction,
+      district: nextMember.district,
+      whatsapp: nextMember.whatsapp,
+      categoryId: nextMember.categoryId,
+      customAmount: nextMember.customAmount
+    });
+    setMembers((prev) => prev.map((mm) => (mm.id === memberId ? nextMember : mm)));
+    if (selectedMember?.id === memberId) setSelectedMember(nextMember);
+    setEditingMember(null);
+    notify("success", "Fiche fidèle mise à jour.");
+    writeAuditLog({
+      action: "MODIFICATION_FIDELE",
+      scope: "finance",
+      targetType: "member",
+      targetId: memberId,
+      targetLabel: nextMember.name,
+      details: "Informations du fidèle modifiées."
     });
   };
 
@@ -990,6 +1292,11 @@ const [storageMode] = useState("online");
   };
 
   const handleExpense = async (e) => {
+    e.preventDefault();
+    if (!newExpense.description?.trim() || !newExpense.amount) {
+      notify("error", "Indiquez une description et un montant.");
+      return;
+    }
     if (managementBackendReady) {
       const optimistic = { ...newExpense, id: Date.now().toString() };
       setExpenses((prev) => [optimistic, ...prev]);
@@ -1004,7 +1311,7 @@ const [storageMode] = useState("online");
       try {
         const result = await callManagementApi("addExpense", { expense: optimistic });
         if (result?.id) {
-          setExpenses((prev) => prev.map((e) => (e.id === optimistic.id ? { ...e, id: result.id } : e)));
+          setExpenses((prev) => prev.map((ex) => (ex.id === optimistic.id ? { ...ex, id: result.id } : ex)));
         }
       } catch {
         // optimistic fallback
@@ -1014,13 +1321,11 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "expense",
         targetLabel: optimistic.description,
-        details: `${money(optimistic.amount)} (${optimistic.category}).`
+        details: `${money(optimistic.amount)} — ${optimistic.category} (${optimistic.method || "Espèces"}).`
       });
       notify("success", "Dépense enregistrée avec succès.");
       return;
     }
-    e.preventDefault();
-    if (!newExpense.description || !newExpense.amount) return;
     if (storageMode === "local") {
       setExpenses((prev) => [...prev, { ...newExpense, id: Date.now().toString() }]);
       setNewExpense({
@@ -1031,12 +1336,13 @@ const [storageMode] = useState("online");
         method: "Espèces"
       });
       setIsExpenseModalOpen(false);
+      notify("success", "Dépense enregistrée.");
       writeAuditLog({
         action: "AJOUT_DEPENSE",
         scope: "finance",
         targetType: "expense",
         targetLabel: newExpense.description,
-        details: `${money(newExpense.amount)} (${newExpense.category}).`
+        details: `${money(newExpense.amount)} — ${newExpense.category} (${newExpense.method || "Espèces"}).`
       });
       return;
     }
@@ -1050,20 +1356,114 @@ const [storageMode] = useState("online");
       method: "Espèces"
     });
     setIsExpenseModalOpen(false);
+    notify("success", "Dépense enregistrée.");
     writeAuditLog({
       action: "AJOUT_DEPENSE",
       scope: "finance",
       targetType: "expense",
       targetLabel: newExpense.description,
-      details: `${money(newExpense.amount)} (${newExpense.category}).`
+      details: `${money(newExpense.amount)} — ${newExpense.category} (${newExpense.method || "Espèces"}).`
+    });
+  };
+
+  const openEditExpense = (ex) => {
+    setEditingExpense({
+      id: ex.id,
+      description: ex.description || "",
+      amount: String(ex.amount ?? ""),
+      date: typeof ex.date === "string" ? ex.date.slice(0, 10) : ex.date,
+      category: ex.category || "Logistique",
+      method: ex.method || "Espèces"
+    });
+  };
+
+  const saveExpenseUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingExpense?.description?.trim() || !editingExpense?.amount) {
+      notify("error", "Description et montant requis.");
+      return;
+    }
+    const exId = editingExpense.id;
+    const patch = {
+      description: editingExpense.description.trim(),
+      amount: toNumber(editingExpense.amount),
+      date: editingExpense.date,
+      category: editingExpense.category,
+      method: editingExpense.method || "Espèces"
+    };
+    if (managementBackendReady) {
+      try {
+        await callManagementApi("updateExpense", {
+          expenseId: exId,
+          expense: {
+            description: patch.description,
+            amount: patch.amount,
+            date: patch.date,
+            category: patch.category,
+            method: patch.method
+          }
+        });
+      } catch (error) {
+        notify("error", `Mise à jour impossible. ${error?.message || ""}`.trim());
+        return;
+      }
+      setExpenses((prev) => prev.map((ex) => (ex.id === exId ? { ...ex, ...patch } : ex)));
+      setEditingExpense(null);
+      notify("success", "Dépense mise à jour.");
+      await writeAuditLog({
+        action: "MODIFICATION_DEPENSE",
+        scope: "finance",
+        targetType: "expense",
+        targetId: exId,
+        targetLabel: patch.description,
+        details: `${money(patch.amount)} — ${patch.category} (${patch.method}).`
+      });
+      return;
+    }
+    if (storageMode === "local") {
+      setExpenses((prev) => prev.map((ex) => (ex.id === exId ? { ...ex, ...patch } : ex)));
+      setEditingExpense(null);
+      notify("success", "Dépense mise à jour.");
+      writeAuditLog({
+        action: "MODIFICATION_DEPENSE",
+        scope: "finance",
+        targetType: "expense",
+        targetId: exId,
+        targetLabel: patch.description,
+        details: `${money(patch.amount)} — ${patch.category} (local).`
+      });
+      return;
+    }
+    if (!user) return;
+    await updateDoc(doc(db, "artifacts", appId, "public", "data", "expenses", exId), patch);
+    setExpenses((prev) => prev.map((ex) => (ex.id === exId ? { ...ex, ...patch } : ex)));
+    setEditingExpense(null);
+    notify("success", "Dépense mise à jour.");
+    writeAuditLog({
+      action: "MODIFICATION_DEPENSE",
+      scope: "finance",
+      targetType: "expense",
+      targetId: exId,
+      targetLabel: patch.description,
+      details: `${money(patch.amount)} — ${patch.category}.`
     });
   };
 
   const handleDeposit = async (e) => {
+    e.preventDefault();
+    if (!newDeposit.recipient?.trim() || !newDeposit.amount) {
+      notify("error", "Indiquez le responsable et le montant de la remise.");
+      return;
+    }
+    const hasTrace = !!(newDeposit.bordereauRef?.trim() || newDeposit.bordereauUrl?.trim());
     if (managementBackendReady) {
-      const optimistic = { ...newDeposit, id: Date.now().toString(), isDeposited: !!newDeposit.bordereauRef };
+      const optimistic = {
+        ...newDeposit,
+        id: Date.now().toString(),
+        isDeposited: hasTrace
+      };
       setDeposits((prev) => [optimistic, ...prev]);
-      setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "" });
+      setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "", bordereauUrl: "" });
       setIsDepositModalOpen(false);
       try {
         const result = await callManagementApi("addDeposit", { deposit: optimistic });
@@ -1078,43 +1478,47 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "deposit",
         targetLabel: optimistic.recipient,
-        details: `${money(optimistic.amount)}${optimistic.bordereauRef ? `, bordereau ${optimistic.bordereauRef}` : ""}.`
+        details: `${money(optimistic.amount)}${optimistic.bordereauRef ? `, réf. ${optimistic.bordereauRef}` : ""}${optimistic.bordereauUrl ? `, lien pièce` : ""}.`
       });
       notify("success", "Remise enregistrée avec succès.");
       return;
     }
-    e.preventDefault();
-    if (!newDeposit.recipient || !newDeposit.amount) return;
     if (storageMode === "local") {
-      setDeposits((prev) => [...prev, { ...newDeposit, id: Date.now().toString(), isDeposited: !!newDeposit.bordereauRef }]);
-      setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "" });
+      setDeposits((prev) => [...prev, { ...newDeposit, id: Date.now().toString(), isDeposited: hasTrace }]);
+      setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "", bordereauUrl: "" });
       setIsDepositModalOpen(false);
+      notify("success", "Remise enregistrée.");
       writeAuditLog({
         action: "AJOUT_REMISE_COMITE",
         scope: "finance",
         targetType: "deposit",
         targetLabel: newDeposit.recipient,
-        details: `${money(newDeposit.amount)}${newDeposit.bordereauRef ? `, bordereau ${newDeposit.bordereauRef}` : ""}.`
+        details: `${money(newDeposit.amount)}${newDeposit.bordereauRef ? `, réf. ${newDeposit.bordereauRef}` : ""}${newDeposit.bordereauUrl ? `, lien pièce` : ""}.`
       });
       return;
     }
     if (!user) return;
     await addDoc(collection(db, "artifacts", appId, "public", "data", "deposits"), {
       ...newDeposit,
-      isDeposited: !!newDeposit.bordereauRef
+      isDeposited: hasTrace
     });
-    setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "" });
+    setNewDeposit({ recipient: "", amount: "", date: new Date().toISOString().split("T")[0], bordereauRef: "", bordereauUrl: "" });
     setIsDepositModalOpen(false);
+    notify("success", "Remise enregistrée.");
     writeAuditLog({
       action: "AJOUT_REMISE_COMITE",
       scope: "finance",
       targetType: "deposit",
       targetLabel: newDeposit.recipient,
-      details: `${money(newDeposit.amount)}${newDeposit.bordereauRef ? `, bordereau ${newDeposit.bordereauRef}` : ""}.`
+      details: `${money(newDeposit.amount)}${newDeposit.bordereauRef ? `, réf. ${newDeposit.bordereauRef}` : ""}${newDeposit.bordereauUrl ? `, lien pièce` : ""}.`
     });
   };
 
   const sendWhatsApp = async (member, type) => {
+    if (member.commsOptIn === false) {
+      notify("error", "Ce contact a refusé les messages WhatsApp (paramètre fiche fidèle).");
+      return;
+    }
     const cat = config.categories.find((c) => c.id === member.categoryId);
     const monthly = member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
     const total = monthly * config.months;
@@ -1157,7 +1561,10 @@ const [storageMode] = useState("online");
     const finalMessage = messages[type] || messages.thanks;
     const normalizedPhone = normalizeWhatsAppNumber(member.whatsapp);
     if (!normalizedPhone) {
-      notify("error", "Numéro WhatsApp invalide. Format attendu: 07XXXXXXXX ou 225XXXXXXXXX.");
+      notify(
+        "error",
+        "Numéro WhatsApp invalide. Ex. 0757228731 ou 2250757228731 (10 chiffres ivoiriens, le 0 initial compte)."
+      );
       return;
     }
 
@@ -1202,20 +1609,39 @@ const [storageMode] = useState("online");
   };
 
   const filteredMembers = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
     return members.filter((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
       const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const paid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
       const total = monthly * config.months;
-      const nameOk = m.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchOk =
+        !q ||
+        (m.name || "").toLowerCase().includes(q) ||
+        (m.whatsapp || "").toLowerCase().includes(q) ||
+        (m.district || "").toLowerCase().includes(q) ||
+        (m.churchFunction || "").toLowerCase().includes(q);
       const categoryOk = memberCategoryFilter === "all" || m.categoryId === memberCategoryFilter;
       const filterOk =
         memberFilter === "all" ||
         (memberFilter === "pending" && paid < total) ||
         (memberFilter === "done" && total > 0 && paid >= total);
-      return nameOk && filterOk && categoryOk;
+      return searchOk && filterOk && categoryOk;
     });
   }, [members, config.categories, config.months, searchTerm, memberFilter, memberCategoryFilter]);
+
+  const memberFilteredStats = useMemo(() => {
+    let promised = 0;
+    let paid = 0;
+    for (const m of filteredMembers) {
+      const cat = config.categories.find((c) => c.id === m.categoryId);
+      const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      promised += monthly * config.months;
+      paid += (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
+    }
+    const progressPct = promised > 0 ? Math.min(100, (paid / promised) * 100) : 0;
+    return { promised, paid, progressPct, count: filteredMembers.length };
+  }, [filteredMembers, config.categories, config.months]);
 
   const memberInsights = useMemo(() => {
     const pending = members.filter((m) => {
@@ -1260,23 +1686,104 @@ const [storageMode] = useState("online");
     return Object.entries(groups).sort((a, b) => b[1] - a[1]);
   }, [filteredExpenses]);
 
+  const expenseMethodBreakdown = useMemo(() => {
+    const groups = filteredExpenses.reduce((acc, item) => {
+      const mode = item.method || "Espèces";
+      acc[mode] = (acc[mode] || 0) + toNumber(item.amount);
+      return acc;
+    }, {});
+    return Object.entries(groups).sort((a, b) => b[1] - a[1]);
+  }, [filteredExpenses]);
+
+  const sortedFilteredExpenses = useMemo(
+    () => [...filteredExpenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [filteredExpenses]
+  );
+
+  const expenseFilteredSum = useMemo(
+    () => filteredExpenses.reduce((s, e) => s + toNumber(e.amount), 0),
+    [filteredExpenses]
+  );
+
   const filteredDeposits = useMemo(() => {
+    const q = depositSearchTerm.trim().toLowerCase();
     return deposits.filter((d) => {
-      const bySearch = (d.recipient || "").toLowerCase().includes(depositSearchTerm.toLowerCase());
+      const bySearch =
+        !q ||
+        (d.recipient || "").toLowerCase().includes(q) ||
+        (d.bordereauRef || "").toLowerCase().includes(q) ||
+        (d.bordereauUrl || "").toLowerCase().includes(q);
+      const hasTrace = !!(d.bordereauRef || String(d.bordereauUrl || "").trim());
       const byFilter =
         depositFilter === "all" ||
-        (depositFilter === "with_ref" && !!d.bordereauRef) ||
-        (depositFilter === "missing_ref" && !d.bordereauRef);
+        (depositFilter === "with_ref" && hasTrace) ||
+        (depositFilter === "missing_ref" && !hasTrace);
       return bySearch && byFilter;
     });
   }, [deposits, depositSearchTerm, depositFilter]);
 
   const depositInsights = useMemo(() => {
-    const withRef = deposits.filter((d) => !!d.bordereauRef).length;
-    const missingRef = deposits.length - withRef;
+    const documented = deposits.filter((d) => !!(d.bordereauRef || String(d.bordereauUrl || "").trim())).length;
+    const missingRef = deposits.length - documented;
     const totalFiltered = filteredDeposits.reduce((sum, d) => sum + toNumber(d.amount), 0);
-    return { withRef, missingRef, totalFiltered };
+    const sumAll = deposits.reduce((s, d) => s + toNumber(d.amount), 0);
+    return { withRef: documented, missingRef, totalFiltered, sumAll, countAll: deposits.length };
   }, [deposits, filteredDeposits]);
+
+  const sortedFilteredDeposits = useMemo(
+    () => [...filteredDeposits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [filteredDeposits]
+  );
+
+  const depositFilteredRefSummary = useMemo(() => {
+    const n = filteredDeposits.length;
+    const ok = filteredDeposits.filter((d) => !!(d.bordereauRef || String(d.bordereauUrl || "").trim())).length;
+    return { n, ok, missing: n - ok };
+  }, [filteredDeposits]);
+
+  const exportMembersCsv = () => {
+    const header = [
+      "Nom",
+      "WhatsApp",
+      "Quartier",
+      "Fonction",
+      "Categorie",
+      "Mensualite_FCFA",
+      "Engagement_total_FCFA",
+      "Cumul_verse_FCFA",
+      "Progression_pct"
+    ];
+    const body = filteredMembers.map((m) => {
+      const cat = config.categories.find((c) => c.id === m.categoryId);
+      const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const paid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
+      const total = monthly * config.months;
+      const pct = total > 0 ? ((paid / total) * 100).toFixed(1) : "";
+      return [m.name, m.whatsapp, m.district, m.churchFunction, cat?.label || "", monthly, total, paid, pct];
+    });
+    const rows = [header, ...body].map((r) => r.map(csvEscape).join(";")).join("\n");
+    triggerCsvDownload(`fag-${config.year}-fideles-filtre.csv`, rows);
+  };
+
+  const exportExpensesCsv = () => {
+    const header = ["Date", "Description", "Categorie", "Mode", "Montant_FCFA"];
+    const body = sortedFilteredExpenses.map((e) => [e.date, e.description, e.category, e.method || "Espèces", e.amount]);
+    const rows = [header, ...body].map((r) => r.map(csvEscape).join(";")).join("\n");
+    triggerCsvDownload(`fag-${config.year}-depenses-filtre.csv`, rows);
+  };
+
+  const exportDepositsCsv = () => {
+    const header = ["Date", "Responsable", "Montant_FCFA", "Reference", "Lien_piece"];
+    const body = sortedFilteredDeposits.map((d) => [
+      d.date,
+      d.recipient,
+      d.amount,
+      d.bordereauRef || "",
+      d.bordereauUrl || ""
+    ]);
+    const rows = [header, ...body].map((r) => r.map(csvEscape).join(";")).join("\n");
+    triggerCsvDownload(`fag-${config.year}-remises-comite-filtre.csv`, rows);
+  };
 
   const marketingMembers = useMemo(() => {
     return members
@@ -1303,6 +1810,16 @@ const [storageMode] = useState("online");
   const selectedMonthlyAmount =
     newMember.categoryId === "cat5" ? toNumber(newMember.customAmount) : toNumber(selectedCategory?.amount);
   const selectedTotalAmount = selectedMonthlyAmount * config.months;
+
+  const editingCategory = useMemo(
+    () => (editingMember ? config.categories.find((cat) => cat.id === editingMember.categoryId) : null),
+    [config.categories, editingMember?.categoryId]
+  );
+  const editingMonthlyAmount =
+    editingMember?.categoryId === "cat5"
+      ? toNumber(editingMember.customAmount)
+      : toNumber(editingCategory?.amount);
+  const editingTotalAmount = editingMonthlyAmount * config.months;
   const maxMonthlyCollected = Math.max(1, ...stats.monthlyFinance.map((item) => item.collected));
   const maxMonthlySpent = Math.max(1, ...stats.monthlyFinance.map((item) => item.spent));
   const bestCategory = stats.categories[0];
@@ -1446,6 +1963,8 @@ const [storageMode] = useState("online");
   }, [activeTab, accessibleTabs]);
 
   const removeMember = async (memberId) => {
+    const member = members.find((m) => m.id === memberId);
+    const label = member?.name || memberId;
     if (managementBackendReady) {
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
       try {
@@ -1458,12 +1977,11 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "member",
         targetId: memberId,
-        targetLabel: member?.name || memberId,
+        targetLabel: label,
         details: "Fiche fidèle supprimée."
       });
       return;
     }
-    const member = members.find((m) => m.id === memberId);
     if (storageMode === "local") {
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
       writeAuditLog({
@@ -1471,7 +1989,7 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "member",
         targetId: memberId,
-        targetLabel: member?.name || memberId,
+        targetLabel: label,
         details: "Fiche fidèle supprimée (local)."
       });
       return;
@@ -1482,12 +2000,14 @@ const [storageMode] = useState("online");
       scope: "finance",
       targetType: "member",
       targetId: memberId,
-      targetLabel: member?.name || memberId,
+      targetLabel: label,
       details: "Fiche fidèle supprimée."
     });
   };
 
   const removeExpense = async (expenseId) => {
+    const expense = expenses.find((e) => e.id === expenseId);
+    const label = expense?.description || expenseId;
     if (managementBackendReady) {
       setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
       try {
@@ -1500,12 +2020,11 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "expense",
         targetId: expenseId,
-        targetLabel: expense?.description || expenseId,
+        targetLabel: label,
         details: "Sortie supprimée."
       });
       return;
     }
-    const expense = expenses.find((e) => e.id === expenseId);
     if (storageMode === "local") {
       setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
       writeAuditLog({
@@ -1513,7 +2032,7 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "expense",
         targetId: expenseId,
-        targetLabel: expense?.description || expenseId,
+        targetLabel: label,
         details: "Sortie supprimée."
       });
       return;
@@ -1524,12 +2043,14 @@ const [storageMode] = useState("online");
       scope: "finance",
       targetType: "expense",
       targetId: expenseId,
-      targetLabel: expense?.description || expenseId,
+      targetLabel: label,
       details: "Sortie supprimée."
     });
   };
 
   const removeDeposit = async (depositId) => {
+    const deposit = deposits.find((d) => d.id === depositId);
+    const label = deposit?.recipient || depositId;
     if (managementBackendReady) {
       setDeposits((prev) => prev.filter((d) => d.id !== depositId));
       try {
@@ -1542,12 +2063,11 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "deposit",
         targetId: depositId,
-        targetLabel: deposit?.recipient || depositId,
+        targetLabel: label,
         details: "Remise supprimée."
       });
       return;
     }
-    const deposit = deposits.find((d) => d.id === depositId);
     if (storageMode === "local") {
       setDeposits((prev) => prev.filter((d) => d.id !== depositId));
       writeAuditLog({
@@ -1555,7 +2075,7 @@ const [storageMode] = useState("online");
         scope: "finance",
         targetType: "deposit",
         targetId: depositId,
-        targetLabel: deposit?.recipient || depositId,
+        targetLabel: label,
         details: "Remise supprimée."
       });
       return;
@@ -1566,18 +2086,96 @@ const [storageMode] = useState("online");
       scope: "finance",
       targetType: "deposit",
       targetId: depositId,
-      targetLabel: deposit?.recipient || depositId,
+      targetLabel: label,
       details: "Remise supprimée."
     });
   };
 
-  const setDepositReceiptRef = async (depositId, ref) => {
+  const tryUploadDepositFile = async (file) => {
+    const base = import.meta.env?.VITE_INSFORGE_URL;
+    const ak = import.meta.env?.VITE_INSFORGE_ANON_KEY;
+    if (!base || !ak) {
+      return { error: "Variables VITE_INSFORGE_URL et VITE_INSFORGE_ANON_KEY requises (build) pour l’upload." };
+    }
+    const { createClient } = await import("@insforge/sdk");
+    const insforge = createClient({ baseUrl: base, anonKey: ak });
+    const { data, error } = await insforge.storage.from("fag-attachments").uploadAuto(file);
+    if (error) return { error: error.message || String(error) };
+    return { url: data?.url || "" };
+  };
+
+  const openDepositUrlModal = (depositId) => {
+    setUrlAttachmentModal({ depositId, url: "", fileHint: "" });
+  };
+
+  const applyDepositAttachmentUrl = async (depositId, trimmed) => {
     if (managementBackendReady) {
       setDeposits((prev) =>
-        prev.map((d) => (d.id === depositId ? { ...d, bordereauRef: ref, isDeposited: true } : d))
+        prev.map((d) => (d.id === depositId ? { ...d, bordereauUrl: trimmed, isDeposited: true } : d))
       );
       try {
-        await callManagementApi("updateDepositRef", { depositId, ref });
+        await callManagementApi("updateDepositAttachment", { depositId, attachmentUrl: trimmed });
+      } catch {
+        // optimistic fallback
+      }
+      await writeAuditLog({
+        action: "AJOUT_LIEN_PIECE_REMISE",
+        scope: "finance",
+        targetType: "deposit",
+        targetId: depositId,
+        targetLabel: deposits.find((d) => d.id === depositId)?.recipient || depositId,
+        details: trimmed ? "Lien justificatif enregistré." : "Lien effacé."
+      });
+      notify("success", trimmed ? "Lien enregistré." : "Lien retiré.");
+      return;
+    }
+    if (storageMode === "local") {
+      setDeposits((prev) =>
+        prev.map((d) => (d.id === depositId ? { ...d, bordereauUrl: trimmed, isDeposited: true } : d))
+      );
+      notify("success", trimmed ? "Lien enregistré." : "Lien retiré.");
+      writeAuditLog({
+        action: "AJOUT_LIEN_PIECE_REMISE",
+        scope: "finance",
+        targetType: "deposit",
+        targetId: depositId,
+        targetLabel: deposits.find((d) => d.id === depositId)?.recipient || depositId,
+        details: "Lien (local)."
+      });
+      return;
+    }
+    await updateDoc(doc(db, "artifacts", appId, "public", "data", "deposits", depositId), {
+      bordereauUrl: trimmed,
+      isDeposited: true
+    });
+    setDeposits((prev) =>
+      prev.map((d) => (d.id === depositId ? { ...d, bordereauUrl: trimmed, isDeposited: true } : d))
+    );
+    writeAuditLog({
+      action: "AJOUT_LIEN_PIECE_REMISE",
+      scope: "finance",
+      targetType: "deposit",
+      targetId: depositId,
+      targetLabel: deposits.find((d) => d.id === depositId)?.recipient || depositId,
+      details: "Lien justificatif."
+    });
+  };
+
+  const openBordereauModal = (depositId) => {
+    setBordereauFormModal({ depositId, ref: "", url: "" });
+  };
+
+  const applyDepositReceiptRef = async (depositId, ref, attachmentUrl) => {
+    if (managementBackendReady) {
+      setDeposits((prev) =>
+        prev.map((d) =>
+          d.id === depositId
+            ? { ...d, bordereauRef: ref, isDeposited: true, ...(attachmentUrl ? { bordereauUrl: attachmentUrl } : {}) }
+            : d
+        )
+      );
+      try {
+        await callManagementApi("updateDepositRef", { depositId, ref, attachmentUrl });
       } catch {
         // optimistic fallback
       }
@@ -1593,7 +2191,11 @@ const [storageMode] = useState("online");
     }
     if (storageMode === "local") {
       setDeposits((prev) =>
-        prev.map((d) => (d.id === depositId ? { ...d, bordereauRef: ref, isDeposited: true } : d))
+        prev.map((d) =>
+          d.id === depositId
+            ? { ...d, bordereauRef: ref, isDeposited: true, ...(attachmentUrl ? { bordereauUrl: attachmentUrl } : {}) }
+            : d
+        )
       );
       writeAuditLog({
         action: "AJOUT_BORDEREAU",
@@ -1607,8 +2209,16 @@ const [storageMode] = useState("online");
     }
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "deposits", depositId), {
       bordereauRef: ref,
-      isDeposited: true
+      isDeposited: true,
+      ...(attachmentUrl ? { bordereauUrl: attachmentUrl } : {})
     });
+    setDeposits((prev) =>
+      prev.map((d) =>
+        d.id === depositId
+          ? { ...d, bordereauRef: ref, isDeposited: true, ...(attachmentUrl ? { bordereauUrl: attachmentUrl } : {}) }
+          : d
+      )
+    );
     writeAuditLog({
       action: "AJOUT_BORDEREAU",
       scope: "finance",
@@ -1927,10 +2537,22 @@ const [storageMode] = useState("online");
                   {activeTab === "marketing" && "Communication Marketing"}
                   {activeTab === "settings" && "Configuration FAG"}
                 </h2>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+                >
                   <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-500" : "bg-red-500"}`} />
                   {managementBackendReady ? "Service en ligne" : "Service indisponible"}
                 </span>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${netOnline ? "bg-slate-200 text-slate-700" : "bg-amber-100 text-amber-800"}`}
+                >
+                  {netOnline ? "Réseau OK" : "Hors ligne"}
+                </span>
+                {config.financeLocked && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-orange-800">
+                    Compta verrouillée
+                  </span>
+                )}
               </div>
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
@@ -2095,6 +2717,20 @@ const [storageMode] = useState("online");
                         </table>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
+                    <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Rapprochement de caisse</h3>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Encaissements − Dépenses − Remises comité = Caisse théorique (doit coïncider avec « Cash en main »).
+                    </p>
+                    <p className="mt-3 text-sm font-black text-slate-900">
+                      {money(stats.totalCollected)} − {money(stats.totalExpenses)} − {money(stats.totalHandedOver)} ={" "}
+                      <span className="text-emerald-600">{money(stats.cashInHand)}</span>
+                    </p>
+                    <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">
+                      Contrôle interne : écart 0 F CFA si toutes les opérations sont saisies.
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -2317,6 +2953,45 @@ const [storageMode] = useState("online");
 
               {activeTab === "members" && (
                 <div className="space-y-6">
+                  <div className="rounded-[2rem] border border-emerald-100 bg-gradient-to-r from-emerald-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Module fidèles</h2>
+                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-slate-600">
+                          Gérez les inscriptions, les engagements par catégorie et les encaissements. La recherche porte sur le nom, le WhatsApp,
+                          le quartier et la fonction.
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-white/90 px-3 py-2 text-center shadow-sm md:text-left">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Vue filtrée</p>
+                        <p className="mt-1 text-lg font-black text-emerald-700">
+                          {memberFilteredStats.count} / {members.length}
+                        </p>
+                      </div>
+                    </div>
+                    {memberFilteredStats.count > 0 && (
+                      <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-4">
+                        <div className="flex flex-col gap-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 md:flex-row md:items-center md:justify-between">
+                          <span>
+                            Engagement (filtre): <span className="text-slate-900">{money(memberFilteredStats.promised)}</span>
+                          </span>
+                          <span>
+                            Versé (filtre): <span className="text-emerald-600">{money(memberFilteredStats.paid)}</span>
+                          </span>
+                          <span>
+                            Taux sur la sélection: <span className="text-blue-600">{memberFilteredStats.progressPct.toFixed(1)}%</span>
+                          </span>
+                        </div>
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all duration-500"
+                            style={{ width: `${memberFilteredStats.progressPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <div className="group relative overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
@@ -2359,7 +3034,7 @@ const [storageMode] = useState("online");
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                         <input
                           className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
-                          placeholder="Rechercher un fidèle"
+                          placeholder="Nom, WhatsApp, quartier, fonction…"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -2394,34 +3069,71 @@ const [storageMode] = useState("online");
                         </button>
                       ))}
                     </div>
-                    <button
-                      onClick={() => setIsMemberModalOpen(true)}
-                      className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white"
-                    >
-                      <Plus size={16} /> Nouveau fidèle
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setMemberFilter("all");
+                          setMemberCategoryFilter("all");
+                        }}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                      >
+                        Réinitialiser filtres
+                      </button>
+                      <button
+                        type="button"
+                        onClick={exportMembersCsv}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 hover:bg-emerald-100"
+                      >
+                        <Download size={16} />
+                        Export Excel (CSV)
+                      </button>
+                      <button
+                        onClick={() => setIsMemberModalOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white"
+                      >
+                        <Plus size={16} /> Nouveau fidèle
+                      </button>
+                    </div>
                   </div>
 
                   <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm">
-                    <table className="w-full min-w-[1100px]">
-                      <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <table className="w-full min-w-[1180px]">
+                      <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
                         <tr>
                           <th className="px-6 py-4 text-left">Fidèle</th>
                           <th className="px-6 py-4 text-left">Contact & identité</th>
                           <th className="px-6 py-4 text-center">Mois soldés</th>
                           <th className="px-6 py-4 text-right">Cumul versé</th>
+                          <th className="px-6 py-4 text-center">Progression</th>
                           <th className="px-6 py-4 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
+                        {filteredMembers.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-16 text-center">
+                              <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                Aucun fidèle ne correspond aux filtres. Élargissez la recherche ou réinitialisez.
+                              </p>
+                            </td>
+                          </tr>
+                        )}
                         {filteredMembers.map((m) => {
                           const cat = config.categories.find((c) => c.id === m.categoryId);
                           const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
                           const paid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+                          const totalCommit = monthly * config.months;
+                          const progressRow = totalCommit > 0 ? Math.min(100, (paid / totalCommit) * 100) : 0;
+                          const isSettled = totalCommit > 0 && paid >= totalCommit;
                           const fullMonths = monthly > 0 ? Math.floor(paid / monthly) : 0;
                           const credit = monthly > 0 ? paid % monthly : 0;
                           return (
-                            <tr key={m.id} className="hover:bg-slate-50/70">
+                            <tr
+                              key={m.id}
+                              className={`hover:bg-slate-50/70 ${isSettled ? "border-l-4 border-l-emerald-400 bg-emerald-50/40" : ""} ${!isSettled && totalCommit > 0 ? "border-l-4 border-l-orange-300" : ""}`}
+                            >
                               <td className="px-6 py-4">
                                 <p className="font-black uppercase">{m.name}</p>
                                 <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
@@ -2452,9 +3164,34 @@ const [storageMode] = useState("online");
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-right text-sm font-black">{money(paid)}</td>
+                              <td className="px-6 py-4">
+                                <div className="mx-auto max-w-[140px]">
+                                  <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-widest text-slate-500">
+                                    <span>{progressRow.toFixed(0)}%</span>
+                                    <span className="text-slate-400">/ {money(totalCommit)}</span>
+                                  </div>
+                                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
+                                    <div
+                                      className={`h-full rounded-full ${isSettled ? "bg-emerald-500" : "bg-orange-400"}`}
+                                      style={{ width: `${progressRow}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
                               <td className="px-6 py-4 text-center">
-                                <div className="flex justify-center gap-2">
+                                <div className="flex flex-wrap items-center justify-center gap-2">
                                   <button
+                                    type="button"
+                                    title="Modifier la fiche"
+                                    onClick={() => openEditMemberModal(m)}
+                                    className="inline-flex items-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700 hover:bg-blue-100"
+                                  >
+                                    <Pencil size={14} />
+                                    <span className="hidden sm:inline">Modifier</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    title="Enregistrer un paiement"
                                     onClick={() => {
                                       setSelectedMember(m);
                                       setIsPaymentModalOpen(true);
@@ -2464,20 +3201,24 @@ const [storageMode] = useState("online");
                                     Encaisser
                                   </button>
                                   <button
+                                    type="button"
+                                    title="Historique des versements"
                                     onClick={() => {
                                       setSelectedMember(m);
                                       setIsHistoryModalOpen(true);
                                     }}
-                                    className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500"
+                                    className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-slate-50"
                                   >
                                     <Clock size={14} />
                                   </button>
                                   <button
+                                    type="button"
+                                    title="Supprimer ce fidèle"
                                     onClick={async () => {
-                                      if (!window.confirm("Supprimer ce fidèle ?")) return;
+                                      if (!(await askConfirm("Supprimer définitivement ce fidèle et son historique de versements ?"))) return;
                                       await removeMember(m.id);
                                     }}
-                                    className="rounded-xl p-2 text-slate-300 hover:text-red-600"
+                                    className="rounded-xl border border-red-100 bg-red-50 p-2 text-red-600 hover:bg-red-100"
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -2494,6 +3235,32 @@ const [storageMode] = useState("online");
 
               {activeTab === "expenses" && (
                 <div className="space-y-6">
+                  <div className="rounded-[2rem] border border-red-100 bg-gradient-to-r from-red-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Module dépenses</h2>
+                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-slate-600">
+                          Sorties de caisse validées : suivi par poste budgétaire et par mode de règlement. Le tableau est trié par date (plus récent en premier).
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-white/90 px-3 py-2 text-center shadow-sm md:text-left">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Lignes filtrées</p>
+                        <p className="mt-1 text-lg font-black text-red-700">
+                          {filteredExpenses.length} / {expenses.length}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-slate-100 bg-white p-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 md:flex-row md:items-center md:justify-between">
+                      <span>
+                        Part des dépenses filtrées vs collecté total :{" "}
+                        <span className="text-slate-900">
+                          {stats.totalCollected > 0 ? ((expenseFilteredSum / stats.totalCollected) * 100).toFixed(1) : "0.0"}%
+                        </span>
+                      </span>
+                      <span className="text-slate-400">Collecté à ce jour : {money(stats.totalCollected)}</span>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
@@ -2502,16 +3269,15 @@ const [storageMode] = useState("online");
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Total dépenses</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-red-600">{money(stats.totalExpenses)}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Historique complet</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><BarChart3 size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Dépenses filtrées</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Montant filtré</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-slate-900">
-                        {money(filteredExpenses.reduce((sum, e) => sum + toNumber(e.amount), 0))}
-                      </p>
+                      <p className="mt-3 text-3xl font-black text-slate-900">{money(expenseFilteredSum)}</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
@@ -2525,14 +3291,10 @@ const [storageMode] = useState("online");
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Coins size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Ticket moyen</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Ticket moyen (filtre)</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-slate-900">
-                        {money(
-                          filteredExpenses.length > 0
-                            ? filteredExpenses.reduce((sum, e) => sum + toNumber(e.amount), 0) / filteredExpenses.length
-                            : 0
-                        )}
+                        {money(filteredExpenses.length > 0 ? expenseFilteredSum / filteredExpenses.length : 0)}
                       </p>
                     </div>
                   </div>
@@ -2543,7 +3305,7 @@ const [storageMode] = useState("online");
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                         <input
                           className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-red-500"
-                          placeholder="Rechercher une dépense"
+                          placeholder="Rechercher dans la description…"
                           value={expenseSearchTerm}
                           onChange={(e) => setExpenseSearchTerm(e.target.value)}
                         />
@@ -2560,78 +3322,150 @@ const [storageMode] = useState("online");
                         ))}
                       </select>
                     </div>
-                    <button
-                      onClick={() => setIsExpenseModalOpen(true)}
-                      className="rounded-2xl bg-red-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white"
-                    >
-                      Nouvelle sortie
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExpenseSearchTerm("");
+                          setExpenseCategoryFilter("all");
+                        }}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                      >
+                        Réinitialiser
+                      </button>
+                      <button
+                        type="button"
+                        onClick={exportExpensesCsv}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-red-800 hover:bg-red-100"
+                      >
+                        <Download size={16} />
+                        Export Excel (CSV)
+                      </button>
+                      <button
+                        onClick={() => setIsExpenseModalOpen(true)}
+                        className="rounded-2xl bg-red-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md shadow-red-900/10"
+                      >
+                        Nouvelle sortie
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                     <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm lg:col-span-8">
-                    <table className="w-full min-w-[760px]">
-                      <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <table className="w-full min-w-[860px]">
+                      <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
                         <tr>
                           <th className="px-6 py-4 text-left">Date</th>
                           <th className="px-6 py-4 text-left">Description</th>
                           <th className="px-6 py-4 text-left">Catégorie</th>
+                          <th className="px-6 py-4 text-left">Mode</th>
                           <th className="px-6 py-4 text-right">Montant</th>
-                          <th className="px-6 py-4 text-center">Action</th>
+                          <th className="px-6 py-4 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredExpenses.map((e) => (
-                          <tr key={e.id}>
-                            <td className="px-6 py-4 font-bold text-slate-500">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
+                        {sortedFilteredExpenses.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-16 text-center text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                              Aucune dépense ne correspond aux critères.
+                            </td>
+                          </tr>
+                        )}
+                        {sortedFilteredExpenses.map((e) => (
+                          <tr key={e.id} className="transition-colors hover:bg-red-50/40">
+                            <td className="whitespace-nowrap px-6 py-4 font-bold text-slate-500">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
                             <td className="px-6 py-4 font-black uppercase">{e.description}</td>
-                            <td className="px-6 py-4 font-extrabold text-slate-500">{e.category}</td>
+                            <td className="px-6 py-4">
+                              <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                                {e.category}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600">{e.method || "Espèces"}</td>
                             <td className="px-6 py-4 text-right font-black text-red-600">{money(e.amount)}</td>
                             <td className="px-6 py-4 text-center">
-                              <button
-                                onClick={async () => {
-                                  if (!window.confirm("Supprimer cette dépense ?")) return;
-                                  await removeExpense(e.id);
-                                }}
-                                className="rounded-xl p-2 text-slate-300 hover:text-red-600"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              <div className="flex flex-wrap items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  title="Modifier"
+                                  onClick={() => openEditExpense(e)}
+                                  className="rounded-xl border border-blue-200 bg-blue-50 p-2 text-blue-700 hover:bg-blue-100"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Supprimer"
+                                  onClick={async () => {
+                                    if (!(await askConfirm("Supprimer cette dépense ?"))) return;
+                                    await removeExpense(e.id);
+                                  }}
+                                  className="rounded-xl border border-red-100 bg-red-50/80 p-2 text-red-600 hover:bg-red-100"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                     </div>
-                    <div className="rounded-[2.5rem] bg-white p-6 shadow-sm lg:col-span-4">
-                      <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Répartition dépenses</h3>
-                      {expenseBreakdown.length === 0 ? (
-                        <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-                          Aucune donnée filtrée
-                        </p>
-                      ) : (
-                        <div className="space-y-3">
-                          {expenseBreakdown.map(([category, amount]) => {
-                            const totalFiltered = Math.max(
-                              1,
-                              filteredExpenses.reduce((sum, e) => sum + toNumber(e.amount), 0)
-                            );
-                            const percent = (amount / totalFiltered) * 100;
-                            return (
-                              <div key={category}>
-                                <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
-                                  <span>{category}</span>
-                                  <span>
-                                    {percent.toFixed(1)}% • {money(amount)}
-                                  </span>
+                    <div className="space-y-4 lg:col-span-4">
+                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
+                        <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par catégorie</h3>
+                        {expenseBreakdown.length === 0 ? (
+                          <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                            Aucune donnée filtrée
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {expenseBreakdown.map(([category, amount]) => {
+                              const totalFiltered = Math.max(1, expenseFilteredSum);
+                              const percent = (amount / totalFiltered) * 100;
+                              return (
+                                <div key={category}>
+                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                    <span>{category}</span>
+                                    <span>
+                                      {percent.toFixed(1)}% • {money(amount)}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 rounded-full bg-slate-200">
+                                    <div className="h-2 rounded-full bg-red-500" style={{ width: `${Math.max(4, percent)}%` }} />
+                                  </div>
                                 </div>
-                                <div className="h-2 rounded-full bg-slate-200">
-                                  <div className="h-2 rounded-full bg-red-500" style={{ width: `${Math.max(4, percent)}%` }} />
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
+                        <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par mode de paiement</h3>
+                        {expenseMethodBreakdown.length === 0 ? (
+                          <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                            Aucune donnée filtrée
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {expenseMethodBreakdown.map(([mode, amount]) => {
+                              const totalFiltered = Math.max(1, expenseFilteredSum);
+                              const percent = (amount / totalFiltered) * 100;
+                              return (
+                                <div key={mode}>
+                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                    <span>{mode}</span>
+                                    <span>
+                                      {percent.toFixed(1)}% • {money(amount)}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 rounded-full bg-slate-200">
+                                    <div className="h-2 rounded-full bg-blue-500" style={{ width: `${Math.max(4, percent)}%` }} />
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2639,6 +3473,39 @@ const [storageMode] = useState("online");
 
               {activeTab === "deposits" && (
                 <div className="space-y-6">
+                  <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-r from-blue-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Module comité &amp; banque</h2>
+                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-slate-600">
+                          Historique des décharges de caisse vers le comité : traçabilité par responsable, montant et référence de bordereau. Les lignes
+                          sans référence sont mises en évidence pour complétion rapide.
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-white/90 px-3 py-2 text-center shadow-sm md:text-left">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Vue filtrée</p>
+                        <p className="mt-1 text-lg font-black text-blue-700">
+                          {depositFilteredRefSummary.n} / {deposits.length}
+                        </p>
+                        <p className="mt-1 text-[9px] font-extrabold uppercase tracking-widest text-emerald-600">
+                          OK bordereau : {depositFilteredRefSummary.ok}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 md:grid-cols-2">
+                      <p>
+                        Cumul toutes remises : <span className="text-slate-900">{money(depositInsights.sumAll)}</span>
+                        <span className="ml-2 text-slate-400">({depositInsights.countAll} décharge{depositInsights.countAll !== 1 ? "s" : ""})</span>
+                      </p>
+                      <p>
+                        Sélection affichée : <span className="text-blue-600">{money(depositInsights.totalFiltered)}</span>
+                        {depositFilteredRefSummary.missing > 0 && (
+                          <span className="ml-2 text-red-600">• {depositFilteredRefSummary.missing} sans réf.</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-5 text-white shadow-xl transition hover:-translate-y-1">
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl" />
@@ -2647,30 +3514,34 @@ const [storageMode] = useState("online");
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Caisse à remettre</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-emerald-300">{money(stats.cashInHand)}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-200/80">Après collectes et dépenses</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Avec bordereau</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Décharges documentées</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-emerald-600">{depositInsights.withRef}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Réf. ou lien pièce (total)</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><BellRing size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Bordereaux manquants</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">À compléter</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-red-600">{depositInsights.missingRef}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Sans référence (total)</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Landmark size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Montant filtré</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Montant sélection</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-blue-600">{money(depositInsights.totalFiltered)}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Selon filtres actifs</p>
                     </div>
                   </div>
 
@@ -2680,7 +3551,7 @@ const [storageMode] = useState("online");
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                         <input
                           className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-blue-500"
-                          placeholder="Rechercher un responsable"
+                          placeholder="Responsable ou référence…"
                           value={depositSearchTerm}
                           onChange={(e) => setDepositSearchTerm(e.target.value)}
                         />
@@ -2691,65 +3562,130 @@ const [storageMode] = useState("online");
                         onChange={(e) => setDepositFilter(e.target.value)}
                       >
                         <option value="all">Toutes les remises</option>
-                        <option value="with_ref">Avec bordereau</option>
-                        <option value="missing_ref">Sans bordereau</option>
+                        <option value="with_ref">Avec traçabilité (réf. ou lien)</option>
+                        <option value="missing_ref">Sans traçabilité</option>
                       </select>
                     </div>
-                    <button
-                      onClick={() => setIsDepositModalOpen(true)}
-                      className="rounded-2xl bg-blue-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white"
-                    >
-                      Décharge comité
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDepositSearchTerm("");
+                          setDepositFilter("all");
+                        }}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                      >
+                        Réinitialiser
+                      </button>
+                      <button
+                        type="button"
+                        onClick={exportDepositsCsv}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-blue-800 hover:bg-blue-100"
+                      >
+                        <Download size={16} />
+                        Export Excel (CSV)
+                      </button>
+                      <button
+                        onClick={() => setIsDepositModalOpen(true)}
+                        className="rounded-2xl bg-blue-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md shadow-blue-900/10"
+                      >
+                        Décharge comité
+                      </button>
+                    </div>
                   </div>
                   <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm">
-                    <table className="w-full min-w-[980px]">
-                      <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <table className="w-full min-w-[1180px]">
+                      <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
                         <tr>
                           <th className="px-6 py-4 text-left">Date</th>
                           <th className="px-6 py-4 text-left">Responsable</th>
                           <th className="px-6 py-4 text-right">Montant</th>
-                          <th className="px-6 py-4 text-center">Bordereau</th>
-                          <th className="px-6 py-4 text-center">Action</th>
+                          <th className="px-6 py-4 text-center">Statut</th>
+                          <th className="px-6 py-4 text-center">Réf. bordereau</th>
+                          <th className="px-6 py-4 text-center">Pièce jointe</th>
+                          <th className="px-6 py-4 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredDeposits.map((d) => (
-                          <tr key={d.id}>
-                            <td className="px-6 py-4 font-bold text-slate-500">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
-                            <td className="px-6 py-4 font-black uppercase">{d.recipient}</td>
-                            <td className="px-6 py-4 text-right font-black text-blue-600">{money(d.amount)}</td>
-                            <td className="px-6 py-4 text-center">
-                              {d.bordereauRef ? (
-                                <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-700">
-                                  REF: {d.bordereauRef}
-                                </span>
-                              ) : (
-                                <button
-                                  onClick={async () => {
-                                    const ref = window.prompt("Référence bordereau");
-                                    if (!ref) return;
-                                    await setDepositReceiptRef(d.id, ref);
-                                  }}
-                                  className="rounded-full bg-red-50 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-red-600"
-                                >
-                                  Manquant
-                                </button>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <button
-                                onClick={async () => {
-                                  if (!window.confirm("Supprimer cette décharge ?")) return;
-                                  await removeDeposit(d.id);
-                                }}
-                                className="rounded-xl p-2 text-slate-300 hover:text-red-600"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                        {sortedFilteredDeposits.length === 0 && (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-16 text-center text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                              Aucune décharge ne correspond aux filtres.
                             </td>
                           </tr>
-                        ))}
+                        )}
+                        {sortedFilteredDeposits.map((d) => {
+                          const hasTrace = !!(d.bordereauRef || String(d.bordereauUrl || "").trim());
+                          return (
+                            <tr
+                              key={d.id}
+                              className={`transition-colors hover:bg-blue-50/50 ${hasTrace ? "" : "bg-red-50/35"}`}
+                            >
+                              <td className="whitespace-nowrap px-6 py-4 font-bold text-slate-500">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
+                              <td className="px-6 py-4 font-black uppercase">{d.recipient}</td>
+                              <td className="px-6 py-4 text-right font-black text-blue-600">{money(d.amount)}</td>
+                              <td className="px-6 py-4 text-center">
+                                {hasTrace ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800">
+                                    <CheckCircle size={12} /> Traçable
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-amber-800">
+                                    En attente
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                {d.bordereauRef ? (
+                                  <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-700">
+                                    {d.bordereauRef}
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => openBordereauModal(d.id)}
+                                    className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-red-700 ring-1 ring-red-200"
+                                  >
+                                    Saisir réf.
+                                  </button>
+                                )}
+                              </td>
+                              <td className="max-w-[200px] px-6 py-4 text-center">
+                                {d.bordereauUrl ? (
+                                  <a
+                                    href={d.bordereauUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-600 underline hover:text-blue-800"
+                                  >
+                                    <ExternalLink size={12} /> Ouvrir
+                                  </a>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => openDepositUrlModal(d.id)}
+                                    className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 hover:bg-slate-200"
+                                  >
+                                    Ajouter lien
+                                  </button>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <button
+                                  type="button"
+                                  title="Supprimer"
+                                  onClick={async () => {
+                                    if (!(await askConfirm("Supprimer cette décharge ?"))) return;
+                                    await removeDeposit(d.id);
+                                  }}
+                                  className="rounded-xl border border-red-100 bg-red-50/80 p-2 text-red-600 hover:bg-red-100"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -2809,13 +3745,45 @@ const [storageMode] = useState("online");
                     ))}
                   </div>
                   <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm">
-                    <table className="w-full min-w-[760px]">
+                    <table className="w-full min-w-[900px]">
+                      <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                        <tr>
+                          <th className="px-6 py-4 text-left">Contact</th>
+                          <th className="px-6 py-4 text-left">Fiche fidèle</th>
+                          <th className="px-6 py-4 text-right">Messages WhatsApp</th>
+                        </tr>
+                      </thead>
                       <tbody className="divide-y divide-slate-100">
                         {marketingMembers.map((m) => (
                             <tr key={m.id}>
                               <td className="px-6 py-5">
                                 <p className="font-black uppercase">{m.name}</p>
                                 <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{m.whatsapp}</p>
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    title="Modifier"
+                                    onClick={() => openEditMemberModal(m)}
+                                    className="inline-flex items-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700"
+                                  >
+                                    <Pencil size={14} />
+                                    Modifier
+                                  </button>
+                                  <button
+                                    type="button"
+                                    title="Supprimer"
+                                    onClick={async () => {
+                                      if (!(await askConfirm(`Supprimer ${m.name} ?`))) return;
+                                      await removeMember(m.id);
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-700"
+                                  >
+                                    <Trash2 size={14} />
+                                    Supprimer
+                                  </button>
+                                </div>
                               </td>
                               <td className="px-6 py-5 text-right">
                                 <div className="flex flex-wrap justify-end gap-2">
@@ -2862,12 +3830,56 @@ const [storageMode] = useState("online");
                       </tbody>
                     </table>
                   </div>
+                  <div className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+                    <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Journal des envois WhatsApp</h3>
+                    <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">200 derniers enregistrements côté API</p>
+                    {whatsAppLogs.length === 0 ? (
+                      <p className="mt-4 text-[10px] font-extrabold uppercase text-slate-400">Aucun envoi enregistré pour l&apos;instant.</p>
+                    ) : (
+                      <ul className="mt-4 max-h-64 space-y-1 overflow-y-auto text-left text-[11px]">
+                        {whatsAppLogs.map((w) => (
+                          <li key={w.id} className="rounded-lg border border-slate-100 bg-slate-50/90 px-3 py-2">
+                            <span className="text-slate-500">{w.createdAt ? new Date(w.createdAt).toLocaleString("fr-FR") : ""}</span>{" "}
+                            <span className="font-black text-slate-800">{w.messageType}</span> — {w.memberName || w.whatsapp}
+                            {w.providerStatus && <span className="ml-1 text-emerald-600">· {w.providerStatus}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               )}
 
               {activeTab === "settings" && (
                 <div className="rounded-[2.5rem] bg-white p-8 shadow-sm">
                   <h3 className="mb-8 text-2xl font-black uppercase tracking-tight text-slate-900">Paramètres de campagne</h3>
+                  <div className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <button
+                      type="button"
+                      onClick={exportDataBackup}
+                      className="rounded-2xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white"
+                    >
+                      Télécharger sauvegarde (JSON)
+                    </button>
+                    {sessionUser?.role === "admin" && (
+                      <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={!!config.financeLocked}
+                          onChange={(e) => {
+                            const next = { ...config, financeLocked: e.target.checked };
+                            setConfig(next);
+                            saveConfig(next);
+                          }}
+                        />
+                        Verrouiller les écritures comptables (dépenses, remises, versements) — trésoriers : lecture seule
+                      </label>
+                    )}
+                    <p className="text-[10px] text-slate-500">
+                      Stockage InsForge (upload) : <code className="rounded bg-white px-1">VITE_INSFORGE_URL</code>, <code className="rounded bg-white px-1">VITE_INSFORGE_ANON_KEY</code> et
+                      seau <code className="rounded bg-white px-1">fag-attachments</code>
+                    </p>
+                  </div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
                     <div>
                       <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Année</label>
@@ -3004,8 +4016,8 @@ const [storageMode] = useState("online");
                       Réinitialiser remet les paramètres par défaut (ne supprime pas les membres/dépenses).
                     </p>
                     <button
-                      onClick={() => {
-                        if (!window.confirm("Réinitialiser la configuration de campagne ?")) return;
+                      onClick={async () => {
+                        if (!(await askConfirm("Réinitialiser la configuration de campagne ?"))) return;
                         setConfig(DEFAULT_CONFIG);
                         saveConfig(DEFAULT_CONFIG);
                       }}
@@ -3136,9 +4148,9 @@ const [storageMode] = useState("online");
                                         Modifier
                                       </button>
                                       <button
-                                        onClick={() => {
-                                          if (!window.confirm("Supprimer ce compte utilisateur ?")) return;
-                                          removeTeamUser(u.id);
+                                        onClick={async () => {
+                                          if (!(await askConfirm("Supprimer ce compte utilisateur ?"))) return;
+                                          await removeTeamUser(u.id);
                                         }}
                                         className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-600 hover:bg-red-100"
                                       >
@@ -3260,15 +4272,19 @@ const [storageMode] = useState("online");
       </div>
 
       {flashMessage && (
-        <div className="fixed right-4 top-4 z-[70]">
+        <div className="pointer-events-none fixed right-4 top-4 z-[70] max-w-[min(100vw-2rem,22rem)] max-sm:left-4 max-sm:right-4">
           <div
-            className={`rounded-2xl border px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest shadow-xl ${
+            role="status"
+            className={`animate-fag-toast-in pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest shadow-xl ${
               flashMessage.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-red-200 bg-red-50 text-red-700"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border-red-200 bg-red-50 text-red-800"
             }`}
           >
-            {flashMessage.message}
+            <span className="mt-0.5 shrink-0 text-base leading-none" aria-hidden>
+              {flashMessage.type === "success" ? "✅" : "⚠️"}
+            </span>
+            <span className="min-w-0 flex-1 leading-snug normal-case tracking-normal">{flashMessage.message}</span>
           </div>
         </div>
       )}
@@ -3466,9 +4482,144 @@ const [storageMode] = useState("online");
                 </span>
               </div>
             </div>
+            <label className="mt-4 flex items-center gap-2 text-sm font-bold text-slate-700">
+              <input
+                type="checkbox"
+                checked={newMember.commsOptIn !== false}
+                onChange={(e) => setNewMember((s) => ({ ...s, commsOptIn: e.target.checked }))}
+              />
+              Autorise les rappels / messages WhatsApp
+            </label>
             <button type="submit" className="mt-6 w-full rounded-2xl bg-slate-900 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-slate-900/20">
               Enregistrer
             </button>
+          </form>
+        </div>
+      )}
+
+      {editingMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingMember(null)} />
+          <form
+            onSubmit={saveMemberUpdate}
+            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10"
+          >
+            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setEditingMember(null)}>
+              <X />
+            </button>
+            <h3 className="text-2xl font-black uppercase text-slate-900">Modifier le fidèle</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
+              Mettre à jour les informations et l&apos;engagement (les versements enregistrés sont conservés).
+            </p>
+
+            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Informations d&apos;identité</p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <input
+                  required
+                  placeholder="Nom et prénoms"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  value={editingMember.name}
+                  onChange={(e) => setEditingMember((s) => ({ ...s, name: e.target.value }))}
+                />
+                <input
+                  required
+                  placeholder="WhatsApp (ex: 0757228731)"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  value={editingMember.whatsapp}
+                  onChange={(e) => setEditingMember((s) => ({ ...s, whatsapp: e.target.value }))}
+                />
+                <input
+                  placeholder="Quartier / cellule"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  value={editingMember.district}
+                  onChange={(e) => setEditingMember((s) => ({ ...s, district: e.target.value }))}
+                />
+                <select
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-black outline-none focus:border-emerald-500"
+                  value={editingMember.churchFunctionType}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEditingMember((s) => ({
+                      ...s,
+                      churchFunctionType: val,
+                      churchFunction: val === "__other__" ? s.churchFunction : val
+                    }));
+                  }}
+                >
+                  <option value="">Fonction dans l&apos;église</option>
+                  {CHURCH_FUNCTION_OPTIONS.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                  <option value="__other__">Autre fonction (saisie manuelle)</option>
+                </select>
+              </div>
+              {editingMember.churchFunctionType === "__other__" && (
+                <input
+                  placeholder="Préciser la fonction"
+                  className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  value={editingMember.churchFunction}
+                  onChange={(e) => setEditingMember((s) => ({ ...s, churchFunction: e.target.value }))}
+                />
+              )}
+            </div>
+
+            <select
+              className="mt-4 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
+              value={editingMember.categoryId}
+              onChange={(e) => setEditingMember((s) => ({ ...s, categoryId: e.target.value }))}
+            >
+              {config.categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.id === "cat5" ? `${cat.label} - Montant libre` : `${cat.label} - ${money(cat.amount)} / mois`}
+                </option>
+              ))}
+            </select>
+            {editingMember.categoryId === "cat5" && (
+              <input
+                type="number"
+                min="20001"
+                required
+                placeholder="Montant libre (> 20 000)"
+                className="mt-4 w-full rounded-2xl border border-purple-200 bg-purple-50 px-4 py-3 font-black text-purple-700 outline-none focus:border-purple-400"
+                value={editingMember.customAmount}
+                onChange={(e) => setEditingMember((s) => ({ ...s, customAmount: e.target.value }))}
+              />
+            )}
+            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700">Récapitulatif engagement</p>
+              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-slate-700 md:flex-row md:items-center md:justify-between">
+                <span>Mensualité: {money(editingMonthlyAmount)}</span>
+                <span>
+                  Total ({config.months} mois): <span className="text-emerald-700">{money(editingTotalAmount)}</span>
+                </span>
+              </div>
+            </div>
+            <label className="mt-4 flex items-center gap-2 text-sm font-bold text-slate-700">
+              <input
+                type="checkbox"
+                checked={editingMember.commsOptIn !== false}
+                onChange={(e) => setEditingMember((s) => ({ ...s, commsOptIn: e.target.checked }))}
+              />
+              Autorise les rappels / messages WhatsApp
+            </label>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEditingMember(null)}
+                className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-[11px] font-black uppercase tracking-widest text-slate-600"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="rounded-2xl bg-slate-900 px-6 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-slate-900/20"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
           </form>
         </div>
       )}
@@ -3545,7 +4696,7 @@ const [storageMode] = useState("online");
                       <td className="py-3 text-center">
                         <button
                           onClick={async () => {
-                            if (!window.confirm("Supprimer ce versement ?")) return;
+                            if (!(await askConfirm("Supprimer ce versement ?"))) return;
                             await removeMemberPayment(selectedMember.id, p.id);
                           }}
                           className="rounded-xl p-2 text-slate-300 hover:text-red-600"
@@ -3581,7 +4732,7 @@ const [storageMode] = useState("online");
                 value={newExpense.description}
                 onChange={(e) => setNewExpense((s) => ({ ...s, description: e.target.value }))}
               />
-              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                 <select
                   className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.category}
@@ -3592,6 +4743,16 @@ const [storageMode] = useState("online");
                   <option>Restauration</option>
                   <option>Accueil/Protocole</option>
                   <option>Autre</option>
+                </select>
+                <select
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  value={newExpense.method}
+                  onChange={(e) => setNewExpense((s) => ({ ...s, method: e.target.value }))}
+                >
+                  <option>Espèces</option>
+                  <option>Mobile Money</option>
+                  <option>Virement</option>
+                  <option>Chèque</option>
                 </select>
                 <input
                   type="date"
@@ -3625,6 +4786,85 @@ const [storageMode] = useState("online");
             <button type="submit" className="mt-6 w-full rounded-2xl bg-red-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-red-900/20">
               Enregistrer
             </button>
+          </form>
+        </div>
+      )}
+
+      {editingExpense && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingExpense(null)} />
+          <form
+            onSubmit={saveExpenseUpdate}
+            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10"
+          >
+            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setEditingExpense(null)}>
+              <X />
+            </button>
+            <h3 className="text-2xl font-black uppercase text-slate-900">Modifier la dépense</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Mise à jour de la sortie de caisse</p>
+            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
+              <input
+                required
+                placeholder="Description"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                value={editingExpense.description}
+                onChange={(e) => setEditingExpense((s) => ({ ...s, description: e.target.value }))}
+              />
+              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <select
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  value={editingExpense.category}
+                  onChange={(e) => setEditingExpense((s) => ({ ...s, category: e.target.value }))}
+                >
+                  <option>Logistique</option>
+                  <option>Communication</option>
+                  <option>Restauration</option>
+                  <option>Accueil/Protocole</option>
+                  <option>Autre</option>
+                </select>
+                <select
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  value={editingExpense.method}
+                  onChange={(e) => setEditingExpense((s) => ({ ...s, method: e.target.value }))}
+                >
+                  <option>Espèces</option>
+                  <option>Mobile Money</option>
+                  <option>Virement</option>
+                  <option>Chèque</option>
+                </select>
+                <input
+                  type="date"
+                  required
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  value={editingExpense.date}
+                  onChange={(e) => setEditingExpense((s) => ({ ...s, date: e.target.value }))}
+                />
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="Montant"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-black outline-none focus:border-red-400"
+                  value={editingExpense.amount}
+                  onChange={(e) => setEditingExpense((s) => ({ ...s, amount: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEditingExpense(null)}
+                className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-[11px] font-black uppercase tracking-widest text-slate-600"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="rounded-2xl bg-red-600 px-6 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-red-900/20"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
           </form>
         </div>
       )}
@@ -3673,6 +4913,12 @@ const [storageMode] = useState("online");
                 value={newDeposit.bordereauRef}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauRef: e.target.value }))}
               />
+              <input
+                placeholder="Lien pièce jointe (optionnel, URL https://…)"
+                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-blue-400"
+                value={newDeposit.bordereauUrl}
+                onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
+              />
             </div>
 
             <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
@@ -3688,6 +4934,145 @@ const [storageMode] = useState("online");
             <button type="submit" className="mt-6 w-full rounded-2xl bg-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/20">
               Valider la remise
             </button>
+          </form>
+        </div>
+      )}
+
+      {confirmState && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/70"
+            onClick={() => {
+              confirmState.resolve(false);
+              setConfirmState(null);
+            }}
+          />
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <p className="text-sm font-bold text-slate-800">{confirmState.message}</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                className="rounded-2xl border border-slate-200 px-4 py-2 text-[11px] font-black uppercase text-slate-600"
+                onClick={() => {
+                  confirmState.resolve(false);
+                  setConfirmState(null);
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                className="rounded-2xl bg-slate-900 px-4 py-2 text-[11px] font-black uppercase text-white"
+                onClick={() => {
+                  confirmState.resolve(true);
+                  setConfirmState(null);
+                }}
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {urlAttachmentModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70" onClick={() => setUrlAttachmentModal(null)} />
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-black uppercase text-slate-900">Pièce jointe / lien</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">URL (Drive, etc.) — ou fichier vers le stockage InsForge</p>
+            <input
+              className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+              placeholder="https://…"
+              value={urlAttachmentModal.url}
+              onChange={(e) => setUrlAttachmentModal((s) => ({ ...s, url: e.target.value }))}
+            />
+            <label className="mt-3 flex cursor-pointer flex-col gap-1 rounded-2xl border border-dashed border-slate-300 p-3 text-[10px] font-extrabold uppercase text-slate-500">
+              Fichier (PDF, image) — créez le seau « fag-attachments » côté InsForge si besoin
+              <input
+                type="file"
+                accept="application/pdf,image/*"
+                className="text-[10px] normal-case"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  const r = await tryUploadDepositFile(f);
+                  if (r.error) {
+                    notify("error", r.error);
+                    return;
+                  }
+                  if (r.url) {
+                    setUrlAttachmentModal((s) => ({ ...s, url: r.url || "" }));
+                    notify("success", "Fichier importé, URL renseignée.");
+                  }
+                }}
+              />
+            </label>
+            {urlAttachmentModal.fileHint && <p className="mt-2 text-xs text-amber-700">{urlAttachmentModal.fileHint}</p>}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                className="rounded-2xl border border-slate-200 px-4 py-2 text-[11px] font-black uppercase"
+                onClick={() => setUrlAttachmentModal(null)}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                className="rounded-2xl bg-blue-600 px-4 py-2 text-[11px] font-black uppercase text-white"
+                onClick={async () => {
+                  const id = urlAttachmentModal.depositId;
+                  const trimmed = (urlAttachmentModal.url || "").trim();
+                  setUrlAttachmentModal(null);
+                  await applyDepositAttachmentUrl(id, trimmed);
+                }}
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bordereauFormModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70" onClick={() => setBordereauFormModal(null)} />
+          <form
+            className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const { depositId, ref, url } = bordereauFormModal;
+              if (!String(ref).trim()) {
+                notify("error", "Indiquez la référence bordereau.");
+                return;
+              }
+              const attachmentUrl = String(url).trim() || undefined;
+              setBordereauFormModal(null);
+              await applyDepositReceiptRef(depositId, String(ref).trim(), attachmentUrl);
+            }}
+          >
+            <h3 className="text-lg font-black uppercase text-slate-900">Bordereau comité</h3>
+            <input
+              required
+              className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              placeholder="Référence bordereau"
+              value={bordereauFormModal.ref}
+              onChange={(e) => setBordereauFormModal((s) => ({ ...s, ref: e.target.value }))}
+            />
+            <input
+              className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              placeholder="Lien pièce jointe (optionnel)"
+              value={bordereauFormModal.url}
+              onChange={(e) => setBordereauFormModal((s) => ({ ...s, url: e.target.value }))}
+            />
+            <div className="mt-6 flex justify-end gap-3">
+              <button type="button" className="rounded-2xl border px-4 py-2 text-[11px] font-black uppercase" onClick={() => setBordereauFormModal(null)}>
+                Annuler
+              </button>
+              <button type="submit" className="rounded-2xl bg-slate-900 px-4 py-2 text-[11px] font-black uppercase text-white">
+                Enregistrer
+              </button>
+            </div>
           </form>
         </div>
       )}
