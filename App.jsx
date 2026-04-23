@@ -135,6 +135,55 @@ function CircularProgress({ value }) {
   );
 }
 
+function CountdownCard({ targetDate }) {
+  const [remaining, setRemaining] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: false });
+
+  useEffect(() => {
+    const compute = () => {
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const diff = target - now;
+      if (Number.isNaN(target) || diff <= 0) {
+        setRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setRemaining({ days, hours, minutes, seconds, expired: false });
+    };
+    compute();
+    const timer = setInterval(compute, 1000);
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  if (remaining.expired) {
+    return (
+      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-center">
+        <p className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-200">FAG lancé</p>
+        <p className="mt-1 text-sm font-black text-white">Nous sommes en pleine saison de reconnaissance.</p>
+      </div>
+    );
+  }
+
+  const itemClass = "rounded-xl bg-slate-800/80 p-3 text-center";
+  const valClass = "text-xl font-black text-white";
+  const labelClass = "text-[9px] font-extrabold uppercase tracking-widest text-slate-400";
+
+  return (
+    <div className="rounded-2xl border border-emerald-400/30 bg-slate-900/60 p-4">
+      <p className="mb-3 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Compte à rebours FAG</p>
+      <div className="grid grid-cols-4 gap-2">
+        <div className={itemClass}><p className={valClass}>{remaining.days}</p><p className={labelClass}>Jours</p></div>
+        <div className={itemClass}><p className={valClass}>{remaining.hours}</p><p className={labelClass}>Heures</p></div>
+        <div className={itemClass}><p className={valClass}>{remaining.minutes}</p><p className={labelClass}>Minutes</p></div>
+        <div className={itemClass}><p className={valClass}>{remaining.seconds}</p><p className={labelClass}>Sec</p></div>
+      </div>
+    </div>
+  );
+}
+
 const App = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
@@ -175,6 +224,7 @@ const App = () => {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [landingOpen, setLandingOpen] = useState(false);
 
   const [selectedMember, setSelectedMember] = useState(null);
 
@@ -238,6 +288,11 @@ const App = () => {
     } catch {
       // ignore invalid session payload
     }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLandingOpen(true), 250);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -976,7 +1031,7 @@ const App = () => {
   if (!isAppAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 text-white" style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal" }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
         <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-10 md:px-10">
           <header className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -996,13 +1051,13 @@ const App = () => {
 
           <main className="mt-14 grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
             <section className="relative overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-7">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-700/40 bg-gradient-to-r from-slate-950 to-slate-900/40" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-700/40 bg-gradient-to-l from-slate-950 to-slate-900/40" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.18),transparent_35%)]" />
+              <div className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-700/40 bg-gradient-to-r from-slate-950 to-slate-900/40 transition-transform duration-1000 ${landingOpen ? "-translate-x-[96%]" : "translate-x-0"}`} />
+              <div className={`pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-700/40 bg-gradient-to-l from-slate-950 to-slate-900/40 transition-transform duration-1000 ${landingOpen ? "translate-x-[96%]" : "translate-x-0"}`} />
               <p className="inline-flex rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
                 Logiciel de trésorerie FAG
               </p>
-              <h2 className="mt-5 text-5xl font-black uppercase leading-tight text-white md:text-6xl">
+              <h2 className="mt-5 text-5xl font-black uppercase leading-tight text-white md:text-6xl" style={{ fontFamily: "'Cinzel', serif" }}>
                 Bienvenue
               </h2>
               <p className="mt-3 max-w-2xl text-lg font-black uppercase tracking-wider text-emerald-300">
@@ -1038,6 +1093,9 @@ const App = () => {
                   <p className="mt-2 text-xl font-black text-blue-400">Cloud/Comité</p>
                 </div>
               </div>
+              <div className="mt-6 max-w-md">
+                <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
+              </div>
               <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
                 {[
                   "« Dieu aime celui qui donne avec joie. » - 2 Cor 9:7",
@@ -1054,7 +1112,7 @@ const App = () => {
               <div className="mb-4 flex items-center justify-center">
                 <img src="/logos/logo-att.png" alt="Logo ATT ECOUBE" className="h-28 w-28 rounded-2xl object-cover shadow-lg" />
               </div>
-              <h3 className="text-lg font-black uppercase text-white">Accès au logiciel</h3>
+              <h3 className="text-lg font-black uppercase text-white" style={{ fontFamily: "'Cinzel', serif" }}>Accès au logiciel</h3>
               <p className="mt-2 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
                 Authentification comité
               </p>
@@ -1113,7 +1171,7 @@ const App = () => {
                 Maintenir la session
               </label>
               {loginError && <p className="mt-3 rounded-xl bg-red-500/20 p-3 text-[11px] font-bold text-red-300">{loginError}</p>}
-              <button type="submit" className="mt-5 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white">
+              <button type="submit" className="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-900/20">
                 Se connecter
               </button>
             </form>
@@ -1128,7 +1186,7 @@ const App = () => {
       className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 antialiased not-italic"
       style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal" }}
     >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
       <div className="min-h-screen md:flex">
         <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
           <div className="flex items-center gap-2">
