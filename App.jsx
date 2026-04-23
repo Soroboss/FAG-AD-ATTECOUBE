@@ -217,7 +217,7 @@ const App = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [storageMode, setStorageMode] = useState("cloud");
+  const [storageMode] = useState("insforge");
   const [isAppAuthenticated, setIsAppAuthenticated] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -236,6 +236,7 @@ const App = () => {
   });
   const [editingTeamUser, setEditingTeamUser] = useState(null);
   const [managementBackendReady, setManagementBackendReady] = useState(false);
+  const [backendError, setBackendError] = useState("");
 
   const [members, setMembers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -411,12 +412,14 @@ const App = () => {
         if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
         if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
         if (apiData.config) setConfig((prev) => ({ ...prev, ...apiData.config }));
-        setStorageMode("cloud");
         setLoading(false);
         setManagementBackendReady(true);
+        setBackendError("");
       } catch (error) {
         console.warn("Management backend offline, using local fallback:", error?.message || error);
         setManagementBackendReady(false);
+        setBackendError("Connexion InsForge indisponible. Vérifiez le backend.");
+        setLoading(false);
       }
     };
     syncManagementBackend();
@@ -441,84 +444,7 @@ const App = () => {
     window.localStorage.setItem(LOCAL_AUDIT_LOGS_KEY, JSON.stringify(auditLogs));
   }, [auditLogs]);
 
-  useEffect(() => {
-    if (managementBackendReady) return;
-    const init = async () => {
-      try {
-        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (error) {
-        console.error("Auth error, fallback local mode:", error);
-        setStorageMode("local");
-        const cached = loadLocalState();
-        if (cached) {
-          setMembers(cached.members);
-          setDeposits(cached.deposits);
-          setExpenses(cached.expenses);
-          setConfig(cached.config);
-        }
-        setLoading(false);
-      }
-    };
-    init();
-    const unsub = onAuthStateChanged(auth, (nextUser) => {
-      if (!nextUser) {
-        if (storageMode === "local") return;
-        const cached = loadLocalState();
-        if (cached) {
-          setStorageMode("local");
-          setMembers(cached.members);
-          setDeposits(cached.deposits);
-          setExpenses(cached.expenses);
-          setConfig(cached.config);
-          setLoading(false);
-        }
-        return;
-      }
-      setStorageMode("cloud");
-      setUser(nextUser);
-    });
-    return () => unsub();
-  }, [storageMode, managementBackendReady]);
-
-  useEffect(() => {
-    if (managementBackendReady) return;
-    if (storageMode === "local") return;
-    if (!user) return;
-
-    const basePath = (name) => collection(db, "artifacts", appId, "public", "data", name);
-    const configRef = doc(db, "artifacts", appId, "public", "data", "settings", "main");
-
-    const unsubMembers = onSnapshot(basePath("members"), (snap) => {
-      setMembers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    const unsubDeposits = onSnapshot(basePath("deposits"), (snap) => {
-      setDeposits(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    const unsubExpenses = onSnapshot(basePath("expenses"), (snap) => {
-      setExpenses(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    const unsubConfig = onSnapshot(configRef, (snap) => {
-      if (snap.exists()) setConfig({ ...DEFAULT_CONFIG, ...snap.data() });
-    });
-    const unsubLogs = onSnapshot(basePath("audit_logs"), (snap) => {
-      const nextLogs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      nextLogs.sort((a, b) => new Date(b.timestamp || b.created_at || 0) - new Date(a.timestamp || a.created_at || 0));
-      setAuditLogs(nextLogs);
-    });
-
-    setLoading(false);
-    return () => {
-      unsubMembers();
-      unsubDeposits();
-      unsubExpenses();
-      unsubConfig();
-      unsubLogs();
-    };
-  }, [user, managementBackendReady]);
+  // Donnees metier gerees uniquement par InsForge management-api.
 
   useEffect(() => {
     if (storageMode !== "local") return;
@@ -620,21 +546,12 @@ const App = () => {
   }, [members, deposits, expenses, config]);
 
   const saveConfig = async (next) => {
-    if (managementBackendReady) {
-      setConfig(next);
-      try {
-        await callManagementApi("saveConfig", { config: next });
-      } catch {
-        // keep optimistic state
-      }
+    if (!managementBackendReady) {
+      alert("Base InsForge indisponible. Modification non enregistrée.");
       return;
     }
-    if (storageMode === "local") {
-      setConfig(next);
-      return;
-    }
-    if (!user) return;
-    await setDoc(doc(db, "artifacts", appId, "public", "data", "settings", "main"), next);
+    setConfig(next);
+    await callManagementApi("saveConfig", { config: next });
   };
 
   const writeAuditLog = async ({
@@ -702,15 +619,7 @@ const App = () => {
         matchedUser = null;
       }
     }
-    if (!matchedUser) {
-      matchedUser = teamUsers.find(
-        (item) =>
-          (item.username.toLowerCase() === normalizedIdentifier ||
-            (item.phone && item.phone.replace(/[^\d]/g, "") === normalizedDigits)) &&
-          item.password === loginData.password &&
-          item.isActive !== false
-      );
-    }
+    if (!managementBackendReady) matchedUser = null;
     if (!matchedUser) {
       setLoginError("Identifiants invalides. Utilisez email/téléphone et mot de passe.");
       await writeAuditLog({
@@ -760,6 +669,10 @@ const App = () => {
       alert("Un compte existe déjà avec cet email ou ce téléphone.");
       return;
     }
+    if (!managementBackendReady) {
+      alert("Base InsForge indisponible. Création impossible.");
+      return;
+    }
     let createdUser = {
       id: `u-${Date.now()}`,
       fullName: newTeamUser.fullName.trim(),
@@ -769,29 +682,23 @@ const App = () => {
       role: newTeamUser.role,
       isActive: true
     };
-    if (managementBackendReady) {
-      try {
-        const result = await callManagementApi("createUser", {
-          fullName: createdUser.fullName,
-          email: normalizedUsername || null,
-          phone: normalizedPhone || null,
-          password: createdUser.password,
-          role: createdUser.role
-        });
-        if (result?.user) {
-          createdUser = {
-            id: result.user.id,
-            fullName: result.user.full_name || createdUser.fullName,
-            username: result.user.email || createdUser.username,
-            phone: result.user.phone || createdUser.phone,
-            password: "",
-            role: result.user.role || createdUser.role,
-            isActive: result.user.is_active !== false
-          };
-        }
-      } catch {
-        // fallback local state
-      }
+    const result = await callManagementApi("createUser", {
+      fullName: createdUser.fullName,
+      email: normalizedUsername || null,
+      phone: normalizedPhone || null,
+      password: createdUser.password,
+      role: createdUser.role
+    });
+    if (result?.user) {
+      createdUser = {
+        id: result.user.id,
+        fullName: result.user.full_name || createdUser.fullName,
+        username: result.user.email || createdUser.username,
+        phone: result.user.phone || createdUser.phone,
+        password: "",
+        role: result.user.role || createdUser.role,
+        isActive: result.user.is_active !== false
+      };
     }
     setTeamUsers((prev) => [...prev, createdUser]);
     setNewTeamUser({ fullName: "", username: "", phone: "", password: "", role: "tresorier" });
@@ -808,13 +715,8 @@ const App = () => {
   const toggleTeamUserStatus = async (userId) => {
     const target = teamUsers.find((u) => u.id === userId);
     const nextStatus = !(target?.isActive !== false);
-    if (managementBackendReady) {
-      try {
-        await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
-      } catch {
-        // fallback local state only
-      }
-    }
+    if (!managementBackendReady) return alert("Base InsForge indisponible.");
+    await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
     setTeamUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, isActive: nextStatus } : u))
     );
@@ -830,13 +732,8 @@ const App = () => {
 
   const updateTeamUserRole = async (userId, role) => {
     const target = teamUsers.find((u) => u.id === userId);
-    if (managementBackendReady) {
-      try {
-        await callManagementApi("updateUser", { userId, role });
-      } catch {
-        // fallback local state only
-      }
-    }
+    if (!managementBackendReady) return alert("Base InsForge indisponible.");
+    await callManagementApi("updateUser", { userId, role });
     setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
     if (sessionUser?.id === userId) {
       setSessionUser((prev) => ({ ...prev, role }));
@@ -874,20 +771,18 @@ const App = () => {
       ...(patch.role !== undefined && { role: patch.role }),
       ...(patch.isActive !== undefined && { isActive: patch.isActive })
     };
-    if (managementBackendReady) {
-      try {
-        await callManagementApi("updateUser", {
-          userId,
-          fullName: cleanPatch.fullName,
-          email: cleanPatch.username,
-          phone: cleanPatch.phone,
-          password: cleanPatch.password,
-          role: cleanPatch.role
-        });
-      } catch {
-        // fallback local state only
-      }
+    if (!managementBackendReady) {
+      alert("Base InsForge indisponible.");
+      return false;
     }
+    await callManagementApi("updateUser", {
+      userId,
+      fullName: cleanPatch.fullName,
+      email: cleanPatch.username,
+      phone: cleanPatch.phone,
+      password: cleanPatch.password,
+      role: cleanPatch.role
+    });
     setTeamUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, ...cleanPatch } : u)));
     if (sessionUser?.id === userId) {
       const updatedSession = { ...(sessionUser || {}), ...cleanPatch };
@@ -912,13 +807,8 @@ const App = () => {
       return;
     }
     const target = teamUsers.find((u) => u.id === userId);
-    if (managementBackendReady) {
-      try {
-        await callManagementApi("deleteUser", { userId });
-      } catch {
-        // fallback local state only
-      }
-    }
+    if (!managementBackendReady) return alert("Base InsForge indisponible.");
+    await callManagementApi("deleteUser", { userId });
     setTeamUsers((prev) => prev.filter((u) => u.id !== userId));
     writeAuditLog({
       action: "SUPPRESSION_COMPTE_GESTION",
@@ -1806,12 +1696,12 @@ const App = () => {
                   <p className="mt-2 text-xl font-black text-white">6</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Mode local</p>
-                  <p className="mt-2 text-xl font-black text-emerald-400">Disponible</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Base de données</p>
+                  <p className="mt-2 text-xl font-black text-emerald-400">InsForge</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Synchronisation</p>
-                  <p className="mt-2 text-xl font-black text-blue-400">Cloud/Comité</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Accès multi-postes</p>
+                  <p className="mt-2 text-xl font-black text-blue-400">En ligne</p>
                 </div>
               </div>
               <div className="mt-6 max-w-md">
@@ -2011,14 +1901,19 @@ const App = () => {
                   {activeTab === "marketing" && "Communication Marketing"}
                   {activeTab === "settings" && "Configuration FAG"}
                 </h2>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${storageMode === "local" ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"}`}>
-                  <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${storageMode === "local" ? "bg-purple-500" : "bg-emerald-500"}`} />
-                  {storageMode === "local" ? "Mode local" : "Mode cloud"}
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                  <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-500" : "bg-red-500"}`} />
+                  {managementBackendReady ? "InsForge en ligne" : "InsForge indisponible"}
                 </span>
               </div>
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
+              {backendError && (
+                <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-700">
+                  {backendError}
+                </p>
+              )}
             </div>
             {activeTab === "dashboard" && (
               <div className="hidden shrink-0 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm md:flex md:items-center md:gap-4">
