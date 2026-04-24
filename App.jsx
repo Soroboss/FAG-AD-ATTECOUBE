@@ -206,42 +206,48 @@ function CircularProgress({ value }) {
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference - (clamped / 100) * circumference;
-  const stroke = clamped >= 75 ? "url(#gradEmerald)" : clamped >= 40 ? "url(#gradBlue)" : "url(#gradOrange)";
-
+  
   return (
-    <div className="relative h-48 w-48">
-      <svg className="h-48 w-48 -rotate-90" viewBox="0 0 180 180">
+    <div className="relative h-48 w-48 group">
+      <svg className="h-48 w-48 -rotate-90 drop-shadow-2xl" viewBox="0 0 180 180">
         <defs>
-          <linearGradient id="gradEmerald" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#34d399" />
-            <stop offset="100%" stopColor="#059669" />
+          <linearGradient id="gradPrimary" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#3b82f6" />
           </linearGradient>
-          <linearGradient id="gradBlue" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="100%" stopColor="#2563eb" />
-          </linearGradient>
-          <linearGradient id="gradOrange" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#fb923c" />
-            <stop offset="100%" stopColor="#ea580c" />
-          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
-        <circle cx="90" cy="90" r={radius} className="fill-none stroke-slate-100" strokeWidth="18" />
-        <circle
+        <circle cx="90" cy="90" r={radius} className="fill-none stroke-white/5" strokeWidth="14" />
+        <motion.circle
           cx="90"
           cy="90"
           r={radius}
           fill="none"
-          stroke={stroke}
-          strokeWidth="18"
+          stroke="url(#gradPrimary)"
+          strokeWidth="14"
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          style={{ transition: "stroke-dashoffset 900ms ease-out" }}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: dashOffset }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          style={{ filter: "url(#glow)" }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-black leading-none text-slate-900">{clamped.toFixed(1)}%</span>
-        <span className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Objectif global</span>
+        <motion.span 
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-4xl font-black leading-none text-white tracking-tighter"
+        >
+          {clamped.toFixed(1)}%
+        </motion.span>
+        <span className="mt-2 text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Objectif Atteint</span>
       </div>
     </div>
   );
@@ -272,26 +278,23 @@ function CountdownCard({ targetDate }) {
 
   if (remaining.expired) {
     return (
-      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-center">
-        <p className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-200">FAG lancé</p>
-        <p className="mt-1 text-sm font-black text-white">Nous sommes en pleine saison de reconnaissance.</p>
+      <div className="rounded-2xl border border-fag-primary/20 bg-fag-primary/5 p-4 text-center">
+        <p className="text-[10px] font-black uppercase tracking-widest text-fag-primary">Évènement en cours</p>
+        <p className="mt-1 text-xs font-bold text-slate-300">Nous célébrons ensemble la grâce de Dieu.</p>
       </div>
     );
   }
 
-  const itemClass = "rounded-xl bg-slate-800/80 p-3 text-center";
-  const valClass = "text-xl font-black text-white";
-  const labelClass = "text-[9px] font-extrabold uppercase tracking-widest text-slate-400";
+  const itemClass = "rounded-2xl bg-white/5 border border-white/5 p-3 text-center";
+  const valClass = "text-xl font-black text-white tracking-tighter";
+  const labelClass = "text-[8px] font-black uppercase tracking-widest text-slate-500 mt-1";
 
   return (
-    <div className="rounded-2xl border border-emerald-400/30 bg-slate-900/60 p-4">
-      <p className="mb-3 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Compte à rebours FAG</p>
-      <div className="grid grid-cols-4 gap-2">
-        <div className={itemClass}><p className={valClass}>{remaining.days}</p><p className={labelClass}>Jours</p></div>
-        <div className={itemClass}><p className={valClass}>{remaining.hours}</p><p className={labelClass}>Heures</p></div>
-        <div className={itemClass}><p className={valClass}>{remaining.minutes}</p><p className={labelClass}>Minutes</p></div>
-        <div className={itemClass}><p className={valClass}>{remaining.seconds}</p><p className={labelClass}>Sec</p></div>
-      </div>
+    <div className="grid grid-cols-4 gap-3">
+      <div className={itemClass}><p className={valClass}>{remaining.days}</p><p className={labelClass}>Jours</p></div>
+      <div className={itemClass}><p className={valClass}>{remaining.hours}</p><p className={labelClass}>Hrs</p></div>
+      <div className={itemClass}><p className={valClass}>{remaining.minutes}</p><p className={labelClass}>Min</p></div>
+      <div className={itemClass}><p className={valClass}>{remaining.seconds}</p><p className={labelClass}>Sec</p></div>
     </div>
   );
 }
@@ -2356,216 +2359,329 @@ const [storageMode] = useState("online");
   if (!isAppAuthenticated) {
     return (
       <motion.div
-        className="min-h-screen bg-slate-950 text-white"
-        style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal", willChange: "opacity, transform" }}
-        initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.995 }}
-        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-        transition={{ duration: shouldReduceMotion ? 0 : 0.45, ease: "easeOut" }}
+        className="min-h-screen bg-fag-dark text-white selection:bg-fag-primary/30"
+        style={{ fontFamily: "'Montserrat', sans-serif" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
       >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
-        <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-10 md:px-10">
-          <header className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/logos/logo-ad-att.png" alt="Logo AD Attécoubé" className="h-14 w-14 rounded-2xl object-cover shadow-lg" />
-              <div>
-                <h1 className="text-xl font-black uppercase leading-none">FAG {DEFAULT_CONFIG.year}</h1>
-                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Festival d&apos;Action de Grâce</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="rounded-2xl bg-emerald-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white"
-            >
-              Se connecter
-            </button>
-          </header>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');
+          .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+        `}</style>
 
-          <main className="mt-14 grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
-            <section className="relative overflow-hidden rounded-[2.8rem] border border-emerald-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-8 shadow-[0_28px_80px_rgba(15,23,42,0.65)] lg:col-span-7">
-              <img
-                src={LANDING_IMAGES.hero}
-                alt="Communauté ivoirienne à l'église"
-                className="absolute inset-0 h-full w-full object-cover opacity-30"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-900/35" />
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.18),transparent_35%)]" />
-              <motion.div
-                className="pointer-events-none absolute right-10 top-10 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-200"
-                animate={shouldReduceMotion ? { opacity: 1 } : { y: [0, -6, 0], opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-              >
-                Gestion vivante
-              </motion.div>
-              <motion.div
-                className="pointer-events-none absolute bottom-10 right-12 rounded-2xl border border-blue-300/30 bg-blue-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-blue-100"
-                animate={shouldReduceMotion ? { opacity: 1 } : { y: [0, 7, 0], opacity: [0.65, 1, 0.65] }}
-                transition={{ duration: 5.6, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-              >
-                Vision claire
-              </motion.div>
-              <div className={`pointer-events-none absolute inset-y-0 left-0 z-30 w-1/2 border-r border-emerald-300/25 bg-gradient-to-r from-slate-950 via-slate-950 to-slate-900/90 transition-transform duration-[1350ms] ${landingOpen ? "-translate-x-[100%]" : "translate-x-0"}`} />
-              <div className={`pointer-events-none absolute inset-y-0 right-0 z-30 w-1/2 border-l border-blue-300/25 bg-gradient-to-l from-slate-950 via-slate-950 to-slate-900/90 transition-transform duration-[1350ms] ${landingOpen ? "translate-x-[100%]" : "translate-x-0"}`} />
-              <div className="relative z-40">
-              <p className="inline-flex rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
-                Logiciel de trésorerie FAG
-              </p>
-              <h2 className="mt-5 text-5xl font-black uppercase leading-tight text-white md:text-6xl" style={{ fontFamily: "'Cinzel', serif" }}>
-                Bienvenue
-              </h2>
-              <p className="mt-3 max-w-2xl text-lg font-black uppercase tracking-wider text-emerald-300">
-                Entrez dans la porte de l&apos;action de grâce.
-              </p>
-              <p className="mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-slate-300">
-                « Entrez dans ses portes avec des louanges, dans ses parvis avec des cantiques ! » (Psaume 100:4).
-                Cette plateforme accompagne votre équipe pour honorer Dieu avec excellence, transparence et amour fraternel.
-              </p>
-              <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
-                {[
-                  "Suivi en temps réel des engagements",
-                  "Gestion fidèle et transparente de la trésorerie",
-                  "Vision claire pour le comité de pilotage",
-                  "Communication WhatsApp fraternelle et biblique"
-                ].map((item) => (
-                  <div key={item} className="rounded-2xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-200">
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Modules</p>
-                  <p className="mt-2 text-xl font-black text-white">6</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Base de données</p>
-                  <p className="mt-2 text-xl font-black text-emerald-400">Sécurisée</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Accès multi-postes</p>
-                  <p className="mt-2 text-xl font-black text-blue-400">En ligne</p>
-                </div>
-              </div>
-              <div className="mt-6 max-w-md">
-                <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
-              </div>
-              <div className="relative mt-7 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Aperçu plateforme</p>
-                <p className="mt-1 text-[11px] font-semibold text-slate-200">Une expérience harmonisée sur grand écran, tablette et mobile.</p>
-                <div className="mt-4 grid grid-cols-12 gap-3">
-                  <div className="col-span-12 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-8">
-                    <div className="mb-2 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-red-400/70" />
-                      <span className="h-2 w-2 rounded-full bg-amber-400/70" />
-                      <span className="h-2 w-2 rounded-full bg-emerald-400/70" />
-                    </div>
-                    <img src={LANDING_IMAGES.dashboard} alt="Dashboard église multi-écrans" className="h-24 w-full rounded-xl bg-slate-900 object-contain p-1" />
-                  </div>
-                  <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-4">
-                    <img src={LANDING_IMAGES.prayer} alt="Communauté en prière" className="h-20 w-full rounded-xl bg-slate-900 object-contain p-1" />
-                  </div>
-                  <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-3">
-                    <img src={LANDING_IMAGES.worship} alt="Louange communautaire" className="h-16 w-full rounded-xl bg-slate-900 object-contain p-1" />
-                  </div>
-                  <div className="col-span-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[11px] font-bold text-emerald-100 md:col-span-9">
-                    « Que tout se fasse avec bienséance et avec ordre. » — 1 Cor 14:40
-                  </div>
-                </div>
-              </div>
-              </div>
-            </section>
-
-            <section className="rounded-[2.8rem] border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 p-8 shadow-[0_28px_80px_rgba(15,23,42,0.65)] lg:col-span-5">
-              <div className="mb-4 flex items-center justify-center">
-                <img src="/logos/logo-att.png" alt="Logo ATT ECOUBE" className="h-28 w-28 rounded-2xl object-cover shadow-lg" />
-              </div>
-              <h3 className="text-lg font-black uppercase text-white" style={{ fontFamily: "'Cinzel', serif" }}>Accès au logiciel</h3>
-              <p className="mt-2 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
-                Authentification comité
-              </p>
-              <div className="mt-6 space-y-3">
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-900/30"
-                >
-                  Ouvrir le formulaire de connexion
-                </button>
-                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Accès sécurisé</p>
-                  <p className="mt-2 text-[11px] font-semibold leading-relaxed text-emerald-50">
-                    Utilisez votre numéro de téléphone ou votre email professionnel et votre mot de passe fournis par l&apos;administrateur du comité FAG.
-                  </p>
-                </div>
-                <p className="rounded-2xl border border-blue-700/40 bg-blue-900/20 p-4 text-[11px] font-semibold leading-relaxed text-slate-200">
-                  Bienvenue dans l&apos;espace de pilotage FAG. Ici, chaque contribution est suivie avec rigueur et gratitude pour la gloire de Dieu.
-                </p>
-                <img
-                  src={LANDING_IMAGES.team}
-                  alt="Équipe de gestion utilisant le logiciel"
-                  className="mt-4 h-48 w-full rounded-2xl border border-slate-700/60 bg-slate-900 object-contain p-1"
-                />
-              </div>
-            </section>
-          </main>
+        {/* Dynamic Background */}
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-fag-primary/10 blur-[120px]"
+            animate={{ 
+              x: [0, 50, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-[20%] -right-[5%] w-[35%] h-[35%] rounded-full bg-fag-secondary/10 blur-[120px]"
+            animate={{ 
+              x: [0, -40, 0],
+              y: [0, 50, 0],
+            }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
         </div>
 
-        <AnimatePresence mode="wait">
+        {/* Intro Curtains - Enhanced */}
+        <AnimatePresence>
+          {!landingOpen && (
+            <>
+              <motion.div 
+                className="fixed inset-y-0 left-0 z-[100] w-1/2 bg-fag-dark border-r border-fag-primary/20"
+                exit={{ x: "-100%" }}
+                transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+              />
+              <motion.div 
+                className="fixed inset-y-0 right-0 z-[100] w-1/2 bg-fag-dark border-l border-fag-secondary/20"
+                exit={{ x: "100%" }}
+                transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+              />
+            </>
+          )}
+        </AnimatePresence>
+
+        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 md:px-10">
+          {/* Header */}
+          <motion.header 
+            className="flex items-center justify-between"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <motion.div 
+                  className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-fag-primary to-fag-secondary opacity-50 blur-sm"
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                />
+                <img src="/logos/logo-ad-att.png" alt="Logo AD" className="relative h-14 w-14 rounded-2xl object-cover shadow-2xl border border-white/10" />
+              </div>
+              <div>
+                <h1 className="text-xl font-black uppercase tracking-tighter leading-none text-white">FAG {DEFAULT_CONFIG.year}</h1>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-fag-primary">Festival d&apos;Action de Grâce</p>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowLoginModal(true)}
+              className="group relative overflow-hidden rounded-2xl bg-white px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-fag-dark shadow-xl"
+            >
+              <span className="relative z-10">Accès Comité</span>
+              <motion.div 
+                className="absolute inset-0 bg-fag-primary"
+                initial={{ x: "-100%" }}
+                whileHover={{ x: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+            </motion.button>
+          </motion.header>
+
+          <main className="mt-12 grid flex-1 grid-cols-1 gap-12 lg:grid-cols-12 items-center">
+            {/* Left Column: Hero Content */}
+            <div className="lg:col-span-7 space-y-10">
+              <motion.div
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.8 }}
+              >
+                <span className="inline-flex items-center gap-2 rounded-full bg-fag-primary/10 border border-fag-primary/20 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-fag-primary">
+                  <Sparkles size={12} className="animate-pulse" />
+                  Logiciel de Gestion Nouvelle Génération
+                </span>
+                <h2 className="mt-6 text-6xl font-black uppercase leading-[1.1] text-white md:text-7xl lg:text-8xl" style={{ fontFamily: "'Cinzel', serif" }}>
+                  <span className="block text-gradient">L&apos;Action de</span>
+                  <span className="block text-fag-primary">Grâce 2026</span>
+                </h2>
+                <p className="mt-8 max-w-xl text-lg font-medium leading-relaxed text-slate-400">
+                  Une plateforme intelligente pour orchestrer votre festival avec <span className="text-white font-bold">excellence</span>, 
+                  <span className="text-white font-bold">transparence</span> et <span className="text-white font-bold">spirituellement</span>.
+                </p>
+              </motion.div>
+
+              <motion.div 
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.9, duration: 0.8 }}
+              >
+                {[
+                  { icon: Activity, title: "Temps Réel", desc: "Suivez chaque promesse en direct" },
+                  { icon: ShieldCheck, title: "Sécurisé", desc: "Données cryptées et sauvegardées" },
+                  { icon: Megaphone, title: "WhatsApp+", desc: "Relances fraternelles automatisées" },
+                  { icon: BarChart3, title: "Analytics", desc: "Tableaux de bord prédictifs" }
+                ].map((feature, i) => (
+                  <motion.div 
+                    key={i}
+                    whileHover={{ y: -5, backgroundColor: "rgba(255,255,255,0.05)" }}
+                    className="flex items-start gap-4 rounded-3xl border border-white/5 bg-white/[0.02] p-5 transition-colors"
+                  >
+                    <div className="rounded-2xl bg-fag-primary/10 p-3 text-fag-primary">
+                      <feature.icon size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-wider text-white">{feature.title}</h4>
+                      <p className="mt-1 text-xs text-slate-500">{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.1, duration: 1 }}
+                className="flex items-center gap-6"
+              >
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-10 w-10 rounded-full border-2 border-fag-dark bg-slate-800" />
+                  ))}
+                </div>
+                <p className="text-sm font-semibold text-slate-400">
+                  Rejoint par <span className="text-fag-primary">+50</span> membres du comité
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Right Column: Interaction Card */}
+            <motion.div 
+              className="lg:col-span-5 relative"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.8, type: "spring" }}
+            >
+              <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-br from-fag-primary/20 to-fag-secondary/20 blur-2xl opacity-50" />
+              <div className="glass-card relative rounded-[3rem] p-8 md:p-10 border border-white/20 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]">
+                <div className="absolute top-0 right-0 p-6 opacity-10">
+                  <Landmark size={120} />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="h-2 w-2 rounded-full bg-fag-primary animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-fag-primary">Terminal de Contrôle</span>
+                  </div>
+
+                  <h3 className="text-3xl font-black uppercase text-white" style={{ fontFamily: "'Cinzel', serif" }}>Prêt à piloter ?</h3>
+                  <p className="mt-4 text-sm font-medium leading-relaxed text-slate-400">
+                    Connectez-vous pour accéder au cockpit de gestion, suivre les dons et coordonner les actions du festival.
+                  </p>
+
+                  <div className="mt-10 space-y-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowLoginModal(true)}
+                      className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-fag-primary to-fag-secondary p-5 text-white shadow-2xl shadow-fag-primary/20"
+                    >
+                      <span className="text-[12px] font-black uppercase tracking-widest">Ouvrir la session</span>
+                      <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
+                    </motion.button>
+                    
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Prochain jalon</p>
+                      <div className="mt-3">
+                        <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
+                    <div className="text-center">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Version</p>
+                      <p className="text-xs font-bold text-white">4.2.0-Pro</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Statut</p>
+                      <p className="text-xs font-bold text-fag-primary flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-fag-primary" /> Opérationnel
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </main>
+
+          {/* Footer */}
+          <motion.footer 
+            className="mt-12 py-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.3 }}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              © 2026 AD ATTÉCOUBÉ • Église Locale
+            </p>
+            <div className="flex items-center gap-8">
+              <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-fag-primary transition-colors">Support</a>
+              <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-fag-primary transition-colors">Confidentialité</a>
+              <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-fag-primary transition-colors">Bible Online</a>
+            </div>
+          </motion.footer>
+        </div>
+
+        {/* Login Modal Overlay */}
+        <AnimatePresence>
           {showLoginModal && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 z-[110] flex items-center justify-center p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.22 }}
             >
               <motion.div
-                className="absolute inset-0 bg-slate-950/80"
+                className="absolute inset-0 bg-fag-dark/90 backdrop-blur-md"
                 onClick={() => setShowLoginModal(false)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
               />
               <motion.form
                 onSubmit={handleAppLogin}
-                className="relative w-full max-w-md rounded-[2.5rem] border border-slate-700 bg-slate-900 p-8 shadow-2xl"
-                style={{ willChange: "transform, opacity" }}
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
-                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 240, damping: 24 }}
+                className="glass-card relative w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl border border-white/20"
+                initial={{ y: 50, opacity: 0, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 30, opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
-              <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setShowLoginModal(false)}>
-                <X />
-              </button>
-              <h3 className="text-2xl font-black uppercase text-white">Connexion</h3>
-              <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Membre équipe de gestion FAG</p>
-              <input
-                type="text"
-                required
-                placeholder="Numéro de téléphone ou email"
-                className="mt-5 w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 font-bold text-white outline-none focus:border-emerald-500"
-                value={loginData.identifier}
-                onChange={(e) => setLoginData((prev) => ({ ...prev, identifier: e.target.value }))}
-              />
-              <input
-                type="password"
-                required
-                placeholder="Mot de passe"
-                className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 font-bold text-white outline-none focus:border-emerald-500"
-                value={loginData.password}
-                onChange={(e) => setLoginData((prev) => ({ ...prev, password: e.target.value }))}
-              />
-              <label className="mt-3 flex items-center gap-2 text-[11px] font-bold text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={loginData.remember}
-                  onChange={(e) => setLoginData((prev) => ({ ...prev, remember: e.target.checked }))}
-                />
-                Maintenir la session
-              </label>
-              {loginError && <p className="mt-3 rounded-xl bg-red-500/20 p-3 text-[11px] font-bold text-red-300">{loginError}</p>}
-              <button type="submit" className="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-900/20">
-                Se connecter
-              </button>
+                <button type="button" className="absolute right-8 top-8 text-slate-500 hover:text-white transition-colors" onClick={() => setShowLoginModal(false)}>
+                  <X />
+                </button>
+                <h3 className="text-3xl font-black uppercase text-white" style={{ fontFamily: "'Cinzel', serif" }}>Connexion</h3>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-fag-primary">Accès Restreint Comité FAG</p>
+                
+                <div className="mt-10 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Identifiant</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Email ou Téléphone"
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-bold text-white outline-none focus:border-fag-primary transition-colors"
+                      value={loginData.identifier}
+                      onChange={(e) => setLoginData((prev) => ({ ...prev, identifier: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Mot de passe</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-bold text-white outline-none focus:border-fag-primary transition-colors"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData((prev) => ({ ...prev, password: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between">
+                  <label className="flex items-center gap-3 text-xs font-bold text-slate-400 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="accent-fag-primary"
+                      checked={loginData.remember}
+                      onChange={(e) => setLoginData((prev) => ({ ...prev, remember: e.target.checked }))}
+                    />
+                    Rester connecté
+                  </label>
+                </div>
+
+                {loginError && (
+                  <motion.p 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="mt-6 rounded-2xl bg-red-500/10 border border-red-500/20 p-4 text-xs font-bold text-red-400"
+                  >
+                    {loginError}
+                  </motion.p>
+                )}
+
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit" 
+                  className="mt-10 w-full rounded-2xl bg-gradient-to-r from-fag-primary to-fag-secondary px-4 py-5 text-[12px] font-black uppercase tracking-widest text-white shadow-2xl shadow-fag-primary/20"
+                >
+                  Authentification
+                </motion.button>
               </motion.form>
             </motion.div>
           )}
@@ -2576,11 +2692,11 @@ const [storageMode] = useState("online");
 
   return (
     <motion.div
-      className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 antialiased not-italic"
-      style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal", willChange: "opacity, transform" }}
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-      animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-      transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" }}
+      className="min-h-screen overflow-x-hidden bg-fag-dark text-slate-200 antialiased selection:bg-fag-primary/30"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -2616,30 +2732,29 @@ const [storageMode] = useState("online");
         {isMobileMenuOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 ${
+          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-fag-surface p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 border-r border-white/5 ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl" />
-          <div className="relative mb-8 flex items-center gap-3">
-            <img src="/logos/logo-att.png" alt="Logo ATT" className="h-14 w-14 rounded-2xl object-cover shadow-lg ring-1 ring-emerald-400/20" />
-            <div>
-              <h1 className="text-lg font-black uppercase leading-none tracking-wide">FAG {config.year}</h1>
-              <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-400">Action de Grâce</p>
+          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-fag-primary/10 blur-3xl" />
+          <div className="relative mb-10 flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute -inset-1 rounded-2xl bg-fag-primary/20 blur-sm" />
+              <img src="/logos/logo-att.png" alt="Logo ATT" className="relative h-14 w-14 rounded-2xl object-cover shadow-lg border border-white/10" />
             </div>
-            <button onClick={() => setIsMobileMenuOpen(false)} className="ml-auto rounded-xl border border-slate-700 p-2 text-slate-300 md:hidden" aria-label="Fermer le menu">
-              <X size={16} />
-            </button>
+            <div>
+              <h1 className="text-lg font-black uppercase leading-none tracking-tight">FAG {config.year}</h1>
+              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-fag-primary">Tableau de Bord</p>
+            </div>
           </div>
-          <nav className="relative flex-1 space-y-1.5 overflow-y-auto pr-1">
+          <nav className="relative flex-1 space-y-2 overflow-y-auto pr-1">
             {[
-              ["dashboard", "Dashboard", LayoutDashboard],
-              ["members", "Fidèles", Wallet],
-              ["expenses", "Dépenses", ShoppingBag],
-              ["deposits", "Comité/Banque", Building2],
-              ["marketing", "Communication", Megaphone],
-              ["settings", "Configuration", SettingsIcon]
+              ["dashboard", "Pilotage", LayoutDashboard],
+              ["members", "Fidèles", Users],
+              ["expenses", "Dépenses", HandCoins],
+              ["deposits", "Comité/Banque", Landmark],
+              ["marketing", "Campagnes", Megaphone],
+              ["settings", "Réglages", SettingsIcon]
             ]
               .filter(([id]) => accessibleTabs.includes(id))
               .map(([id, label, Icon]) => {
@@ -2651,35 +2766,47 @@ const [storageMode] = useState("online");
                       setActiveTab(id);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-[11px] font-extrabold uppercase tracking-wider transition ${
+                    className={`group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl px-4 py-4 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
                       isActive
-                        ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/40"
-                        : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                        ? "bg-fag-primary text-white shadow-lg shadow-fag-primary/20"
+                        : "text-slate-400 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    {isActive && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-white/80" />}
-                    <Icon size={16} className={isActive ? "text-white" : "text-emerald-400"} />
+                    <Icon size={18} className={isActive ? "text-white" : "group-hover:text-fag-primary transition-colors"} />
                     <span className="flex-1 text-left">{label}</span>
-                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                    {isActive && <motion.div layoutId="activeNav" className="h-1.5 w-1.5 rounded-full bg-white" />}
                   </button>
                 );
               })}
           </nav>
-          <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent p-5">
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-emerald-400/20 blur-2xl" />
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Caisse réelle</p>
+          
+          <div className="relative mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Caisse Actuelle</p>
             <p className="mt-2 text-2xl font-black text-white">{money(stats.cashInHand)}</p>
-            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300/80">à sécuriser</p>
+            <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-fag-primary"
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, stats.progression)}%` }}
+              />
+            </div>
           </div>
-          <div className="mt-4 border-t border-slate-800 pt-4">
+
+          <div className="mt-6 border-t border-white/5 pt-6 space-y-4">
             {sessionUser && (
-              <p className="mb-3 rounded-xl bg-slate-800 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-300">
-                {sessionUser.fullName} • {ROLE_LABELS[sessionUser.role] || sessionUser.role}
-              </p>
+              <div className="flex items-center gap-3 px-2">
+                <div className="h-8 w-8 rounded-full bg-fag-primary/20 flex items-center justify-center text-fag-primary text-xs font-black">
+                  {sessionUser.fullName?.[0]}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-black uppercase tracking-wider text-white">{sessionUser.fullName}</p>
+                  <p className="truncate text-[9px] font-bold text-slate-500 uppercase tracking-widest">{ROLE_LABELS[sessionUser.role] || sessionUser.role}</p>
+                </div>
+              </div>
             )}
             <button
               onClick={handleAppLogout}
-              className="w-full rounded-2xl border border-red-300 bg-red-50 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-red-700"
+              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300"
             >
               Déconnexion
             </button>
@@ -2687,17 +2814,21 @@ const [storageMode] = useState("online");
         </aside>
 
         <main className="relative min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
-          <header className="sticky top-0 z-30 mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/80 px-5 pb-4 pt-4 shadow-sm backdrop-blur md:mb-8 md:flex-row md:items-start md:justify-between">
+          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2.5rem] border border-white/5 bg-fag-surface/80 px-8 py-6 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 md:text-3xl">
-                  {activeTab === "dashboard" && "Cockpit de Pilotage"}
-                  {activeTab === "members" && "Gestion des Fidèles"}
-                  {activeTab === "expenses" && "Gestion des Dépenses"}
-                  {activeTab === "deposits" && "Suivi Comité et Banque"}
-                  {activeTab === "marketing" && "Communication Marketing"}
-                  {activeTab === "settings" && "Configuration FAG"}
-                </h2>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-fag-primary animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-fag-primary">Système de Pilotage</span>
+              </div>
+              <h2 className="text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
+                {activeTab === "dashboard" && "Dashboard"}
+                {activeTab === "members" && "Fidèles"}
+                {activeTab === "expenses" && "Dépenses"}
+                {activeTab === "deposits" && "Trésorerie"}
+                {activeTab === "marketing" && "Communication"}
+                {activeTab === "settings" && "Paramètres"}
+              </h2>
+            </div>
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
                 >
@@ -2845,23 +2976,13 @@ const [storageMode] = useState("online");
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Reste à mobiliser</p>
                       </div>
                       <p className="mt-4 text-[28px] font-black leading-none text-slate-900">{money(stats.remainingGoal)}</p>
-                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+<p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                         {stats.monthlyGrowth >= 0 ? (
                           <span className="inline-flex items-center gap-1 text-emerald-600"><TrendingUp size={12} /> +{stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-red-600"><TrendingDown size={12} /> {stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         )}
                       </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-                    <div className="min-w-0 rounded-[2.5rem] bg-white p-8 shadow-sm lg:col-span-4">
-                      <h3 className="mb-6 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">État d&apos;avancement instantané</h3>
-                      <div className="flex justify-center">
-                        <CircularProgress value={stats.progression} />
-                      </div>
-                      <p className="mt-6 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                         Objectif: {money(config.globalGoal)}
                       </p>
                       <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
@@ -2906,18 +3027,25 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
-                    <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Rapprochement de caisse</h3>
-                    <p className="mt-2 text-sm text-slate-600">
-                      Encaissements − Dépenses − Remises comité = Caisse théorique (doit coïncider avec « Cash en main »).
+                  <div className="rounded-[2rem] border border-white/5 bg-white/[0.03] p-8">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                      <HandCoins size={18} className="text-fag-primary" />
+                      Rapprochement de Caisse
+                    </h3>
+                    <p className="mt-4 text-sm text-slate-400">
+                      Calcul théorique basé sur le flux enregistré: Encaissements − Dépenses − Remises.
                     </p>
-                    <p className="mt-3 text-sm font-black text-slate-900">
-                      {money(stats.totalCollected)} − {money(stats.totalExpenses)} − {money(stats.totalHandedOver)} ={" "}
-                      <span className="text-emerald-600">{money(stats.cashInHand)}</span>
-                    </p>
-                    <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">
-                      Contrôle interne : écart 0 F CFA si toutes les opérations sont saisies.
-                    </p>
+                    <div className="mt-6 flex flex-wrap items-center gap-4 text-xl font-black text-white">
+                      <span className="text-fag-primary">{money(stats.totalCollected)}</span>
+                      <span className="text-slate-600">−</span>
+                      <span className="text-red-400">{money(stats.totalExpenses)}</span>
+                      <span className="text-slate-600">−</span>
+                      <span className="text-fag-secondary">{money(stats.totalHandedOver)}</span>
+                      <span className="text-slate-600">=</span>
+                      <span className="bg-fag-primary/10 px-4 py-2 rounded-2xl text-fag-primary border border-fag-primary/20">
+                        {money(stats.cashInHand)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -3030,107 +3158,69 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="space-y-6 rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-                    <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 md:flex-row md:items-center md:justify-between">
-                      <h3 className="text-[12px] font-black uppercase tracking-widest text-slate-900">
-                        Suivi type sheet - synthèse opérationnelle
-                      </h3>
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-                        Collecte • Engagement • Cible mensuelle • Cumul
-                      </p>
+                  <div className="space-y-8 rounded-[3rem] border border-white/5 bg-fag-surface p-8 shadow-2xl">
+                    <div className="flex flex-col gap-2 border-b border-white/5 pb-6 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Synthèse Opérationnelle</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Performance par segment et cumul mensuel</p>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                      <div className="min-w-0 overflow-x-auto rounded-3xl border border-slate-100 lg:col-span-8">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                      <div className="min-w-0 overflow-x-auto rounded-[2rem] border border-white/5 bg-white/[0.02] lg:col-span-8">
                         <table className="w-full min-w-[760px] text-left">
-                          <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                          <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
                             <tr>
-                              <th className="px-4 py-3">Catégorie</th>
-                              <th className="px-4 py-3 text-center">Inscrits</th>
-                              <th className="px-4 py-3 text-center">Cible</th>
-                              <th className="px-4 py-3 text-center">Tx recr.</th>
-                              <th className="px-4 py-3 text-right">Engagement</th>
-                              <th className="px-4 py-3 text-right">Collecté</th>
-                              <th className="px-4 py-3 text-center">% réalisé</th>
+                              <th className="px-6 py-4">Catégorie</th>
+                              <th className="px-6 py-4 text-center">Inscrits</th>
+                              <th className="px-6 py-4 text-center">Taux Recr.</th>
+                              <th className="px-6 py-4 text-right">Engagement</th>
+                              <th className="px-6 py-4 text-right">Collecté</th>
+                              <th className="px-6 py-4 text-center">% Réalisé</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 text-[11px] font-bold uppercase">
+                          <tbody className="divide-y divide-white/5 text-[11px] font-bold text-white uppercase">
                             {categorySheetRows.map((row) => (
-                              <tr key={row.id} className="hover:bg-slate-50/80">
-                                <td className="px-4 py-3 font-black">{row.label}</td>
-                                <td className="px-4 py-3 text-center">{row.count}</td>
-                                <td className="px-4 py-3 text-center">{row.target > 0 ? row.target : "--"}</td>
-                                <td className="px-4 py-3 text-center text-blue-600">{row.recruitRate.toFixed(1)}%</td>
-                                <td className="px-4 py-3 text-right">{money(row.promised)}</td>
-                                <td className="px-4 py-3 text-right text-emerald-600">{money(row.collected)}</td>
-                                <td className="px-4 py-3 text-center">{row.realizationRate.toFixed(1)}%</td>
+                              <tr key={row.id} className="hover:bg-white/[0.03] transition-colors">
+                                <td className="px-6 py-4 font-black">{row.label}</td>
+                                <td className="px-6 py-4 text-center">{row.count} <span className="text-slate-600">/ {row.target > 0 ? row.target : "∞"}</span></td>
+                                <td className="px-6 py-4 text-center text-fag-secondary">{row.recruitRate.toFixed(1)}%</td>
+                                <td className="px-6 py-4 text-right">{money(row.promised)}</td>
+                                <td className="px-6 py-4 text-right text-fag-primary">{money(row.collected)}</td>
+                                <td className="px-6 py-4 text-center">
+                                  <div className="flex items-center gap-2 justify-center">
+                                    <div className="h-1.5 w-12 bg-white/5 rounded-full overflow-hidden">
+                                      <div className="h-full bg-fag-primary" style={{ width: `${row.realizationRate}%` }} />
+                                    </div>
+                                    <span className="w-10">{row.realizationRate.toFixed(1)}%</span>
+                                  </div>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
 
-                      <div className="min-w-0 rounded-3xl border border-slate-100 bg-slate-50 p-4 lg:col-span-4">
-                        <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
-                          Engagement vs collecté par catégorie
-                        </h4>
-                        <div className="mt-3 space-y-3">
-                          {categorySheetRows.map((row) => (
-                            <div key={`bar-${row.id}`}>
-                              <p className="mb-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">{row.label}</p>
-                              <div className="h-2 rounded-full bg-slate-200">
-                                <div className="h-2 rounded-full bg-slate-500" style={{ width: `${(row.promised / maxCategoryCollected) * 100}%` }} />
+                      <div className="lg:col-span-4 space-y-6">
+                        <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] p-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6">Volumes de Collecte</h4>
+                          <div className="space-y-6">
+                            {categorySheetRows.map((row) => (
+                              <div key={`bar-${row.id}`}>
+                                <div className="flex justify-between text-[10px] font-bold uppercase mb-2">
+                                  <span className="text-white">{row.label}</span>
+                                  <span className="text-fag-primary">{money(row.collected)}</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                  <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${(row.collected / maxCategoryCollected) * 100}%` }}
+                                    className="h-full bg-fag-primary shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                                  />
+                                </div>
                               </div>
-                              <div className="mt-1 h-2 rounded-full bg-slate-200">
-                                <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${(row.collected / maxCategoryCollected) * 100}%` }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                      <div className="min-w-0 overflow-x-auto rounded-3xl border border-slate-100 lg:col-span-6">
-                        <table className="w-full min-w-[520px] text-left">
-                          <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
-                            <tr>
-                              <th className="px-4 py-3">Mois</th>
-                              <th className="px-4 py-3 text-right">Collecté</th>
-                              <th className="px-4 py-3 text-right">Cible</th>
-                              <th className="px-4 py-3 text-right">Cumul</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 text-[11px] font-bold uppercase">
-                            {cumulativeMonthlyRows.map((row) => (
-                              <tr key={`month-${row.monthKey}`} className="hover:bg-slate-50/80">
-                                <td className="px-4 py-3">{row.monthKey}</td>
-                                <td className="px-4 py-3 text-right text-emerald-600">{money(row.collected)}</td>
-                                <td className="px-4 py-3 text-right">{money(row.target)}</td>
-                                <td className="px-4 py-3 text-right text-blue-600">{money(row.cumulative)}</td>
-                              </tr>
                             ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <div className="min-w-0 rounded-3xl border border-slate-100 bg-slate-50 p-4 lg:col-span-6">
-                        <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
-                          Courbe cumulative de collecte
-                        </h4>
-                        <div className="mt-4 flex h-48 items-end gap-2 rounded-2xl border border-slate-200 bg-white p-3">
-                          {cumulativeMonthlyRows.map((row) => (
-                            <div key={`cum-${row.monthKey}`} className="flex flex-1 flex-col items-center justify-end gap-2">
-                              <div
-                                className="w-full rounded-t-md bg-emerald-500/80"
-                                style={{ height: `${Math.max(6, (row.cumulative / maxCumulative) * 150)}px` }}
-                                title={`${row.monthKey}: ${money(row.cumulative)}`}
-                              />
-                              <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">
-                                {row.monthKey.slice(5)}
-                              </span>
-                            </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -3285,19 +3375,19 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <tr>
-                          <th className="px-6 py-4 text-left">Fidèle</th>
-                          <th className="px-6 py-4 text-left">Contact & identité</th>
-                          <th className="px-6 py-4 text-center">Mois soldés</th>
-                          <th className="px-6 py-4 text-right">Cumul versé</th>
-                          <th className="px-6 py-4 text-center">Progression</th>
-                          <th className="px-6 py-4 text-center">Actions</th>
+                          <th className="px-8 py-5 text-left">Fidèle</th>
+                          <th className="px-8 py-5 text-left">Identité & Contact</th>
+                          <th className="px-8 py-5 text-center">Mensualités</th>
+                          <th className="px-8 py-5 text-right">Collecté</th>
+                          <th className="px-8 py-5 text-center">Progression</th>
+                          <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-white/5 text-white">
                         {filteredMembers.length === 0 && (
                           <tr>
                             <td colSpan={6} className="px-6 py-16 text-center">
@@ -3317,32 +3407,36 @@ const [storageMode] = useState("online");
                           const fullMonths = monthly > 0 ? Math.floor(paid / monthly) : 0;
                           const credit = monthly > 0 ? paid % monthly : 0;
                           return (
+                          return (
                             <tr
                               key={m.id}
-                              className={`hover:bg-slate-50/70 ${isSettled ? "border-l-4 border-l-emerald-400 bg-emerald-50/40" : ""} ${!isSettled && totalCommit > 0 ? "border-l-4 border-l-orange-300" : ""}`}
+                              className={`group transition-colors hover:bg-white/[0.03] ${isSettled ? "bg-fag-primary/5" : ""}`}
                             >
-                              <td className="px-6 py-4">
-                                <p className="font-black uppercase">{m.name}</p>
-                                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-                                  {cat?.label || "Inconnu"} {credit > 0 ? `• Crédit: ${money(credit)}` : ""}
-                                </p>
+                              <td className="px-8 py-6">
+                                <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-fag-primary bg-fag-primary/10 px-2 py-0.5 rounded-md">
+                                    {cat?.label || "Libre"}
+                                  </span>
+                                  {credit > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-fag-accent">+ {money(credit)}</span>}
+                                </div>
                               </td>
-                              <td className="px-6 py-4">
-                                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-700">
+                              <td className="px-8 py-6">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">
                                   {m.churchFunction || "Membre"}
                                 </p>
-                                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{m.whatsapp || "N/A"}</p>
-                                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{m.district || "Cellule non renseignée"}</p>
+                                <p className="mt-1 text-[10px] font-bold text-slate-500">{m.whatsapp || "Non renseigné"}</p>
+                                <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-600">{m.district || "Secteur Alpha"}</p>
                               </td>
-                              <td className="px-6 py-4">
-                                <div className="flex justify-center gap-1">
+                              <td className="px-8 py-6">
+                                <div className="flex justify-center gap-1.5">
                                   {Array.from({ length: config.months }).map((_, i) => (
                                     <div
                                       key={i}
-                                      className={`flex h-8 w-8 items-center justify-center rounded-lg border text-[10px] font-black ${
+                                      className={`flex h-8 w-8 items-center justify-center rounded-xl border text-[10px] font-black transition-all ${
                                         i < fullMonths
-                                          ? "border-emerald-500 bg-emerald-500 text-white"
-                                          : "border-slate-100 bg-white text-slate-300"
+                                          ? "border-fag-primary bg-fag-primary text-white shadow-lg shadow-fag-primary/20"
+                                          : "border-white/5 bg-white/5 text-slate-600"
                                       }`}
                                     >
                                       {i < fullMonths ? <CheckCircle size={14} /> : i + 1}
@@ -3350,31 +3444,30 @@ const [storageMode] = useState("online");
                                   ))}
                                 </div>
                               </td>
-                              <td className="px-6 py-4 text-right text-sm font-black">{money(paid)}</td>
-                              <td className="px-6 py-4">
+                              <td className="px-8 py-6 text-right font-black text-white">{money(paid)}</td>
+                              <td className="px-8 py-6">
                                 <div className="mx-auto max-w-[140px]">
-                                  <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-widest text-slate-500">
-                                    <span>{progressRow.toFixed(0)}%</span>
-                                    <span className="text-slate-400">/ {money(totalCommit)}</span>
+                                  <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest mb-2">
+                                    <span className={isSettled ? "text-fag-primary" : "text-slate-400"}>{progressRow.toFixed(0)}%</span>
+                                    <span className="text-slate-600">/ {money(totalCommit)}</span>
                                   </div>
-                                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
-                                    <div
-                                      className={`h-full rounded-full ${isSettled ? "bg-emerald-500" : "bg-orange-400"}`}
-                                      style={{ width: `${progressRow}%` }}
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                                    <motion.div
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${progressRow}%` }}
+                                      className={`h-full rounded-full ${isSettled ? "bg-fag-primary" : "bg-fag-secondary"}`}
                                     />
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 text-center">
-                                <div className="flex flex-wrap items-center justify-center gap-2">
+                              <td className="px-8 py-6 text-center">
+                                <div className="flex flex-wrap items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     type="button"
-                                    title="Modifier la fiche"
                                     onClick={() => openEditMemberModal(m)}
-                                    className="inline-flex items-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700 hover:bg-blue-100"
+                                    className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-fag-secondary hover:text-white transition-all"
                                   >
-                                    <Pencil size={14} />
-                                    <span className="hidden sm:inline">Modifier</span>
+                                    <Pencil size={16} />
                                   </button>
                                   <button
                                     type="button"
@@ -3524,70 +3617,79 @@ const [storageMode] = useState("online");
                         type="button"
                         onClick={exportExpensesCsv}
                         className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-red-800 hover:bg-red-100"
-                      >
-                        <Download size={16} />
-                        Export Excel (CSV)
-                      </button>
-                      <button
-                        onClick={() => setIsExpenseModalOpen(true)}
-                        className="rounded-2xl bg-red-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md shadow-red-900/10"
-                      >
-                        Nouvelle sortie
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                    <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm lg:col-span-8">
-                    <table className="w-full min-w-[860px]">
-                      <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                      setExpenseSearchTerm("");
+                                      setExpenseCategoryFilter("all");
+                                    }}
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                                  >
+                                    Réinitialiser
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={exportExpensesCsv}
+                                    className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-red-800 hover:bg-red-100"
+                                  >
+                                    <Download size={16} />
+                                    Export Excel (CSV)
+                                  </button>
+                                  <button
+                                    onClick={() => setIsExpenseModalOpen(true)}
+                                    className="rounded-2xl bg-red-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md shadow-red-900/10"
+                                  >
+                                    Nouvelle sortie
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
+                    <table className="w-full min-w-[980px]">
+                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <tr>
-                          <th className="px-6 py-4 text-left">Date</th>
-                          <th className="px-6 py-4 text-left">Description</th>
-                          <th className="px-6 py-4 text-left">Catégorie</th>
-                          <th className="px-6 py-4 text-left">Mode</th>
-                          <th className="px-6 py-4 text-right">Montant</th>
-                          <th className="px-6 py-4 text-center">Actions</th>
+                          <th className="px-8 py-5 text-left">Date</th>
+                          <th className="px-8 py-5 text-left">Désignation</th>
+                          <th className="px-8 py-5 text-left">Catégorie</th>
+                          <th className="px-8 py-5 text-left">Paiement</th>
+                          <th className="px-8 py-5 text-right">Montant</th>
+                          <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-white/5 text-white">
                         {sortedFilteredExpenses.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-6 py-16 text-center text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
-                              Aucune dépense ne correspond aux critères.
+                            <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
+                              Aucune dépense enregistrée.
                             </td>
                           </tr>
                         )}
                         {sortedFilteredExpenses.map((e) => (
-                          <tr key={e.id} className="transition-colors hover:bg-red-50/40">
-                            <td className="whitespace-nowrap px-6 py-4 font-bold text-slate-500">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
-                            <td className="px-6 py-4 font-black uppercase">{e.description}</td>
-                            <td className="px-6 py-4">
-                              <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                          <tr key={e.id} className="group hover:bg-white/[0.03] transition-colors">
+                            <td className="px-8 py-6 font-bold text-slate-500">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
+                            <td className="px-8 py-6 font-black uppercase tracking-tight">{e.description}</td>
+                            <td className="px-8 py-6">
+                              <span className="bg-white/5 border border-white/5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">
                                 {e.category}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600">{e.method || "Espèces"}</td>
-                            <td className="px-6 py-4 text-right font-black text-red-600">{money(e.amount)}</td>
-                            <td className="px-6 py-4 text-center">
-                              <div className="flex flex-wrap items-center justify-center gap-2">
+                            <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">{e.method || "Espèces"}</td>
+                            <td className="px-8 py-6 text-right font-black text-red-400">{money(e.amount)}</td>
+                            <td className="px-8 py-6 text-center">
+                              <div className="flex flex-wrap items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
-                                  type="button"
-                                  title="Modifier"
                                   onClick={() => openEditExpense(e)}
-                                  className="rounded-xl border border-blue-200 bg-blue-50 p-2 text-blue-700 hover:bg-blue-100"
+                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-fag-secondary hover:text-white transition-all"
                                 >
-                                  <Pencil size={14} />
+                                  <Pencil size={16} />
                                 </button>
                                 <button
-                                  type="button"
-                                  title="Supprimer"
                                   onClick={async () => {
                                     if (!(await askConfirm("Supprimer cette dépense ?"))) return;
                                     await removeExpense(e.id);
                                   }}
-                                  className="rounded-xl border border-red-100 bg-red-50/80 p-2 text-red-600 hover:bg-red-100"
+                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-red-500 hover:text-white transition-all"
                                 >
-                                  <Trash2 size={14} />
+                                  <Trash2 size={16} />
                                 </button>
                               </div>
                             </td>
@@ -3595,7 +3697,7 @@ const [storageMode] = useState("online");
                         ))}
                       </tbody>
                     </table>
-                    </div>
+                  </div>
                     <div className="space-y-4 lg:col-span-4">
                       <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
                         <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par catégorie</h3>
@@ -3780,24 +3882,23 @@ const [storageMode] = useState("online");
                       </button>
                     </div>
                   </div>
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <tr>
-                          <th className="px-6 py-4 text-left">Date</th>
-                          <th className="px-6 py-4 text-left">Responsable</th>
-                          <th className="px-6 py-4 text-right">Montant</th>
-                          <th className="px-6 py-4 text-center">Statut</th>
-                          <th className="px-6 py-4 text-center">Réf. bordereau</th>
-                          <th className="px-6 py-4 text-center">Pièce jointe</th>
-                          <th className="px-6 py-4 text-center">Actions</th>
+                          <th className="px-8 py-5 text-left">Date</th>
+                          <th className="px-8 py-5 text-left">Responsable</th>
+                          <th className="px-8 py-5 text-right">Montant</th>
+                          <th className="px-8 py-5 text-center">Traçabilité</th>
+                          <th className="px-8 py-5 text-center">Référence</th>
+                          <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-white/5 text-white">
                         {sortedFilteredDeposits.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="px-6 py-16 text-center text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
-                              Aucune décharge ne correspond aux filtres.
+                            <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
+                              Aucune décharge enregistrée.
                             </td>
                           </tr>
                         )}
@@ -3806,69 +3907,36 @@ const [storageMode] = useState("online");
                           return (
                             <tr
                               key={d.id}
-                              className={`transition-colors hover:bg-blue-50/50 ${hasTrace ? "" : "bg-red-50/35"}`}
+                              className={`group transition-colors hover:bg-white/[0.03] ${hasTrace ? "" : "bg-fag-accent/5"}`}
                             >
-                              <td className="whitespace-nowrap px-6 py-4 font-bold text-slate-500">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
-                              <td className="px-6 py-4 font-black uppercase">{d.recipient}</td>
-                              <td className="px-6 py-4 text-right font-black text-blue-600">{money(d.amount)}</td>
-                              <td className="px-6 py-4 text-center">
+                              <td className="px-8 py-6 font-bold text-slate-500">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
+                              <td className="px-8 py-6 font-black uppercase tracking-tight">{d.recipient}</td>
+                              <td className="px-8 py-6 text-right font-black text-fag-secondary">{money(d.amount)}</td>
+                              <td className="px-8 py-6 text-center">
                                 {hasTrace ? (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800">
-                                    <CheckCircle size={12} /> Traçable
+                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-fag-primary/10 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-fag-primary border border-fag-primary/20">
+                                    <CheckCircle size={12} /> Validé
                                   </span>
                                 ) : (
-                                  <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-amber-800">
-                                    En attente
+                                  <span className="rounded-full bg-fag-accent/10 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-fag-accent border border-fag-accent/20">
+                                    À compléter
                                   </span>
                                 )}
                               </td>
-                              <td className="px-6 py-4 text-center">
+                              <td className="px-8 py-6 text-center">
                                 {d.bordereauRef ? (
-                                  <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-700">
+                                  <span className="rounded-xl bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-300 border border-white/5">
                                     {d.bordereauRef}
                                   </span>
                                 ) : (
                                   <button
-                                    type="button"
                                     onClick={() => openBordereauModal(d.id)}
-                                    className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-red-700 ring-1 ring-red-200"
+                                    className="rounded-xl bg-fag-accent/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-fag-accent border border-fag-accent/20 hover:bg-fag-accent hover:text-white transition-all"
                                   >
                                     Saisir réf.
                                   </button>
                                 )}
                               </td>
-                              <td className="max-w-[200px] px-6 py-4 text-center">
-                                {d.bordereauUrl ? (
-                                  <a
-                                    href={d.bordereauUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-600 underline hover:text-blue-800"
-                                  >
-                                    <ExternalLink size={12} /> Ouvrir
-                                  </a>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => openDepositUrlModal(d.id)}
-                                    className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 hover:bg-slate-200"
-                                  >
-                                    Ajouter lien
-                                  </button>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-center">
-                                <button
-                                  type="button"
-                                  title="Supprimer"
-                                  onClick={async () => {
-                                    if (!(await askConfirm("Supprimer cette décharge ?"))) return;
-                                    await removeDeposit(d.id);
-                                  }}
-                                  className="rounded-xl border border-red-100 bg-red-50/80 p-2 text-red-600 hover:bg-red-100"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
                               </td>
                             </tr>
                           );
@@ -3913,212 +3981,158 @@ const [storageMode] = useState("online");
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                     {[
-                      ["all", "Tous", Megaphone],
-                      ["pending", "Reliquats", BellRing],
-                      ["done", "Soldés", CheckCircle]
-                    ].map(([id, label, Icon]) => (
+                      { id: "all", label: "Audience Totale", icon: Megaphone, color: "text-fag-primary", bg: "bg-fag-primary/10" },
+                      { id: "pending", label: "Reliquats Actifs", icon: BellRing, color: "text-fag-accent", bg: "bg-fag-accent/10" },
+                      { id: "done", label: "Fidèles Soldés", icon: CheckCircle, color: "text-fag-secondary", bg: "bg-fag-secondary/10" }
+                    ].map((s) => (
                       <button
-                        key={id}
-                        onClick={() => setMarketingFilter(id)}
-                        className={`rounded-[2.5rem] border p-6 text-left ${
-                          marketingFilter === id ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-700"
+                        key={s.id}
+                        onClick={() => setMarketingFilter(s.id)}
+                        className={`relative group overflow-hidden rounded-[2.5rem] border p-8 text-left transition-all ${
+                          marketingFilter === s.id ? "border-fag-primary bg-fag-surface shadow-2xl" : "border-white/5 bg-white/[0.02] hover:bg-white/[0.04]"
                         }`}
                       >
-                        <Icon size={24} className={marketingFilter === id ? "text-emerald-400" : "text-slate-400"} />
-                        <p className="mt-4 text-lg font-black uppercase">{label}</p>
+                        <div className={`inline-flex rounded-2xl p-4 ${s.bg} ${s.color}`}>
+                          <s.icon size={28} />
+                        </div>
+                        <p className={`mt-6 text-xl font-black uppercase tracking-tight ${marketingFilter === s.id ? "text-white" : "text-slate-400"}`}>
+                          {s.label}
+                        </p>
+                        <div className={`absolute bottom-0 left-0 h-1 bg-fag-primary transition-all duration-500 ${marketingFilter === s.id ? "w-full" : "w-0"}`} />
                       </button>
                     ))}
                   </div>
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
                     <table className="w-full min-w-[900px]">
-                      <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <tr>
-                          <th className="px-6 py-4 text-left">Contact</th>
-                          <th className="px-6 py-4 text-left">Fiche fidèle</th>
-                          <th className="px-6 py-4 text-right">Messages WhatsApp</th>
+                          <th className="px-8 py-5 text-left">Fidèle & Contact</th>
+                          <th className="px-8 py-5 text-left">Action Fiche</th>
+                          <th className="px-8 py-5 text-right">Diffusion WhatsApp</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-white/5 text-white">
                         {marketingMembers.map((m) => (
-                            <tr key={m.id}>
-                              <td className="px-6 py-5">
-                                <p className="font-black uppercase">{m.name}</p>
-                                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{m.whatsapp}</p>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="flex flex-wrap gap-2">
+                          <tr key={m.id} className="group hover:bg-white/[0.03] transition-colors">
+                            <td className="px-8 py-6">
+                              <p className="font-black uppercase text-white tracking-tight">{m.name}</p>
+                              <p className="mt-1 text-[10px] font-bold text-fag-primary">{m.whatsapp}</p>
+                            </td>
+                            <td className="px-8 py-6">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => openEditMemberModal(m)}
+                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-fag-secondary hover:text-white transition-all"
+                                >
+                                  <Pencil size={16} />
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (!(await askConfirm(`Supprimer ${m.name} ?`))) return;
+                                    await removeMember(m.id);
+                                  }}
+                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-red-500 hover:text-white transition-all"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-8 py-6">
+                              <div className="flex flex-wrap justify-end gap-2">
+                                {[
+                                  { type: "welcome", label: "Accueil", color: "hover:bg-fag-primary" },
+                                  { type: "engagement", label: "Engagement", color: "hover:bg-fag-secondary" },
+                                  { type: "reminder", label: "Rappel", color: "hover:bg-fag-accent" },
+                                  { type: "thanks", label: "Merci", color: "hover:bg-slate-700" },
+                                  { type: "congrats", label: "Félicitations", color: "hover:bg-fag-primary" }
+                                ].map((btn) => (
                                   <button
-                                    type="button"
-                                    title="Modifier"
-                                    onClick={() => openEditMemberModal(m)}
-                                    className="inline-flex items-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700"
+                                    key={btn.type}
+                                    onClick={() => sendWhatsApp(m, btn.type)}
+                                    className={`px-3 py-2 rounded-xl bg-white/5 text-[9px] font-black uppercase tracking-widest transition-all ${btn.color} hover:text-white hover:scale-105`}
                                   >
-                                    <Pencil size={14} />
-                                    Modifier
+                                    {btn.label}
                                   </button>
-                                  <button
-                                    type="button"
-                                    title="Supprimer"
-                                    onClick={async () => {
-                                      if (!(await askConfirm(`Supprimer ${m.name} ?`))) return;
-                                      await removeMember(m.id);
-                                    }}
-                                    className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-700"
-                                  >
-                                    <Trash2 size={14} />
-                                    Supprimer
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5 text-right">
-                                <div className="flex flex-wrap justify-end gap-2">
-                                  <button
-                                    onClick={() => sendWhatsApp(m, "welcome")}
-                                    className="rounded-xl border border-blue-200 bg-white px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-600"
-                                  >
-                                    Inscription
-                                  </button>
-                                  <button
-                                    onClick={() => sendWhatsApp(m, "engagement")}
-                                    className="rounded-xl border border-indigo-200 bg-white px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-indigo-600"
-                                  >
-                                    Engagement
-                                  </button>
-                                  <button
-                                    onClick={() => sendWhatsApp(m, "reminder")}
-                                    className="rounded-xl border border-orange-200 bg-white px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-orange-600"
-                                  >
-                                    Rappel
-                                  </button>
-                                  <button
-                                    onClick={() => sendWhatsApp(m, "thanks")}
-                                    className="rounded-xl bg-slate-900 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-white"
-                                  >
-                                    Merci
-                                  </button>
-                                  <button
-                                    onClick={() => sendWhatsApp(m, "congrats")}
-                                    className="rounded-xl bg-emerald-600 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-white"
-                                  >
-                                    Félicitations
-                                  </button>
-                                  <button
-                                    onClick={() => sendWhatsApp(m, "encourage")}
-                                    className="rounded-xl bg-purple-600 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-white"
-                                  >
-                                    Encourager
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                  <div className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Journal des envois WhatsApp</h3>
-                    <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">200 derniers enregistrements</p>
-                    {whatsAppLogs.length === 0 ? (
-                      <p className="mt-4 text-[10px] font-extrabold uppercase text-slate-400">Aucun envoi enregistré pour l&apos;instant.</p>
-                    ) : (
-                      <ul className="mt-4 max-h-64 space-y-1 overflow-y-auto text-left text-[11px]">
-                        {whatsAppLogs.map((w) => (
-                          <li key={w.id} className="rounded-lg border border-slate-100 bg-slate-50/90 px-3 py-2">
-                            <span className="text-slate-500">{w.createdAt ? new Date(w.createdAt).toLocaleString("fr-FR") : ""}</span>{" "}
-                            <span className="font-black text-slate-800">{w.messageType}</span> — {w.memberName || w.whatsapp}
-                            {w.providerStatus && <span className="ml-1 text-emerald-600">· {w.providerStatus}</span>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+
+                  <div className="rounded-[3rem] border border-white/5 bg-fag-surface p-8 shadow-2xl mt-10">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="rounded-2xl bg-fag-secondary/10 p-3 text-fag-secondary">
+                        <Activity size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-white">Log de Diffusion</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Traçabilité des envois automatiques</p>
+                      </div>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto pr-4 custom-scrollbar">
+                      {whatsAppLogs.length === 0 ? (
+                        <p className="text-[10px] font-bold text-slate-500 italic">Aucune activité enregistrée.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {whatsAppLogs.map((w) => (
+                            <div key={w.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                              <div className="flex items-center gap-4">
+                                <span className="text-[9px] font-black text-slate-500">{new Date(w.createdAt).toLocaleTimeString()}</span>
+                                <span className="px-2 py-0.5 rounded-md bg-fag-primary/10 text-fag-primary text-[9px] font-black uppercase">{w.messageType}</span>
+                                <span className="text-xs font-bold text-white">{w.memberName}</span>
+                              </div>
+                              <span className="text-[9px] font-black text-slate-600 italic">{w.providerStatus}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
               {activeTab === "settings" && (
-                <div className="rounded-[2.5rem] bg-white p-8 shadow-sm">
-                  <h3 className="mb-8 text-2xl font-black uppercase tracking-tight text-slate-900">Paramètres de campagne</h3>
-                  <div className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <button
-                      type="button"
-                      onClick={exportDataBackup}
-                      className="rounded-2xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white"
-                    >
-                      Télécharger sauvegarde (JSON)
-                    </button>
-                    {sessionUser?.role === "admin" && (
-                      <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                        <input
-                          type="checkbox"
-                          checked={!!config.financeLocked}
-                          onChange={(e) => {
-                            const next = { ...config, financeLocked: e.target.checked };
-                            setConfig(next);
-                            saveConfig(next);
-                          }}
-                        />
-                        Verrouiller les écritures comptables (dépenses, remises, versements) — trésoriers : lecture seule
-                      </label>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-                    <div>
-                      <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Année</label>
-                      <input
-                        type="number"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black outline-none focus:border-emerald-500"
-                        value={config.year}
-                        onChange={(e) => {
-                          const next = { ...config, year: toNumber(e.target.value) };
-                          setConfig(next);
-                          saveConfig(next);
-                        }}
-                      />
+                <div className="space-y-8">
+                  <div className="rounded-[3rem] border border-white/5 bg-fag-surface p-10 shadow-2xl">
+                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
+                      <div>
+                        <h3 className="text-2xl font-black text-white tracking-tight">Configuration Campagne</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Paramètres globaux et objectifs annuels</p>
+                      </div>
+                      <button onClick={exportDataBackup} className="rounded-2xl bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:bg-white/10 transition-all border border-white/5">
+                        Sauvegarde Système
+                      </button>
                     </div>
-                    <div>
-                      <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Objectif global</label>
-                      <input
-                        type="number"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black outline-none focus:border-emerald-500"
-                        value={config.globalGoal}
-                        onChange={(e) => {
-                          const next = { ...config, globalGoal: toNumber(e.target.value) };
-                          setConfig(next);
-                          saveConfig(next);
-                        }}
-                      />
+
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                      {[
+                        { label: "Année FAG", key: "year", type: "number" },
+                        { label: "Objectif Global", key: "globalGoal", type: "number" },
+                        { label: "Durée (Mois)", key: "months", type: "number", min: 1, max: 12 },
+                        { label: "Date de Lancement", key: "launchDate", type: "date" }
+                      ].map((field) => (
+                        <div key={field.key} className="space-y-3">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">{field.label}</label>
+                          <input
+                            type={field.type}
+                            min={field.min}
+                            max={field.max}
+                            className="w-full rounded-[1.5rem] bg-white/[0.03] border border-white/10 px-6 py-4 text-white font-black outline-none focus:border-fag-primary transition-all"
+                            value={config[field.key] || ""}
+                            onChange={(e) => {
+                              const next = { ...config, [field.key]: field.type === "number" ? toNumber(e.target.value) : e.target.value };
+                              setConfig(next);
+                              saveConfig(next);
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Durée (mois)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="12"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black outline-none focus:border-emerald-500"
-                        value={config.months}
-                        onChange={(e) => {
-                          const next = { ...config, months: Math.min(12, Math.max(1, Number.parseInt(e.target.value || "1", 10))) };
-                          setConfig(next);
-                          saveConfig(next);
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Date de lancement</label>
-                      <input
-                        type="date"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black outline-none focus:border-emerald-500"
-                        value={config.launchDate || ""}
-                        onChange={(e) => {
-                          const next = { ...config, launchDate: e.target.value };
-                          setConfig(next);
-                          saveConfig(next);
-                        }}
-                      />
-                    </div>
-                  </div>
                   <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Objectif mensuel moyen</p>
