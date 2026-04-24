@@ -5,12 +5,12 @@ export default {
     extend: {
       colors: {
         fag: {
-          primary: '#10b981', // Emerald 500
-          secondary: '#3b82f6', // Blue 500
-          accent: '#f59e0b', // Amber 500 (Gold)
-          dark: '#020617', // Slate 950
-          surface: '#0f172a', // Slate 900
-          border: 'rgba(255, 255, 255, 0.1)',
+          primary: '#2563eb', // Blue 600
+          secondary: '#10b981', // Emerald 500
+          accent: '#f59e0b', // Amber 500
+          dark: '#0f172a', // Slate 900
+          surface: '#ffffff', // White
+          border: '#e2e8f0', // Slate 200
         }
       },
       backgroundImage: {

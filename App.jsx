@@ -2361,7 +2361,7 @@ const [storageMode] = useState("online");
   if (!isAppAuthenticated) {
     return (
       <motion.div
-        className="min-h-screen bg-fag-dark text-white selection:bg-fag-primary/30"
+        className="min-h-screen bg-slate-50 text-slate-900 selection:bg-fag-primary/30"
         style={{ fontFamily: "'Montserrat', sans-serif" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -2406,12 +2406,12 @@ const [storageMode] = useState("online");
           {!landingOpen && (
             <>
               <motion.div 
-                className="fixed inset-y-0 left-0 z-[100] w-1/2 bg-fag-dark border-r border-fag-primary/20"
+                className="fixed inset-y-0 left-0 z-[100] w-1/2 bg-slate-50 border-r border-blue-200/50"
                 exit={{ x: "-100%" }}
                 transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
               />
               <motion.div 
-                className="fixed inset-y-0 right-0 z-[100] w-1/2 bg-fag-dark border-l border-fag-secondary/20"
+                className="fixed inset-y-0 right-0 z-[100] w-1/2 bg-slate-50 border-l border-emerald-200/50"
                 exit={{ x: "100%" }}
                 transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
               />
@@ -2612,21 +2612,21 @@ const [storageMode] = useState("online");
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="absolute inset-0 bg-fag-dark/90 backdrop-blur-md"
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
                 onClick={() => setShowLoginModal(false)}
               />
               <motion.form
                 onSubmit={handleAppLogin}
-                className="glass-card relative w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl border border-white/20"
+                className="relative w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl bg-white border border-slate-200"
                 initial={{ y: 50, opacity: 0, scale: 0.9 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 30, opacity: 0, scale: 0.95 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
-                <button type="button" className="absolute right-8 top-8 text-slate-500 hover:text-white transition-colors" onClick={() => setShowLoginModal(false)}>
+                <button type="button" className="absolute right-8 top-8 text-slate-400 hover:text-slate-900 transition-colors" onClick={() => setShowLoginModal(false)}>
                   <X />
                 </button>
-                <h3 className="text-3xl font-black uppercase text-white" style={{ fontFamily: "'Cinzel', serif" }}>Connexion</h3>
+                <h3 className="text-3xl font-black uppercase text-slate-900" style={{ fontFamily: "'Cinzel', serif" }}>Connexion</h3>
                 <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-fag-primary">Accès Restreint Comité FAG</p>
                 
                 <div className="mt-10 space-y-4">
@@ -2636,7 +2636,7 @@ const [storageMode] = useState("online");
                       type="text"
                       required
                       placeholder="Email ou Téléphone"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-bold text-white outline-none focus:border-fag-primary transition-colors"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none focus:border-fag-primary transition-colors"
                       value={loginData.identifier}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, identifier: e.target.value }))}
                     />
@@ -2647,7 +2647,7 @@ const [storageMode] = useState("online");
                       type="password"
                       required
                       placeholder="••••••••"
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-bold text-white outline-none focus:border-fag-primary transition-colors"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none focus:border-fag-primary transition-colors"
                       value={loginData.password}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, password: e.target.value }))}
                     />
@@ -2694,7 +2694,7 @@ const [storageMode] = useState("online");
 
   return (
     <motion.div
-      className="min-h-screen overflow-x-hidden bg-fag-dark text-slate-200 antialiased selection:bg-fag-primary/30"
+      className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 antialiased selection:bg-fag-primary/30"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -2703,12 +2703,12 @@ const [storageMode] = useState("online");
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <motion.div
-          className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl"
+          className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl"
           animate={shouldReduceMotion ? { opacity: 0.2 } : { x: [0, 38, 0], y: [0, -18, 0], opacity: [0.2, 0.35, 0.2] }}
           transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-blue-300/20 blur-3xl"
+          className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl"
           animate={shouldReduceMotion ? { opacity: 0.2 } : { x: [0, -32, 0], y: [0, 22, 0], opacity: [0.18, 0.3, 0.18] }}
           transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
         />
@@ -2734,19 +2734,19 @@ const [storageMode] = useState("online");
         {isMobileMenuOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-fag-surface p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 border-r border-white/5 ${
+          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-fag-primary p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 border-r border-fag-primary/20 ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-fag-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
           <div className="relative mb-10 flex items-center gap-3">
             <div className="relative">
               <div className="absolute -inset-1 rounded-2xl bg-fag-primary/20 blur-sm" />
               <img src="/logos/logo-att.png" alt="Logo ATT" className="relative h-14 w-14 rounded-2xl object-cover shadow-lg border border-white/10" />
             </div>
             <div>
-              <h1 className="text-lg font-black uppercase leading-none tracking-tight">FAG {config.year}</h1>
-              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-fag-primary">Tableau de Bord</p>
+              <h1 className="text-lg font-black uppercase leading-none tracking-tight text-white">FAG {config.year}</h1>
+              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-blue-200">Tableau de Bord</p>
             </div>
           </div>
           <nav className="relative flex-1 space-y-2 overflow-y-auto pr-1">
@@ -2770,45 +2770,45 @@ const [storageMode] = useState("online");
                     }}
                     className={`group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl px-4 py-4 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
                       isActive
-                        ? "bg-fag-primary text-white shadow-lg shadow-fag-primary/20"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white"
+                        ? "bg-white text-fag-primary shadow-lg shadow-black/10"
+                        : "text-blue-100 hover:bg-white/10 hover:text-white"
                     }`}
                   >
-                    <Icon size={18} className={isActive ? "text-white" : "group-hover:text-fag-primary transition-colors"} />
+                    <Icon size={18} className={isActive ? "text-fag-primary" : "text-blue-200 group-hover:text-white transition-colors"} />
                     <span className="flex-1 text-left">{label}</span>
-                    {isActive && <motion.div layoutId="activeNav" className="h-1.5 w-1.5 rounded-full bg-white" />}
+                    {isActive && <motion.div layoutId="activeNav" className="h-1.5 w-1.5 rounded-full bg-fag-primary" />}
                   </button>
                 );
               })}
           </nav>
           
-          <div className="relative mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Caisse Actuelle</p>
+          <div className="relative mt-6 overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-blue-100">Caisse Actuelle</p>
             <p className="mt-2 text-2xl font-black text-white">{money(stats.cashInHand)}</p>
-            <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="mt-4 h-1 w-full bg-black/20 rounded-full overflow-hidden">
               <motion.div 
-                className="h-full bg-fag-primary"
+                className="h-full bg-white"
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(100, stats.progression)}%` }}
               />
             </div>
           </div>
 
-          <div className="mt-6 border-t border-white/5 pt-6 space-y-4">
+          <div className="mt-6 border-t border-white/20 pt-6 space-y-4">
             {sessionUser && (
               <div className="flex items-center gap-3 px-2">
-                <div className="h-8 w-8 rounded-full bg-fag-primary/20 flex items-center justify-center text-fag-primary text-xs font-black">
+                <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-black">
                   {sessionUser.fullName?.[0]}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-black uppercase tracking-wider text-white">{sessionUser.fullName}</p>
-                  <p className="truncate text-[9px] font-bold text-slate-500 uppercase tracking-widest">{ROLE_LABELS[sessionUser.role] || sessionUser.role}</p>
+                  <p className="truncate text-[9px] font-bold text-blue-200 uppercase tracking-widest">{ROLE_LABELS[sessionUser.role] || sessionUser.role}</p>
                 </div>
               </div>
             )}
             <button
               onClick={handleAppLogout}
-              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300"
+              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 border border-white/20 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-500 hover:border-red-500 transition-all duration-300"
             >
               Déconnexion
             </button>
@@ -2816,13 +2816,13 @@ const [storageMode] = useState("online");
         </aside>
 
         <main className="relative min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
-          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2.5rem] border border-white/5 bg-fag-surface/80 px-8 py-6 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2.5rem] border border-slate-200/60 bg-white/80 px-8 py-6 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-3 mb-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-fag-primary animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-fag-primary">Système de Pilotage</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Système de Pilotage</span>
               </div>
-              <h2 className="text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
+              <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 md:text-4xl">
                 {activeTab === "dashboard" && "Dashboard"}
                 {activeTab === "members" && "Fidèles"}
                 {activeTab === "expenses" && "Dépenses"}
@@ -3160,18 +3160,18 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="space-y-8 rounded-[3rem] border border-white/5 bg-fag-surface p-8 shadow-2xl">
-                    <div className="flex flex-col gap-2 border-b border-white/5 pb-6 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-8 rounded-[3rem] border border-slate-200/60 bg-white p-8 shadow-sm">
+                    <div className="flex flex-col gap-2 border-b border-slate-100 pb-6 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Synthèse Opérationnelle</h3>
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Synthèse Opérationnelle</h3>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Performance par segment et cumul mensuel</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-                      <div className="min-w-0 overflow-x-auto rounded-[2rem] border border-white/5 bg-white/[0.02] lg:col-span-8">
+                      <div className="min-w-0 overflow-x-auto rounded-[2rem] border border-slate-200/60 bg-slate-50 lg:col-span-8">
                         <table className="w-full min-w-[760px] text-left">
-                          <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <thead className="bg-slate-100/50 text-[10px] font-black uppercase tracking-widest text-slate-500">
                             <tr>
                               <th className="px-6 py-4">Catégorie</th>
                               <th className="px-6 py-4 text-center">Inscrits</th>
@@ -3377,9 +3377,9 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
                         <tr>
                           <th className="px-8 py-5 text-left">Fidèle</th>
                           <th className="px-8 py-5 text-left">Identité & Contact</th>
@@ -3389,7 +3389,7 @@ const [storageMode] = useState("online");
                           <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5 text-white">
+                      <tbody className="divide-y divide-slate-100 text-slate-900">
                         {filteredMembers.length === 0 && (
                           <tr>
                             <td colSpan={6} className="px-6 py-16 text-center">
@@ -3411,23 +3411,23 @@ const [storageMode] = useState("online");
                           return (
                             <tr
                               key={m.id}
-                              className={`group transition-colors hover:bg-white/[0.03] ${isSettled ? "bg-fag-primary/5" : ""}`}
+                              className={`group transition-colors hover:bg-slate-50 ${isSettled ? "bg-emerald-50/50" : ""}`}
                             >
                               <td className="px-8 py-6">
-                                <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
+                                <p className="font-black uppercase tracking-tight text-slate-900">{m.name}</p>
                                 <div className="mt-1 flex items-center gap-2">
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-fag-primary bg-fag-primary/10 px-2 py-0.5 rounded-md">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
                                     {cat?.label || "Libre"}
                                   </span>
-                                  {credit > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-fag-accent">+ {money(credit)}</span>}
+                                  {credit > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">+ {money(credit)}</span>}
                                 </div>
                               </td>
                               <td className="px-8 py-6">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">
                                   {m.churchFunction || "Membre"}
                                 </p>
                                 <p className="mt-1 text-[10px] font-bold text-slate-500">{m.whatsapp || "Non renseigné"}</p>
-                                <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-600">{m.district || "Secteur Alpha"}</p>
+                                <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-400">{m.district || "Secteur Alpha"}</p>
                               </td>
                               <td className="px-8 py-6">
                                 <div className="flex justify-center gap-1.5">
@@ -3436,8 +3436,8 @@ const [storageMode] = useState("online");
                                       key={i}
                                       className={`flex h-8 w-8 items-center justify-center rounded-xl border text-[10px] font-black transition-all ${
                                         i < fullMonths
-                                          ? "border-fag-primary bg-fag-primary text-white shadow-lg shadow-fag-primary/20"
-                                          : "border-white/5 bg-white/5 text-slate-600"
+                                          ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-200"
+                                          : "border-slate-200 bg-slate-100 text-slate-400"
                                       }`}
                                     >
                                       {i < fullMonths ? <CheckCircle size={14} /> : i + 1}
@@ -3445,18 +3445,18 @@ const [storageMode] = useState("online");
                                   ))}
                                 </div>
                               </td>
-                              <td className="px-8 py-6 text-right font-black text-white">{money(paid)}</td>
+                              <td className="px-8 py-6 text-right font-black text-slate-900">{money(paid)}</td>
                               <td className="px-8 py-6">
                                 <div className="mx-auto max-w-[140px]">
                                   <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest mb-2">
-                                    <span className={isSettled ? "text-fag-primary" : "text-slate-400"}>{progressRow.toFixed(0)}%</span>
-                                    <span className="text-slate-600">/ {money(totalCommit)}</span>
+                                    <span className={isSettled ? "text-emerald-600" : "text-slate-400"}>{progressRow.toFixed(0)}%</span>
+                                    <span className="text-slate-500">/ {money(totalCommit)}</span>
                                   </div>
-                                  <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                                     <motion.div
                                       initial={{ width: 0 }}
                                       animate={{ width: `${progressRow}%` }}
-                                      className={`h-full rounded-full ${isSettled ? "bg-fag-primary" : "bg-fag-secondary"}`}
+                                      className={`h-full rounded-full ${isSettled ? "bg-emerald-500" : "bg-blue-400"}`}
                                     />
                                   </div>
                                 </div>
@@ -3466,7 +3466,7 @@ const [storageMode] = useState("online");
                                   <button
                                     type="button"
                                     onClick={() => openEditMemberModal(m)}
-                                    className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-fag-secondary hover:text-white transition-all"
+                                    className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
                                   >
                                     <Pencil size={16} />
                                   </button>
@@ -3631,9 +3631,9 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                    <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5 lg:col-span-8">
+                    <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200 lg:col-span-8">
                       <table className="w-full min-w-[980px]">
-                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
                         <tr>
                           <th className="px-8 py-5 text-left">Date</th>
                           <th className="px-8 py-5 text-left">Désignation</th>
@@ -3643,7 +3643,7 @@ const [storageMode] = useState("online");
                           <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5 text-white">
+                      <tbody className="divide-y divide-slate-100 text-slate-900">
                         {sortedFilteredExpenses.length === 0 && (
                           <tr>
                             <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
@@ -3652,21 +3652,21 @@ const [storageMode] = useState("online");
                           </tr>
                         )}
                         {sortedFilteredExpenses.map((e) => (
-                          <tr key={e.id} className="group hover:bg-white/[0.03] transition-colors">
+                          <tr key={e.id} className="group hover:bg-slate-50 transition-colors">
                             <td className="px-8 py-6 font-bold text-slate-500">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
                             <td className="px-8 py-6 font-black uppercase tracking-tight">{e.description}</td>
                             <td className="px-8 py-6">
-                              <span className="bg-white/5 border border-white/5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">
+                              <span className="bg-slate-100 border border-slate-200 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-600">
                                 {e.category}
                               </span>
                             </td>
                             <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">{e.method || "Espèces"}</td>
-                            <td className="px-8 py-6 text-right font-black text-red-400">{money(e.amount)}</td>
+                            <td className="px-8 py-6 text-right font-black text-red-600">{money(e.amount)}</td>
                             <td className="px-8 py-6 text-center">
                               <div className="flex flex-wrap items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                   onClick={() => openEditExpense(e)}
-                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-fag-secondary hover:text-white transition-all"
+                                  className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
                                 >
                                   <Pencil size={16} />
                                 </button>
@@ -3675,7 +3675,7 @@ const [storageMode] = useState("online");
                                     if (!(await askConfirm("Supprimer cette dépense ?"))) return;
                                     await removeExpense(e.id);
                                   }}
-                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-red-500 hover:text-white transition-all"
+                                  className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
                                 >
                                   <Trash2 size={16} />
                                 </button>
@@ -3687,7 +3687,7 @@ const [storageMode] = useState("online");
                     </table>
                   </div>
                     <div className="space-y-4 lg:col-span-4">
-                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
+                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-200">
                         <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par catégorie</h3>
                         {expenseBreakdown.length === 0 ? (
                           <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
@@ -3715,7 +3715,7 @@ const [storageMode] = useState("online");
                           </div>
                         )}
                       </div>
-                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
+                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-200">
                         <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par mode de paiement</h3>
                         {expenseMethodBreakdown.length === 0 ? (
                           <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
@@ -3870,9 +3870,9 @@ const [storageMode] = useState("online");
                       </button>
                     </div>
                   </div>
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
                         <tr>
                           <th className="px-8 py-5 text-left">Date</th>
                           <th className="px-8 py-5 text-left">Responsable</th>
@@ -3882,7 +3882,7 @@ const [storageMode] = useState("online");
                           <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5 text-white">
+                      <tbody className="divide-y divide-slate-100 text-slate-900">
                         {sortedFilteredDeposits.length === 0 && (
                           <tr>
                             <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
@@ -3895,31 +3895,31 @@ const [storageMode] = useState("online");
                           return (
                             <tr
                               key={d.id}
-                              className={`group transition-colors hover:bg-white/[0.03] ${hasTrace ? "" : "bg-fag-accent/5"}`}
+                              className={`group transition-colors hover:bg-slate-50 ${hasTrace ? "" : "bg-orange-50/30"}`}
                             >
                               <td className="px-8 py-6 font-bold text-slate-500">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
                               <td className="px-8 py-6 font-black uppercase tracking-tight">{d.recipient}</td>
                               <td className="px-8 py-6 text-right font-black text-fag-secondary">{money(d.amount)}</td>
                               <td className="px-8 py-6 text-center">
                                 {hasTrace ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-fag-primary/10 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-fag-primary border border-fag-primary/20">
+                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-800 border border-emerald-200">
                                     <CheckCircle size={12} /> Validé
                                   </span>
                                 ) : (
-                                  <span className="rounded-full bg-fag-accent/10 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-fag-accent border border-fag-accent/20">
+                                  <span className="rounded-full bg-orange-100 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-orange-800 border border-orange-200">
                                     À compléter
                                   </span>
                                 )}
                               </td>
                               <td className="px-8 py-6 text-center">
                                 {d.bordereauRef ? (
-                                  <span className="rounded-xl bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-300 border border-white/5">
+                                  <span className="rounded-xl bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-700 border border-slate-200">
                                     {d.bordereauRef}
                                   </span>
                                 ) : (
                                   <button
                                     onClick={() => openBordereauModal(d.id)}
-                                    className="rounded-xl bg-fag-accent/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-fag-accent border border-fag-accent/20 hover:bg-fag-accent hover:text-white transition-all"
+                                    className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-700 border border-orange-200 hover:bg-orange-200 transition-all"
                                   >
                                     Saisir réf.
                                   </button>
@@ -3937,23 +3937,23 @@ const [storageMode] = useState("online");
               {activeTab === "marketing" && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Contacts ciblés</p>
                       <p className="mt-2 text-2xl font-black text-slate-900">{marketingMembers.length}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Filtre actif</p>
                       <p className="mt-2 text-sm font-black uppercase text-emerald-600">
                         {marketingFilter === "all" ? "Tous les fidèles" : marketingFilter === "pending" ? "Reliquats" : "Soldés"}
                       </p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Objectif relationnel</p>
                       <p className="mt-2 text-sm font-black uppercase text-slate-800">Écoute, amour, fidélité</p>
                     </div>
                   </div>
 
-                  <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
+                  <div className="rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-200">
                     <div className="relative w-full lg:max-w-xl">
                       <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                       <input
@@ -3971,47 +3971,47 @@ const [storageMode] = useState("online");
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                     {[
                       { id: "all", label: "Audience Totale", icon: Megaphone, color: "text-fag-primary", bg: "bg-fag-primary/10" },
-                      { id: "pending", label: "Reliquats Actifs", icon: BellRing, color: "text-fag-accent", bg: "bg-fag-accent/10" },
-                      { id: "done", label: "Fidèles Soldés", icon: CheckCircle, color: "text-fag-secondary", bg: "bg-fag-secondary/10" }
+                      { id: "pending", label: "Reliquats Actifs", icon: BellRing, color: "text-orange-600", bg: "bg-orange-100" },
+                      { id: "done", label: "Fidèles Soldés", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-100" }
                     ].map((s) => (
                       <button
                         key={s.id}
                         onClick={() => setMarketingFilter(s.id)}
                         className={`relative group overflow-hidden rounded-[2.5rem] border p-8 text-left transition-all ${
-                          marketingFilter === s.id ? "border-fag-primary bg-fag-surface shadow-2xl" : "border-white/5 bg-white/[0.02] hover:bg-white/[0.04]"
+                          marketingFilter === s.id ? "border-fag-primary bg-slate-50 shadow-lg" : "border-slate-200 bg-white hover:bg-slate-50"
                         }`}
                       >
                         <div className={`inline-flex rounded-2xl p-4 ${s.bg} ${s.color}`}>
                           <s.icon size={28} />
                         </div>
-                        <p className={`mt-6 text-xl font-black uppercase tracking-tight ${marketingFilter === s.id ? "text-white" : "text-slate-400"}`}>
+                        <p className={`mt-6 text-xl font-black uppercase tracking-tight ${marketingFilter === s.id ? "text-slate-900" : "text-slate-400"}`}>
                           {s.label}
                         </p>
                         <div className={`absolute bottom-0 left-0 h-1 bg-fag-primary transition-all duration-500 ${marketingFilter === s.id ? "w-full" : "w-0"}`} />
                       </button>
                     ))}
                   </div>
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200">
                     <table className="w-full min-w-[900px]">
-                      <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
                         <tr>
                           <th className="px-8 py-5 text-left">Fidèle & Contact</th>
                           <th className="px-8 py-5 text-left">Action Fiche</th>
                           <th className="px-8 py-5 text-right">Diffusion WhatsApp</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5 text-white">
+                      <tbody className="divide-y divide-slate-100 text-slate-900">
                         {marketingMembers.map((m) => (
-                          <tr key={m.id} className="group hover:bg-white/[0.03] transition-colors">
+                          <tr key={m.id} className="group hover:bg-slate-50 transition-colors">
                             <td className="px-8 py-6">
-                              <p className="font-black uppercase text-white tracking-tight">{m.name}</p>
+                              <p className="font-black uppercase text-slate-900 tracking-tight">{m.name}</p>
                               <p className="mt-1 text-[10px] font-bold text-fag-primary">{m.whatsapp}</p>
                             </td>
                             <td className="px-8 py-6">
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => openEditMemberModal(m)}
-                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-fag-secondary hover:text-white transition-all"
+                                  className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
                                 >
                                   <Pencil size={16} />
                                 </button>
@@ -4020,7 +4020,7 @@ const [storageMode] = useState("online");
                                     if (!(await askConfirm(`Supprimer ${m.name} ?`))) return;
                                     await removeMember(m.id);
                                   }}
-                                  className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:bg-red-500 hover:text-white transition-all"
+                                  className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
                                 >
                                   <Trash2 size={16} />
                                 </button>
@@ -4029,16 +4029,16 @@ const [storageMode] = useState("online");
                             <td className="px-8 py-6">
                               <div className="flex flex-wrap justify-end gap-2">
                                 {[
-                                  { type: "welcome", label: "Accueil", color: "hover:bg-fag-primary" },
-                                  { type: "engagement", label: "Engagement", color: "hover:bg-fag-secondary" },
-                                  { type: "reminder", label: "Rappel", color: "hover:bg-fag-accent" },
-                                  { type: "thanks", label: "Merci", color: "hover:bg-slate-700" },
-                                  { type: "congrats", label: "Félicitations", color: "hover:bg-fag-primary" }
+                                  { type: "welcome", label: "Accueil", color: "bg-slate-100 hover:bg-fag-primary hover:text-white" },
+                                  { type: "engagement", label: "Engagement", color: "bg-slate-100 hover:bg-blue-600 hover:text-white" },
+                                  { type: "reminder", label: "Rappel", color: "bg-slate-100 hover:bg-orange-500 hover:text-white" },
+                                  { type: "thanks", label: "Merci", color: "bg-slate-100 hover:bg-slate-700 hover:text-white" },
+                                  { type: "congrats", label: "Félicitations", color: "bg-slate-100 hover:bg-emerald-600 hover:text-white" }
                                 ].map((btn) => (
                                   <button
                                     key={btn.type}
                                     onClick={() => sendWhatsApp(m, btn.type)}
-                                    className={`px-3 py-2 rounded-xl bg-white/5 text-[9px] font-black uppercase tracking-widest transition-all ${btn.color} hover:text-white hover:scale-105`}
+                                    className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${btn.color} hover:scale-105`}
                                   >
                                     {btn.label}
                                   </button>
@@ -4051,13 +4051,13 @@ const [storageMode] = useState("online");
                     </table>
                   </div>
 
-                  <div className="rounded-[3rem] border border-white/5 bg-fag-surface p-8 shadow-2xl mt-10">
+                  <div className="rounded-[3rem] border border-slate-200 bg-white p-8 shadow-sm mt-10">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="rounded-2xl bg-fag-secondary/10 p-3 text-fag-secondary">
+                      <div className="rounded-2xl bg-blue-100 p-3 text-blue-600">
                         <Activity size={20} />
                       </div>
                       <div>
-                        <h3 className="text-sm font-black uppercase tracking-widest text-white">Log de Diffusion</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Log de Diffusion</h3>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Traçabilité des envois automatiques</p>
                       </div>
                     </div>
@@ -4067,13 +4067,13 @@ const [storageMode] = useState("online");
                       ) : (
                         <div className="space-y-3">
                           {whatsAppLogs.map((w) => (
-                            <div key={w.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                            <div key={w.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
                               <div className="flex items-center gap-4">
-                                <span className="text-[9px] font-black text-slate-500">{new Date(w.createdAt).toLocaleTimeString()}</span>
-                                <span className="px-2 py-0.5 rounded-md bg-fag-primary/10 text-fag-primary text-[9px] font-black uppercase">{w.messageType}</span>
-                                <span className="text-xs font-bold text-white">{w.memberName}</span>
+                                <span className="text-[9px] font-black text-slate-400">{new Date(w.createdAt).toLocaleTimeString()}</span>
+                                <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[9px] font-black uppercase">{w.messageType}</span>
+                                <span className="text-xs font-bold text-slate-900">{w.memberName}</span>
                               </div>
-                              <span className="text-[9px] font-black text-slate-600 italic">{w.providerStatus}</span>
+                              <span className="text-[9px] font-black text-slate-500 italic">{w.providerStatus}</span>
                             </div>
                           ))}
                         </div>
@@ -4085,13 +4085,13 @@ const [storageMode] = useState("online");
 
               {activeTab === "settings" && (
                 <div className="space-y-8">
-                  <div className="rounded-[3rem] border border-white/5 bg-fag-surface p-10 shadow-2xl">
-                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
+                  <div className="rounded-[3rem] border border-slate-200 bg-white p-10 shadow-sm">
+                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-slate-100">
                       <div>
-                        <h3 className="text-2xl font-black text-white tracking-tight">Configuration Campagne</h3>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Configuration Campagne</h3>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Paramètres globaux et objectifs annuels</p>
                       </div>
-                      <button onClick={exportDataBackup} className="rounded-2xl bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:bg-white/10 transition-all border border-white/5">
+                      <button onClick={exportDataBackup} className="rounded-2xl bg-slate-100 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-all border border-slate-200">
                         Sauvegarde Système
                       </button>
                     </div>
@@ -4109,7 +4109,7 @@ const [storageMode] = useState("online");
                             type={field.type}
                             min={field.min}
                             max={field.max}
-                            className="w-full rounded-[1.5rem] bg-white/[0.03] border border-white/10 px-6 py-4 text-white font-black outline-none focus:border-fag-primary transition-all"
+                            className="w-full rounded-[1.5rem] bg-slate-50 border border-slate-200 px-6 py-4 text-slate-900 font-black outline-none focus:border-emerald-500 transition-all"
                             value={config[field.key] || ""}
                             onChange={(e) => {
                               const next = { ...config, [field.key]: field.type === "number" ? toNumber(e.target.value) : e.target.value };
