@@ -2828,7 +2828,7 @@ const [storageMode] = useState("online");
                 {activeTab === "marketing" && "Communication"}
                 {activeTab === "settings" && "Paramètres"}
               </h2>
-            </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
                 >
@@ -2976,13 +2976,13 @@ const [storageMode] = useState("online");
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Reste à mobiliser</p>
                       </div>
                       <p className="mt-4 text-[28px] font-black leading-none text-slate-900">{money(stats.remainingGoal)}</p>
-<p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                         {stats.monthlyGrowth >= 0 ? (
                           <span className="inline-flex items-center gap-1 text-emerald-600"><TrendingUp size={12} /> +{stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-red-600"><TrendingDown size={12} /> {stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         )}
-                      </p>
+                        <br />
                         Objectif: {money(config.globalGoal)}
                       </p>
                       <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
@@ -3407,7 +3407,6 @@ const [storageMode] = useState("online");
                           const fullMonths = monthly > 0 ? Math.floor(paid / monthly) : 0;
                           const credit = monthly > 0 ? paid % monthly : 0;
                           return (
-                          return (
                             <tr
                               key={m.id}
                               className={`group transition-colors hover:bg-white/[0.03] ${isSettled ? "bg-fag-primary/5" : ""}`}
@@ -3617,34 +3616,21 @@ const [storageMode] = useState("online");
                         type="button"
                         onClick={exportExpensesCsv}
                         className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-red-800 hover:bg-red-100"
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                      setExpenseSearchTerm("");
-                                      setExpenseCategoryFilter("all");
-                                    }}
-                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
-                                  >
-                                    Réinitialiser
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={exportExpensesCsv}
-                                    className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-red-800 hover:bg-red-100"
-                                  >
-                                    <Download size={16} />
-                                    Export Excel (CSV)
-                                  </button>
-                                  <button
-                                    onClick={() => setIsExpenseModalOpen(true)}
-                                    className="rounded-2xl bg-red-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md shadow-red-900/10"
-                                  >
-                                    Nouvelle sortie
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5">
-                    <table className="w-full min-w-[980px]">
+                      >
+                        <Download size={16} />
+                        Export Excel (CSV)
+                      </button>
+                      <button
+                        onClick={() => setIsExpenseModalOpen(true)}
+                        className="rounded-2xl bg-red-600 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-md shadow-red-900/10"
+                      >
+                        Nouvelle sortie
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                    <div className="overflow-x-auto rounded-[2.5rem] bg-fag-surface shadow-2xl border border-white/5 lg:col-span-8">
+                      <table className="w-full min-w-[980px]">
                       <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <tr>
                           <th className="px-8 py-5 text-left">Date</th>
@@ -3937,7 +3923,6 @@ const [storageMode] = useState("online");
                                   </button>
                                 )}
                               </td>
-                              </td>
                             </tr>
                           );
                         })}
@@ -4222,6 +4207,7 @@ const [storageMode] = useState("online");
                     >
                       Réinitialiser configuration
                     </button>
+                  </div>
                   </div>
 
                   <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50 p-5">
