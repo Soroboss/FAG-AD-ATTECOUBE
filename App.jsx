@@ -290,20 +290,25 @@ function CountdownCard({ targetDate }) {
 }
 
 const edenContainerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 0, y: 26 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.04 }
+    y: 0,
+    transition: { staggerChildren: 0.12, delayChildren: 0.05, duration: 0.55, ease: "easeOut" }
   }
 };
 
 const edenItemVariants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 210, damping: 24 } }
+  hidden: { opacity: 0, y: 26, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 180, damping: 20 } }
 };
 
 const App = () => {
-  const shouldReduceMotion = useReducedMotion();
+  const reduceFromSystem = useReducedMotion();
+  const forceMotion =
+    typeof window !== "undefined" &&
+    (window.location.search.includes("motion=on") || window.localStorage.getItem("fag_force_motion") === "1");
+  const shouldReduceMotion = reduceFromSystem && !forceMotion;
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -2666,9 +2671,13 @@ const [storageMode] = useState("online");
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
-              <p className="mt-1 text-[10px] font-semibold italic text-emerald-700/90">
+              <motion.p
+                className="mt-1 text-[10px] font-semibold italic text-emerald-700/90"
+                animate={shouldReduceMotion ? { opacity: 1 } : { y: [0, -2, 0], opacity: [0.85, 1, 0.85] }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              >
                 “L&apos;Eternel Dieu planta un jardin en Eden...” — Genèse 2:8
-              </p>
+              </motion.p>
               {backendError && (
                 <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-700">
                   {backendError}
@@ -2708,6 +2717,8 @@ const [storageMode] = useState("online");
                     <motion.div
                       variants={edenItemVariants}
                       whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
+                      animate={shouldReduceMotion ? {} : { boxShadow: ["0 6px 24px rgba(16,185,129,0.10)", "0 12px 38px rgba(16,185,129,0.22)", "0 6px 24px rgba(16,185,129,0.10)"] }}
+                      transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                       className="group relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition hover:shadow-xl"
                     >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
