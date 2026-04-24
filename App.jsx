@@ -34,7 +34,8 @@ import {
   HandCoins,
   PiggyBank,
   FileClock,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck
 } from "lucide-react";
 
 const firebaseRawConfig =
