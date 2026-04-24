@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         fag: {
-          primary: '#10b981', // Emerald 500 (Abundance)
+          primary: '#34d399', // Emerald 400 (Brighter for dark mode)
           secondary: '#facc15', // Yellow 400 (Divine Light)
           accent: '#d97706', // Amber 600 (Harvest)
           dark: '#022c22', // Deep Green (Garden Night)

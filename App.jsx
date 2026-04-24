@@ -2658,22 +2658,20 @@ const [storageMode] = useState("online");
                 <div className="mt-10 space-y-5">
                   <div className="space-y-2">
                     <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Identifiant Sacré</label>
-                    <input
-                      type="text"
+                    <input type="text"
                       required
                       placeholder="Email ou Téléphone"
-                      className="w-full rounded-2xl border border-emerald-500/20 bg-black/20 px-5 py-4 font-bold text-white placeholder-emerald-800 outline-none focus:border-yellow-500/50 focus:bg-black/40 transition-all shadow-inner"
+                      className="text-white w-full rounded-2xl border border-emerald-500/20 bg-black/20 px-5 py-4 font-bold text-white placeholder-emerald-700/60 outline-none focus:border-yellow-500/50 focus:bg-black/40 transition-all shadow-inner"
                       value={loginData.identifier}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, identifier: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Sceau de passage</label>
-                    <input
-                      type="password"
+                    <input type="password"
                       required
                       placeholder="••••••••"
-                      className="w-full rounded-2xl border border-emerald-500/20 bg-black/20 px-5 py-4 font-bold text-white placeholder-emerald-800 outline-none focus:border-yellow-500/50 focus:bg-black/40 transition-all shadow-inner"
+                      className="text-white w-full rounded-2xl border border-emerald-500/20 bg-black/20 px-5 py-4 font-bold text-white placeholder-emerald-700/60 outline-none focus:border-yellow-500/50 focus:bg-black/40 transition-all shadow-inner"
                       value={loginData.password}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, password: e.target.value }))}
                     />
@@ -2682,9 +2680,8 @@ const [storageMode] = useState("online");
 
                 <div className="mt-6 flex items-center justify-between">
                   <label className="flex items-center gap-3 text-xs font-bold text-emerald-400/80 cursor-pointer hover:text-emerald-300 transition-colors">
-                    <input
-                      type="checkbox"
-                      className="accent-yellow-500 w-4 h-4 rounded border-emerald-700 bg-black/20"
+                    <input type="checkbox"
+                      className="text-white accent-yellow-500 w-4 h-4 rounded border-emerald-700 bg-black/20"
                       checked={loginData.remember}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, remember: e.target.checked }))}
                     />
@@ -2787,7 +2784,7 @@ const [storageMode] = useState("online");
         {isMobileMenuOpen && <div className="fixed inset-0 z-40 bg-slate-900/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-fag-primary p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 border-r border-fag-primary/20 ${
+          className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col overflow-hidden bg-[#042f2e]/90 backdrop-blur-xl p-5 text-white shadow-2xl transition-transform duration-300 md:translate-x-0 md:p-6 border-r border-emerald-500/20 ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -3364,21 +3361,19 @@ const [storageMode] = useState("online");
                     <div className="flex w-full flex-col gap-3 lg:max-w-3xl lg:flex-row">
                       <div className="relative w-full">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                        <input
-                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
+                        <input className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
                           placeholder="Nom, WhatsApp, quartier, fonction…"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
-                      <select
-                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
+                      <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
                         value={memberCategoryFilter}
                         onChange={(e) => setMemberCategoryFilter(e.target.value)}
                       >
-                        <option value="all">Toutes catégories</option>
+                        <option className="bg-[#022c22] text-white" value="all">Toutes catégories</option>
                         {config.categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
+                          <option className="bg-[#022c22] text-white" key={cat.id} value={cat.id}>
                             {cat.label}
                           </option>
                         ))}
@@ -3637,20 +3632,18 @@ const [storageMode] = useState("online");
                     <div className="flex w-full flex-col gap-3 lg:max-w-3xl lg:flex-row">
                       <div className="relative w-full">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                        <input
-                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-red-500"
+                        <input className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-red-500"
                           placeholder="Rechercher dans la description…"
                           value={expenseSearchTerm}
                           onChange={(e) => setExpenseSearchTerm(e.target.value)}
                         />
                       </div>
-                      <select
-                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-red-500"
+                      <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-red-500"
                         value={expenseCategoryFilter}
                         onChange={(e) => setExpenseCategoryFilter(e.target.value)}
                       >
                         {expenseCategories.map((cat) => (
-                          <option key={cat} value={cat}>
+                          <option className="bg-[#022c22] text-white" key={cat} value={cat}>
                             {cat === "all" ? "Toutes catégories" : cat}
                           </option>
                         ))}
@@ -3879,21 +3872,19 @@ const [storageMode] = useState("online");
                     <div className="flex w-full flex-col gap-3 lg:max-w-3xl lg:flex-row">
                       <div className="relative w-full">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                        <input
-                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-blue-500"
+                        <input className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-blue-500"
                           placeholder="Responsable ou référence…"
                           value={depositSearchTerm}
                           onChange={(e) => setDepositSearchTerm(e.target.value)}
                         />
                       </div>
-                      <select
-                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-blue-500"
+                      <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-blue-500"
                         value={depositFilter}
                         onChange={(e) => setDepositFilter(e.target.value)}
                       >
-                        <option value="all">Toutes les remises</option>
-                        <option value="with_ref">Avec traçabilité (réf. ou lien)</option>
-                        <option value="missing_ref">Sans traçabilité</option>
+                        <option className="bg-[#022c22] text-white" value="all">Toutes les remises</option>
+                        <option className="bg-[#022c22] text-white" value="with_ref">Avec traçabilité (réf. ou lien)</option>
+                        <option className="bg-[#022c22] text-white" value="missing_ref">Sans traçabilité</option>
                       </select>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -4009,8 +4000,7 @@ const [storageMode] = useState("online");
                   <div className="rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm border border-emerald-500/20">
                     <div className="relative w-full lg:max-w-xl">
                       <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                      <input
-                        className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
+                      <input className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
                         placeholder="Rechercher un contact (nom/WhatsApp)"
                         value={marketingSearchTerm}
                         onChange={(e) => setMarketingSearchTerm(e.target.value)}
@@ -4158,11 +4148,10 @@ const [storageMode] = useState("online");
                       ].map((field) => (
                         <div key={field.key} className="space-y-3">
                           <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400/80 ml-4">{field.label}</label>
-                          <input
-                            type={field.type}
+                          <input type={field.type}
                             min={field.min}
                             max={field.max}
-                            className="w-full rounded-[1.5rem] bg-[#022c22] border border-emerald-500/20 px-6 py-4 text-white font-black outline-none focus:border-emerald-500 transition-all"
+                            className="text-white w-full rounded-[1.5rem] bg-[#022c22] border border-emerald-500/20 px-6 py-4 text-white font-black outline-none focus:border-emerald-500 transition-all"
                             value={config[field.key] || ""}
                             onChange={(e) => {
                               const next = { ...config, [field.key]: field.type === "number" ? toNumber(e.target.value) : e.target.value };
@@ -4201,8 +4190,7 @@ const [storageMode] = useState("online");
                       <div key={cat.id} className="grid grid-cols-1 gap-4 rounded-3xl border border-emerald-500/10 p-5 md:grid-cols-12">
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Label</label>
-                          <input
-                            className="w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black uppercase"
+                          <input className="text-white w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black uppercase"
                             value={cat.label}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4215,10 +4203,9 @@ const [storageMode] = useState("online");
                         </div>
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant mensuel</label>
-                          <input
-                            type="number"
+                          <input type="number"
                             disabled={cat.id === "cat5"}
-                            className="w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
+                            className="text-white w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
                             value={cat.amount}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4231,9 +4218,8 @@ const [storageMode] = useState("online");
                         </div>
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Cible</label>
-                          <input
-                            type="number"
-                            className="w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
+                          <input type="number"
+                            className="text-white w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
                             value={cat.targetPeople}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4274,42 +4260,37 @@ const [storageMode] = useState("online");
                     ) : (
                       <>
                         <form onSubmit={createTeamUser} className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-5">
-                          <input
-                            required
+                          <input required
                             placeholder="Nom complet"
-                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.fullName}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
                           />
-                          <input
-                            type="email"
+                          <input type="email"
                             placeholder="Email connexion (optionnel)"
-                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.username}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, username: e.target.value }))}
                           />
-                          <input
-                            placeholder="Téléphone connexion (optionnel)"
-                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                          <input placeholder="Téléphone connexion (optionnel)"
+                            className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.phone}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, phone: e.target.value }))}
                           />
-                          <input
-                            required
+                          <input required
                             type="password"
                             placeholder="Mot de passe"
-                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.password}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, password: e.target.value }))}
                           />
                           <div className="flex gap-2">
-                            <select
-                              className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
+                            <select className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
                               value={newTeamUser.role}
                               onChange={(e) => setNewTeamUser((prev) => ({ ...prev, role: e.target.value }))}
                             >
                               {ROLE_OPTIONS.map((role) => (
-                                <option key={role.id} value={role.id}>
+                                <option className="bg-[#022c22] text-white" key={role.id} value={role.id}>
                                   {role.label}
                                 </option>
                               ))}
@@ -4343,13 +4324,12 @@ const [storageMode] = useState("online");
                                     <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{u.phone || "Téléphone non défini"}</p>
                                   </td>
                                   <td className="px-4 py-3">
-                                    <select
-                                      className="rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80"
+                                    <select className="text-white rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80"
                                       value={u.role}
                                       onChange={(e) => updateTeamUserRole(u.id, e.target.value)}
                                     >
                                       {ROLE_OPTIONS.map((role) => (
-                                        <option key={role.id} value={role.id}>
+                                        <option className="bg-[#022c22] text-white" key={role.id} value={role.id}>
                                           {role.label}
                                         </option>
                                       ))}
@@ -4449,11 +4429,11 @@ const [storageMode] = useState("online");
                         onChange={(e) => setAuditFilter(e.target.value)}
                         className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-blue-500"
                       >
-                        <option value="all">Tous les logs</option>
-                        <option value="access">Accès</option>
-                        <option value="users">Comptes équipe</option>
-                        <option value="finance">Finance</option>
-                        <option value="communication">Communication</option>
+                        <option className="bg-[#022c22] text-white" value="all">Tous les logs</option>
+                        <option className="bg-[#022c22] text-white" value="access">Accès</option>
+                        <option className="bg-[#022c22] text-white" value="users">Comptes équipe</option>
+                        <option className="bg-[#022c22] text-white" value="finance">Finance</option>
+                        <option className="bg-[#022c22] text-white" value="communication">Communication</option>
                       </select>
                     </div>
 
@@ -4554,9 +4534,8 @@ const [storageMode] = useState("online");
             <div className="mt-6 grid grid-cols-1 gap-3">
               <div>
                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Nom complet</label>
-                <input
-                  required
-                  className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                <input required
+                  className="text-white mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingTeamUser.fullName}
                   onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
                 />
@@ -4564,17 +4543,15 @@ const [storageMode] = useState("online");
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div>
                   <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Email</label>
-                  <input
-                    type="email"
-                    className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  <input type="email"
+                    className="text-white mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                     value={editingTeamUser.username}
                     onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, username: e.target.value }))}
                   />
                 </div>
                 <div>
                   <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Téléphone</label>
-                  <input
-                    className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  <input className="text-white mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                     value={editingTeamUser.phone}
                     onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, phone: e.target.value }))}
                   />
@@ -4582,23 +4559,21 @@ const [storageMode] = useState("online");
               </div>
               <div>
                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Nouveau mot de passe (optionnel)</label>
-                <input
-                  type="password"
+                <input type="password"
                   placeholder="Laisser vide pour conserver le mot de passe actuel"
-                  className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="text-white mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingTeamUser.password}
                   onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, password: e.target.value }))}
                 />
               </div>
               <div>
                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Rôle & accès</label>
-                <select
-                  className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
+                <select className="text-white mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
                   value={editingTeamUser.role}
                   onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, role: e.target.value }))}
                 >
                   {ROLE_OPTIONS.map((role) => (
-                    <option key={role.id} value={role.id}>
+                    <option className="bg-[#022c22] text-white" key={role.id} value={role.id}>
                       {role.label} — {role.description}
                     </option>
                   ))}
@@ -4642,60 +4617,54 @@ const [storageMode] = useState("online");
             <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
               <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations d&apos;identité</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <input
-                  required
+                <input required
                   placeholder="Nom et prénoms"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.name}
                   onChange={(e) => setNewMember((s) => ({ ...s, name: e.target.value }))}
                 />
-                <input
-                  required
+                <input required
                   placeholder="WhatsApp (ex: 2250700000000)"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.whatsapp}
                   onChange={(e) => setNewMember((s) => ({ ...s, whatsapp: e.target.value }))}
                 />
-                <input
-                  placeholder="Quartier / cellule"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                <input placeholder="Quartier / cellule"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.district}
                   onChange={(e) => setNewMember((s) => ({ ...s, district: e.target.value }))}
                 />
-                <select
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-emerald-500"
+                <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-emerald-500"
                   value={newMember.churchFunctionType}
                   onChange={(e) => {
                     const val = e.target.value;
                     setNewMember((s) => ({ ...s, churchFunctionType: val, churchFunction: val === "__other__" ? s.churchFunction : val }));
                   }}
                 >
-                  <option value="">Fonction dans l&apos;église</option>
+                  <option className="bg-[#022c22] text-white" value="">Fonction dans l&apos;église</option>
                   {CHURCH_FUNCTION_OPTIONS.map((role) => (
-                    <option key={role} value={role}>
+                    <option className="bg-[#022c22] text-white" key={role} value={role}>
                       {role}
                     </option>
                   ))}
-                  <option value="__other__">Autre fonction (saisie manuelle)</option>
+                  <option className="bg-[#022c22] text-white" value="__other__">Autre fonction (saisie manuelle)</option>
                 </select>
               </div>
               {newMember.churchFunctionType === "__other__" && (
-                <input
-                  placeholder="Préciser la fonction"
-                  className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                <input placeholder="Préciser la fonction"
+                  className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.churchFunction}
                   onChange={(e) => setNewMember((s) => ({ ...s, churchFunction: e.target.value }))}
                 />
               )}
             </div>
 
-            <select
-              className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#022c22] px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
+            <select className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#022c22] px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
               value={newMember.categoryId}
               onChange={(e) => setNewMember((s) => ({ ...s, categoryId: e.target.value }))}
             >
               {config.categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
+                <option className="bg-[#022c22] text-white" key={cat.id} value={cat.id}>
                   {cat.id === "cat5" ? `${cat.label} - Montant libre` : `${cat.label} - ${money(cat.amount)} / mois`}
                 </option>
               ))}
@@ -4753,28 +4722,24 @@ const [storageMode] = useState("online");
             <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
               <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations d&apos;identité</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <input
-                  required
+                <input required
                   placeholder="Nom et prénoms"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.name}
                   onChange={(e) => setEditingMember((s) => ({ ...s, name: e.target.value }))}
                 />
-                <input
-                  required
+                <input required
                   placeholder="WhatsApp (ex: 0757228731)"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.whatsapp}
                   onChange={(e) => setEditingMember((s) => ({ ...s, whatsapp: e.target.value }))}
                 />
-                <input
-                  placeholder="Quartier / cellule"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                <input placeholder="Quartier / cellule"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.district}
                   onChange={(e) => setEditingMember((s) => ({ ...s, district: e.target.value }))}
                 />
-                <select
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-emerald-500"
+                <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-emerald-500"
                   value={editingMember.churchFunctionType}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -4785,32 +4750,30 @@ const [storageMode] = useState("online");
                     }));
                   }}
                 >
-                  <option value="">Fonction dans l&apos;église</option>
+                  <option className="bg-[#022c22] text-white" value="">Fonction dans l&apos;église</option>
                   {CHURCH_FUNCTION_OPTIONS.map((role) => (
-                    <option key={role} value={role}>
+                    <option className="bg-[#022c22] text-white" key={role} value={role}>
                       {role}
                     </option>
                   ))}
-                  <option value="__other__">Autre fonction (saisie manuelle)</option>
+                  <option className="bg-[#022c22] text-white" value="__other__">Autre fonction (saisie manuelle)</option>
                 </select>
               </div>
               {editingMember.churchFunctionType === "__other__" && (
-                <input
-                  placeholder="Préciser la fonction"
-                  className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                <input placeholder="Préciser la fonction"
+                  className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.churchFunction}
                   onChange={(e) => setEditingMember((s) => ({ ...s, churchFunction: e.target.value }))}
                 />
               )}
             </div>
 
-            <select
-              className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#022c22] px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
+            <select className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#022c22] px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
               value={editingMember.categoryId}
               onChange={(e) => setEditingMember((s) => ({ ...s, categoryId: e.target.value }))}
             >
               {config.categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
+                <option className="bg-[#022c22] text-white" key={cat.id} value={cat.id}>
                   {cat.id === "cat5" ? `${cat.label} - Montant libre` : `${cat.label} - ${money(cat.amount)} / mois`}
                 </option>
               ))}
@@ -4871,31 +4834,28 @@ const [storageMode] = useState("online");
             </button>
             <h3 className="mb-6 text-xl font-black uppercase">Encaissement - {selectedMember.name}</h3>
             <div className="grid grid-cols-2 gap-3">
-              <input
-                type="date"
+              <input type="date"
                 required
-                className="rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-bold"
+                className="text-white rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-bold"
                 value={paymentData.date}
                 onChange={(e) => setPaymentData((s) => ({ ...s, date: e.target.value }))}
               />
-              <select
-                className="rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-bold"
+              <select className="text-white rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-bold"
                 value={paymentData.method}
                 onChange={(e) => setPaymentData((s) => ({ ...s, method: e.target.value }))}
               >
-                <option>Espèces</option>
-                <option>Mobile Money</option>
-                <option>Virement</option>
+                <option className="bg-[#022c22] text-white">Espèces</option>
+                <option className="bg-[#022c22] text-white">Mobile Money</option>
+                <option className="bg-[#022c22] text-white">Virement</option>
               </select>
             </div>
             <div className="relative mt-4">
               <DollarSign size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" />
-              <input
-                autoFocus
+              <input autoFocus
                 type="number"
                 required
                 placeholder="Montant"
-                className="w-full rounded-2xl border-2 border-emerald-500/20 px-12 py-4 text-right text-3xl font-black outline-none focus:border-emerald-500"
+                className="text-white w-full rounded-2xl border-2 border-emerald-500/20 px-12 py-4 text-right text-3xl font-black outline-none focus:border-emerald-500"
                 value={paymentData.amount}
                 onChange={(e) => setPaymentData((s) => ({ ...s, amount: e.target.value }))}
               />
@@ -4963,48 +4923,43 @@ const [storageMode] = useState("online");
 
             <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
               <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Détails de l&apos;opération</p>
-              <input
-                required
+              <input required
                 placeholder="Description de la dépense"
-                className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                 value={newExpense.description}
                 onChange={(e) => setNewExpense((s) => ({ ...s, description: e.target.value }))}
               />
               <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                <select
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.category}
                   onChange={(e) => setNewExpense((s) => ({ ...s, category: e.target.value }))}
                 >
-                  <option>Logistique</option>
-                  <option>Communication</option>
-                  <option>Restauration</option>
-                  <option>Accueil/Protocole</option>
-                  <option>Autre</option>
+                  <option className="bg-[#022c22] text-white">Logistique</option>
+                  <option className="bg-[#022c22] text-white">Communication</option>
+                  <option className="bg-[#022c22] text-white">Restauration</option>
+                  <option className="bg-[#022c22] text-white">Accueil/Protocole</option>
+                  <option className="bg-[#022c22] text-white">Autre</option>
                 </select>
-                <select
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.method}
                   onChange={(e) => setNewExpense((s) => ({ ...s, method: e.target.value }))}
                 >
-                  <option>Espèces</option>
-                  <option>Mobile Money</option>
-                  <option>Virement</option>
-                  <option>Chèque</option>
+                  <option className="bg-[#022c22] text-white">Espèces</option>
+                  <option className="bg-[#022c22] text-white">Mobile Money</option>
+                  <option className="bg-[#022c22] text-white">Virement</option>
+                  <option className="bg-[#022c22] text-white">Chèque</option>
                 </select>
-                <input
-                  type="date"
+                <input type="date"
                   required
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.date}
                   onChange={(e) => setNewExpense((s) => ({ ...s, date: e.target.value }))}
                 />
-                <input
-                  type="number"
+                <input type="number"
                   required
                   min="1"
                   placeholder="Montant"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-red-400"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-red-400"
                   value={newExpense.amount}
                   onChange={(e) => setNewExpense((s) => ({ ...s, amount: e.target.value }))}
                 />
@@ -5041,48 +4996,43 @@ const [storageMode] = useState("online");
             <h3 className="text-2xl font-black uppercase text-white">Modifier la dépense</h3>
             <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">Mise à jour de la sortie de caisse</p>
             <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
-              <input
-                required
+              <input required
                 placeholder="Description"
-                className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                 value={editingExpense.description}
                 onChange={(e) => setEditingExpense((s) => ({ ...s, description: e.target.value }))}
               />
               <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                <select
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={editingExpense.category}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, category: e.target.value }))}
                 >
-                  <option>Logistique</option>
-                  <option>Communication</option>
-                  <option>Restauration</option>
-                  <option>Accueil/Protocole</option>
-                  <option>Autre</option>
+                  <option className="bg-[#022c22] text-white">Logistique</option>
+                  <option className="bg-[#022c22] text-white">Communication</option>
+                  <option className="bg-[#022c22] text-white">Restauration</option>
+                  <option className="bg-[#022c22] text-white">Accueil/Protocole</option>
+                  <option className="bg-[#022c22] text-white">Autre</option>
                 </select>
-                <select
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                <select className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={editingExpense.method}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, method: e.target.value }))}
                 >
-                  <option>Espèces</option>
-                  <option>Mobile Money</option>
-                  <option>Virement</option>
-                  <option>Chèque</option>
+                  <option className="bg-[#022c22] text-white">Espèces</option>
+                  <option className="bg-[#022c22] text-white">Mobile Money</option>
+                  <option className="bg-[#022c22] text-white">Virement</option>
+                  <option className="bg-[#022c22] text-white">Chèque</option>
                 </select>
-                <input
-                  type="date"
+                <input type="date"
                   required
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={editingExpense.date}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, date: e.target.value }))}
                 />
-                <input
-                  type="number"
+                <input type="number"
                   required
                   min="1"
                   placeholder="Montant"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-red-400"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-red-400"
                   value={editingExpense.amount}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, amount: e.target.value }))}
                 />
@@ -5120,40 +5070,35 @@ const [storageMode] = useState("online");
             <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
               <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations de remise</p>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <input
-                  type="number"
+                <input type="number"
                   required
                   min="1"
                   max={Math.max(0, stats.cashInHand)}
                   placeholder="Montant remis"
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-2xl font-black outline-none focus:border-blue-400"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-2xl font-black outline-none focus:border-blue-400"
                   value={newDeposit.amount}
                   onChange={(e) => setNewDeposit((s) => ({ ...s, amount: e.target.value }))}
                 />
-                <input
-                  type="date"
+                <input type="date"
                   required
-                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                   value={newDeposit.date}
                   onChange={(e) => setNewDeposit((s) => ({ ...s, date: e.target.value }))}
                 />
               </div>
-              <input
-                required
+              <input required
                 placeholder="Nom du responsable"
-                className="mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                 value={newDeposit.recipient}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, recipient: e.target.value }))}
               />
-              <input
-                placeholder="Référence bordereau (optionnel)"
-                className="mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+              <input placeholder="Référence bordereau (optionnel)"
+                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                 value={newDeposit.bordereauRef}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauRef: e.target.value }))}
               />
-              <input
-                placeholder="Lien pièce jointe (optionnel, URL https://…)"
-                className="mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+              <input placeholder="Lien pièce jointe (optionnel, URL https://…)"
+                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                 value={newDeposit.bordereauUrl}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
               />
@@ -5219,18 +5164,16 @@ const [storageMode] = useState("online");
           <div className="relative w-full max-w-lg rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-2xl">
             <h3 className="text-lg font-black uppercase text-white">Pièce jointe / lien</h3>
             <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">URL (Drive, etc.) — ou import direct d&apos;un fichier</p>
-            <input
-              className="mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3 text-sm"
+            <input className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3 text-sm"
               placeholder="https://…"
               value={urlAttachmentModal.url}
               onChange={(e) => setUrlAttachmentModal((s) => ({ ...s, url: e.target.value }))}
             />
             <label className="mt-3 flex cursor-pointer flex-col gap-1 rounded-2xl border border-dashed border-emerald-500/30 p-3 text-[10px] font-extrabold uppercase text-emerald-400/80">
               Fichier (PDF, image)
-              <input
-                type="file"
+              <input type="file"
                 accept="application/pdf,image/*"
-                className="text-[10px] normal-case"
+                className="text-white text-[10px] normal-case"
                 onChange={async (e) => {
                   const f = e.target.files?.[0];
                   if (!f) return;
@@ -5290,15 +5233,13 @@ const [storageMode] = useState("online");
             }}
           >
             <h3 className="text-lg font-black uppercase text-white">Bordereau comité</h3>
-            <input
-              required
-              className="mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
+            <input required
+              className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
               placeholder="Référence bordereau"
               value={bordereauFormModal.ref}
               onChange={(e) => setBordereauFormModal((s) => ({ ...s, ref: e.target.value }))}
             />
-            <input
-              className="mt-3 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
+            <input className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
               placeholder="Lien pièce jointe (optionnel)"
               value={bordereauFormModal.url}
               onChange={(e) => setBordereauFormModal((s) => ({ ...s, url: e.target.value }))}
