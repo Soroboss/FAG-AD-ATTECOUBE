@@ -2370,12 +2370,12 @@ const [storageMode] = useState("online");
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');
           .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
           }
           .text-gradient {
-            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
           }
@@ -2437,7 +2437,7 @@ const [storageMode] = useState("online");
                 <img src="/logos/logo-ad-att.png" alt="Logo AD" className="relative h-14 w-14 rounded-2xl object-cover shadow-2xl border border-white/10" />
               </div>
               <div>
-                <h1 className="text-xl font-black uppercase tracking-tighter leading-none text-white">FAG {DEFAULT_CONFIG.year}</h1>
+                <h1 className="text-xl font-black uppercase tracking-tighter leading-none text-slate-900">FAG {DEFAULT_CONFIG.year}</h1>
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-fag-primary">Festival d&apos;Action de Grâce</p>
               </div>
             </div>
@@ -2445,7 +2445,7 @@ const [storageMode] = useState("online");
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowLoginModal(true)}
-              className="group relative overflow-hidden rounded-2xl bg-white px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-fag-dark shadow-xl"
+              className="group relative overflow-hidden rounded-2xl bg-slate-900 px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-white shadow-xl"
             >
               <span className="relative z-10">Accès Comité</span>
               <motion.div 
@@ -2465,17 +2465,17 @@ const [storageMode] = useState("online");
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.8 }}
               >
-                <span className="inline-flex items-center gap-2 rounded-full bg-fag-primary/10 border border-fag-primary/20 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-fag-primary">
+                <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 shadow-sm">
                   <Sparkles size={12} className="animate-pulse" />
                   Logiciel de Gestion Nouvelle Génération
                 </span>
-                <h2 className="mt-6 text-6xl font-black uppercase leading-[1.1] text-white md:text-7xl lg:text-8xl" style={{ fontFamily: "'Cinzel', serif" }}>
+                <h2 className="mt-6 text-6xl font-black uppercase leading-[1.1] md:text-7xl lg:text-8xl" style={{ fontFamily: "'Cinzel', serif" }}>
                   <span className="block text-gradient">L&apos;Action de</span>
-                  <span className="block text-fag-primary">Grâce 2026</span>
+                  <span className="block text-slate-900">Grâce 2026</span>
                 </h2>
-                <p className="mt-8 max-w-xl text-lg font-medium leading-relaxed text-slate-400">
-                  Une plateforme intelligente pour orchestrer votre festival avec <span className="text-white font-bold">excellence</span>, 
-                  <span className="text-white font-bold">transparence</span> et <span className="text-white font-bold">spirituellement</span>.
+                <p className="mt-8 max-w-xl text-lg font-medium leading-relaxed text-slate-600">
+                  Une plateforme intelligente pour orchestrer votre festival avec <span className="text-fag-primary font-bold">excellence</span>, 
+                  <span className="text-emerald-600 font-bold"> transparence</span> et <span className="text-slate-900 font-bold">spiritualité</span>.
                 </p>
               </motion.div>
 
@@ -2493,14 +2493,14 @@ const [storageMode] = useState("online");
                 ].map((feature, i) => (
                   <motion.div 
                     key={i}
-                    whileHover={{ y: -5, backgroundColor: "rgba(255,255,255,0.05)" }}
-                    className="flex items-start gap-4 rounded-3xl border border-white/5 bg-white/[0.02] p-5 transition-colors"
+                    whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
+                    className="flex items-start gap-4 rounded-3xl border border-slate-100 bg-white p-5 transition-all shadow-sm"
                   >
-                    <div className="rounded-2xl bg-fag-primary/10 p-3 text-fag-primary">
+                    <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
                       <feature.icon size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase tracking-wider text-white">{feature.title}</h4>
+                      <h4 className="text-sm font-black uppercase tracking-wider text-slate-900">{feature.title}</h4>
                       <p className="mt-1 text-xs text-slate-500">{feature.desc}</p>
                     </div>
                   </motion.div>
@@ -2515,11 +2515,11 @@ const [storageMode] = useState("online");
               >
                 <div className="flex -space-x-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-fag-dark bg-slate-800" />
+                    <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200" />
                   ))}
                 </div>
-                <p className="text-sm font-semibold text-slate-400">
-                  Rejoint par <span className="text-fag-primary">+50</span> membres du comité
+                <p className="text-sm font-semibold text-slate-500">
+                  Rejoint par <span className="text-fag-primary font-bold">+50</span> membres du comité
                 </p>
               </motion.div>
             </div>
@@ -2531,20 +2531,20 @@ const [storageMode] = useState("online");
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.8, type: "spring" }}
             >
-              <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-br from-fag-primary/20 to-fag-secondary/20 blur-2xl opacity-50" />
-              <div className="glass-card relative rounded-[3rem] p-8 md:p-10 border border-white/20 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]">
-                <div className="absolute top-0 right-0 p-6 opacity-10">
-                  <Landmark size={120} />
+              <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-br from-blue-400/30 to-emerald-400/30 blur-2xl opacity-70" />
+              <div className="glass-card relative rounded-[3rem] p-8 md:p-10 border border-white overflow-hidden shadow-2xl">
+                <div className="absolute -top-10 -right-10 p-6 opacity-[0.03] text-fag-primary">
+                  <Landmark size={240} />
                 </div>
                 
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-8">
-                    <div className="h-2 w-2 rounded-full bg-fag-primary animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-fag-primary">Terminal de Contrôle</span>
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600">Terminal de Contrôle</span>
                   </div>
 
-                  <h3 className="text-3xl font-black uppercase text-white" style={{ fontFamily: "'Cinzel', serif" }}>Prêt à piloter ?</h3>
-                  <p className="mt-4 text-sm font-medium leading-relaxed text-slate-400">
+                  <h3 className="text-3xl font-black uppercase text-slate-900" style={{ fontFamily: "'Cinzel', serif" }}>Prêt à piloter ?</h3>
+                  <p className="mt-4 text-sm font-medium leading-relaxed text-slate-500">
                     Connectez-vous pour accéder au cockpit de gestion, suivre les dons et coordonner les actions du festival.
                   </p>
 
@@ -2553,13 +2553,13 @@ const [storageMode] = useState("online");
                       whileHover={{ scale: 1.02, x: 5 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowLoginModal(true)}
-                      className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-fag-primary to-fag-secondary p-5 text-white shadow-2xl shadow-fag-primary/20"
+                      className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 p-5 text-white shadow-xl shadow-blue-500/20"
                     >
                       <span className="text-[12px] font-black uppercase tracking-widest">Ouvrir la session</span>
                       <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
                     </motion.button>
                     
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 shadow-inner">
                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Prochain jalon</p>
                       <div className="mt-3">
                         <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
@@ -2567,15 +2567,15 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
+                  <div className="mt-8 pt-8 border-t border-slate-100 flex items-center justify-between">
                     <div className="text-center">
                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Version</p>
-                      <p className="text-xs font-bold text-white">4.2.0-Pro</p>
+                      <p className="text-xs font-bold text-slate-900">4.2.0-Pro</p>
                     </div>
                     <div className="text-center">
                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Statut</p>
-                      <p className="text-xs font-bold text-fag-primary flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-fag-primary" /> Opérationnel
+                      <p className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Opérationnel
                       </p>
                     </div>
                   </div>
@@ -2586,7 +2586,7 @@ const [storageMode] = useState("online");
 
           {/* Footer */}
           <motion.footer 
-            className="mt-12 py-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6"
+            className="mt-12 py-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.3 }}
