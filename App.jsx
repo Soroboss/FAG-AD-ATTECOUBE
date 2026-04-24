@@ -35,7 +35,8 @@ import {
   PiggyBank,
   FileClock,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  ChevronRight
 } from "lucide-react";
 
 const firebaseRawConfig =
