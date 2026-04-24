@@ -2882,7 +2882,7 @@ const [storageMode] = useState("online");
               </h2>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-400" : "bg-red-100 text-red-400"}`}
                 >
                   <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-900/300" : "bg-red-500"}`} />
                   {managementBackendReady ? "Service en ligne" : "Service indisponible"}
@@ -2902,14 +2902,14 @@ const [storageMode] = useState("online");
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
               <motion.p
-                className="mt-1 text-[10px] font-semibold italic text-emerald-700/90"
+                className="mt-1 text-[10px] font-semibold italic text-emerald-400/90"
                 animate={shouldReduceMotion ? { opacity: 1 } : { y: [0, -2, 0], opacity: [0.85, 1, 0.85] }}
                 transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
               >
                 “L&apos;Eternel Dieu planta un jardin en Eden...” — Genèse 2:8
               </motion.p>
               {backendError && (
-                <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-700">
+                <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-400">
                   {backendError}
                 </p>
               )}
@@ -2918,7 +2918,7 @@ const [storageMode] = useState("online");
               <div className="hidden shrink-0 rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-4 py-3 shadow-sm md:flex md:items-center md:gap-4">
                 <div className="text-right">
                   <p className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-500/80">Progression</p>
-                  <p className="text-xl font-black text-emerald-600">{stats.progression.toFixed(1)}%</p>
+                  <p className="text-xl font-black text-emerald-400">{stats.progression.toFixed(1)}%</p>
                 </div>
                 <div className="h-10 w-px bg-emerald-800/40" />
                 <div className="text-right">
@@ -2949,14 +2949,14 @@ const [storageMode] = useState("online");
                       whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
                       animate={shouldReduceMotion ? {} : { boxShadow: ["0 6px 24px rgba(16,185,129,0.10)", "0 12px 38px rgba(16,185,129,0.22)", "0 6px 24px rgba(16,185,129,0.10)"] }}
                       transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-                      className="group relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                      className="group relative overflow-hidden rounded-[2rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm transition hover:shadow-xl"
                     >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-600"><HandCoins size={20} /></div>
+                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-400"><HandCoins size={20} /></div>
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Total encaissé</p>
                       </div>
-                      <p className="mt-4 text-[28px] font-black leading-none text-emerald-600">{money(stats.totalCollected)}</p>
+                      <p className="mt-4 text-[28px] font-black leading-none text-emerald-400">{money(stats.totalCollected)}</p>
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                         {stats.progression.toFixed(1)}% de l&apos;objectif
                       </p>
@@ -2965,7 +2965,7 @@ const [storageMode] = useState("online");
                     <motion.div
                       variants={edenItemVariants}
                       whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
-                      className="group relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                      className="group relative overflow-hidden rounded-[2rem] border border-red-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm transition hover:shadow-xl"
                     >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
@@ -2981,7 +2981,7 @@ const [storageMode] = useState("online");
                     <motion.div
                       variants={edenItemVariants}
                       whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
-                      className="group relative overflow-hidden rounded-[2rem] border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                      className="group relative overflow-hidden rounded-[2rem] border border-yellow-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm transition hover:shadow-xl"
                     >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
@@ -3002,15 +3002,15 @@ const [storageMode] = useState("online");
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80">À déposer / sécuriser</p>
                     </div>
 
-                    <div className={`group relative overflow-hidden rounded-[2rem] border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${stats.recoveryRate >= 60 ? "border-emerald-100 bg-gradient-to-br from-emerald-50 to-white" : "border-orange-100 bg-gradient-to-br from-orange-50 to-white"}`}>
+                    <div className={`group relative overflow-hidden rounded-[2rem] border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${stats.recoveryRate >= 60 ? "border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card" : "border-orange-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card"}`}>
                       <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${stats.recoveryRate >= 60 ? "bg-emerald-400/10" : "bg-orange-400/10"}`} />
                       <div className="flex items-center gap-3">
-                        <div className={`rounded-2xl p-2.5 ${stats.recoveryRate >= 60 ? "bg-emerald-900/300/15 text-emerald-600" : "bg-orange-500/15 text-orange-600"}`}>
+                        <div className={`rounded-2xl p-2.5 ${stats.recoveryRate >= 60 ? "bg-emerald-900/300/15 text-emerald-400" : "bg-orange-500/15 text-orange-600"}`}>
                           <Target size={20} />
                         </div>
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Taux recouvrement</p>
                       </div>
-                      <p className={`mt-4 text-[28px] font-black leading-none ${stats.recoveryRate >= 60 ? "text-emerald-600" : "text-orange-600"}`}>
+                      <p className={`mt-4 text-[28px] font-black leading-none ${stats.recoveryRate >= 60 ? "text-emerald-400" : "text-orange-600"}`}>
                         {stats.recoveryRate.toFixed(1)}%
                       </p>
                       <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-emerald-800/40">
@@ -3021,7 +3021,7 @@ const [storageMode] = useState("online");
                       </div>
                     </div>
 
-                    <div className="group relative overflow-hidden rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <div className="group relative overflow-hidden rounded-[2rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-slate-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900/90 p-2.5 text-white"><Sparkles size={20} /></div>
@@ -3030,7 +3030,7 @@ const [storageMode] = useState("online");
                       <p className="mt-4 text-[28px] font-black leading-none text-white">{money(stats.remainingGoal)}</p>
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                         {stats.monthlyGrowth >= 0 ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600"><TrendingUp size={12} /> +{stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
+                          <span className="inline-flex items-center gap-1 text-emerald-400"><TrendingUp size={12} /> +{stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-red-600"><TrendingDown size={12} /> {stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         )}
@@ -3039,7 +3039,7 @@ const [storageMode] = useState("online");
                       </p>
                       <div className="mt-4 rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Signal du mois</p>
-                        <p className={`mt-2 text-lg font-black ${stats.monthlyGrowth >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                        <p className={`mt-2 text-lg font-black ${stats.monthlyGrowth >= 0 ? "text-emerald-400" : "text-red-600"}`}>
                           {stats.monthlyGrowth >= 0 ? "+" : ""}
                           {stats.monthlyGrowth.toFixed(1)}%
                         </p>
@@ -3070,7 +3070,7 @@ const [storageMode] = useState("online");
                                   {cat.count} {cat.target > 0 ? `/ ${cat.target}` : ""}
                                 </td>
                                 <td className="py-4 text-right font-extrabold">{money(cat.promised)}</td>
-                                <td className="py-4 text-right font-black text-emerald-600">{money(cat.collected)}</td>
+                                <td className="py-4 text-right font-black text-emerald-400">{money(cat.collected)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -3115,7 +3115,7 @@ const [storageMode] = useState("online");
                             <div key={row.monthKey} className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
                               <div className="mb-2 flex items-center justify-between">
                                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">{row.monthKey}</span>
-                                <span className={`text-[10px] font-extrabold uppercase tracking-widest ${row.net >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                                <span className={`text-[10px] font-extrabold uppercase tracking-widest ${row.net >= 0 ? "text-emerald-400" : "text-red-600"}`}>
                                   Net {money(row.net)}
                                 </span>
                               </div>
@@ -3282,7 +3282,7 @@ const [storageMode] = useState("online");
 
               {activeTab === "members" && (
                 <div className="space-y-6">
-                  <div className="rounded-[2rem] border border-emerald-100 bg-gradient-to-r from-emerald-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                  <div className="rounded-[2rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <h2 className="text-sm font-black uppercase tracking-widest text-white">Module fidèles</h2>
@@ -3293,7 +3293,7 @@ const [storageMode] = useState("online");
                       </div>
                       <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Vue filtrée</p>
-                        <p className="mt-1 text-lg font-black text-emerald-700">
+                        <p className="mt-1 text-lg font-black text-emerald-400">
                           {memberFilteredStats.count} / {members.length}
                         </p>
                       </div>
@@ -3305,7 +3305,7 @@ const [storageMode] = useState("online");
                             Engagement (filtre): <span className="text-white">{money(memberFilteredStats.promised)}</span>
                           </span>
                           <span>
-                            Versé (filtre): <span className="text-emerald-600">{money(memberFilteredStats.paid)}</span>
+                            Versé (filtre): <span className="text-emerald-400">{money(memberFilteredStats.paid)}</span>
                           </span>
                           <span>
                             Taux sur la sélection: <span className="text-yellow-400">{memberFilteredStats.progressPct.toFixed(1)}%</span>
@@ -3322,7 +3322,7 @@ const [storageMode] = useState("online");
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/10 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/10 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><Users size={18} /></div>
@@ -3330,15 +3330,15 @@ const [storageMode] = useState("online");
                       </div>
                       <p className="mt-3 text-3xl font-black text-white">{members.length}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
+                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-400"><CheckCircle size={18} /></div>
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Engagements soldés</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-emerald-600">{memberInsights.completed}</p>
+                      <p className="mt-3 text-3xl font-black text-emerald-400">{memberInsights.completed}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-orange-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Clock size={18} /></div>
@@ -3346,14 +3346,14 @@ const [storageMode] = useState("online");
                       </div>
                       <p className="mt-3 text-3xl font-black text-orange-600">{memberInsights.pending}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Sparkles size={18} /></div>
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Meilleur contributeur</p>
                       </div>
                       <p className="mt-3 text-base font-black uppercase text-white">{memberInsights.topContributorName}</p>
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{money(memberInsights.topContributorAmount)}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">{money(memberInsights.topContributorAmount)}</p>
                     </div>
                   </div>
 
@@ -3464,7 +3464,7 @@ const [storageMode] = useState("online");
                               <td className="px-8 py-6">
                                 <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
                                 <div className="mt-1 flex items-center gap-2">
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-100 px-2 py-0.5 rounded-md">
                                     {cat?.label || "Libre"}
                                   </span>
                                   {credit > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">+ {money(credit)}</span>}
@@ -3497,7 +3497,7 @@ const [storageMode] = useState("online");
                               <td className="px-8 py-6">
                                 <div className="mx-auto max-w-[140px]">
                                   <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest mb-2">
-                                    <span className={isSettled ? "text-emerald-600" : "text-emerald-500/80"}>{progressRow.toFixed(0)}%</span>
+                                    <span className={isSettled ? "text-emerald-400" : "text-emerald-500/80"}>{progressRow.toFixed(0)}%</span>
                                     <span className="text-emerald-400/80">/ {money(totalCommit)}</span>
                                   </div>
                                   <div className="h-1.5 overflow-hidden rounded-full bg-emerald-900/40">
@@ -3547,7 +3547,7 @@ const [storageMode] = useState("online");
                                       if (!(await askConfirm("Supprimer définitivement ce fidèle et son historique de versements ?"))) return;
                                       await removeMember(m.id);
                                     }}
-                                    className="rounded-xl border border-red-100 bg-red-50 p-2 text-red-600 hover:bg-red-100"
+                                    className="rounded-xl border border-red-500/20 bg-red-50 p-2 text-red-600 hover:bg-red-100"
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -3564,7 +3564,7 @@ const [storageMode] = useState("online");
 
               {activeTab === "expenses" && (
                 <div className="space-y-6">
-                  <div className="rounded-[2rem] border border-red-100 bg-gradient-to-r from-red-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                  <div className="rounded-[2rem] border border-red-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <h2 className="text-sm font-black uppercase tracking-widest text-white">Module dépenses</h2>
@@ -3574,7 +3574,7 @@ const [storageMode] = useState("online");
                       </div>
                       <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Lignes filtrées</p>
-                        <p className="mt-1 text-lg font-black text-red-700">
+                        <p className="mt-1 text-lg font-black text-red-400">
                           {filteredExpenses.length} / {expenses.length}
                         </p>
                       </div>
@@ -3591,7 +3591,7 @@ const [storageMode] = useState("online");
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-red-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><Receipt size={18} /></div>
@@ -3600,7 +3600,7 @@ const [storageMode] = useState("online");
                       <p className="mt-3 text-3xl font-black text-red-600">{money(stats.totalExpenses)}</p>
                       <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Historique complet</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><BarChart3 size={18} /></div>
@@ -3608,7 +3608,7 @@ const [storageMode] = useState("online");
                       </div>
                       <p className="mt-3 text-3xl font-black text-white">{money(expenseFilteredSum)}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Activity size={18} /></div>
@@ -3616,7 +3616,7 @@ const [storageMode] = useState("online");
                       </div>
                       <p className="mt-3 text-3xl font-black text-white">{filteredExpenses.length}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-orange-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Coins size={18} /></div>
@@ -3796,7 +3796,7 @@ const [storageMode] = useState("online");
 
               {activeTab === "deposits" && (
                 <div className="space-y-6">
-                  <div className="rounded-[2rem] border border-yellow-500/20 bg-gradient-to-r from-blue-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                  <div className="rounded-[2rem] border border-yellow-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <h2 className="text-sm font-black uppercase tracking-widest text-white">Module comité &amp; banque</h2>
@@ -3810,7 +3810,7 @@ const [storageMode] = useState("online");
                         <p className="mt-1 text-lg font-black text-yellow-500">
                           {depositFilteredRefSummary.n} / {deposits.length}
                         </p>
-                        <p className="mt-1 text-[9px] font-extrabold uppercase tracking-widest text-emerald-600">
+                        <p className="mt-1 text-[9px] font-extrabold uppercase tracking-widest text-emerald-400">
                           OK bordereau : {depositFilteredRefSummary.ok}
                         </p>
                       </div>
@@ -3839,16 +3839,16 @@ const [storageMode] = useState("online");
                       <p className="mt-3 text-3xl font-black text-emerald-300">{money(stats.cashInHand)}</p>
                       <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-200/80">Après collectes et dépenses</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
+                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-400"><CheckCircle size={18} /></div>
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Décharges documentées</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-emerald-600">{depositInsights.withRef}</p>
+                      <p className="mt-3 text-3xl font-black text-emerald-400">{depositInsights.withRef}</p>
                       <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Réf. ou lien pièce (total)</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-red-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><BellRing size={18} /></div>
@@ -3857,7 +3857,7 @@ const [storageMode] = useState("online");
                       <p className="mt-3 text-3xl font-black text-red-600">{depositInsights.missingRef}</p>
                       <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Sans référence (total)</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Landmark size={18} /></div>
@@ -3963,7 +3963,7 @@ const [storageMode] = useState("online");
                                 ) : (
                                   <button
                                     onClick={() => openBordereauModal(d.id)}
-                                    className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-700 border border-orange-200 hover:bg-orange-200 transition-all"
+                                    className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-400 border border-orange-200 hover:bg-orange-200 transition-all"
                                   >
                                     Saisir réf.
                                   </button>
@@ -3987,7 +3987,7 @@ const [storageMode] = useState("online");
                     </div>
                     <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Filtre actif</p>
-                      <p className="mt-2 text-sm font-black uppercase text-emerald-600">
+                      <p className="mt-2 text-sm font-black uppercase text-emerald-400">
                         {marketingFilter === "all" ? "Tous les fidèles" : marketingFilter === "pending" ? "Reliquats" : "Soldés"}
                       </p>
                     </div>
@@ -4015,7 +4015,7 @@ const [storageMode] = useState("online");
                     {[
                       { id: "all", label: "Audience Totale", icon: Megaphone, color: "text-fag-primary", bg: "bg-fag-primary/10" },
                       { id: "pending", label: "Reliquats Actifs", icon: BellRing, color: "text-orange-600", bg: "bg-orange-100" },
-                      { id: "done", label: "Fidèles Soldés", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-100" }
+                      { id: "done", label: "Fidèles Soldés", icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-100" }
                     ].map((s) => (
                       <button
                         key={s.id}
@@ -4169,7 +4169,7 @@ const [storageMode] = useState("online");
                     </div>
                     <div className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Potentiel total catégories</p>
-                      <p className="mt-1 text-xl font-black text-emerald-600">
+                      <p className="mt-1 text-xl font-black text-emerald-400">
                         {money(
                           config.categories.reduce((sum, c) => sum + toNumber(c.amount) * toNumber(c.targetPeople) * Math.max(1, config.months), 0)
                         )}
@@ -4233,8 +4233,8 @@ const [storageMode] = useState("online");
                       </div>
                     ))}
                   </div>
-                  <div className="mt-8 rounded-3xl border border-red-100 bg-red-50 p-5">
-                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-700">Zone de sécurité</p>
+                  <div className="mt-8 rounded-3xl border border-red-500/20 bg-red-50 p-5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Zone de sécurité</p>
                     <p className="mt-2 text-xs font-bold text-red-800">
                       Réinitialiser remet les paramètres par défaut (ne supprime pas les membres/dépenses).
                     </p>
@@ -4254,7 +4254,7 @@ const [storageMode] = useState("online");
                   <div className="mt-8 rounded-3xl border border-emerald-500/10 bg-[#022c22] p-5">
                     <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-50">Comptes équipe & niveaux d&apos;accès</h4>
                     {!canManageUsers ? (
-                      <p className="mt-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-[11px] font-bold text-orange-700">
+                      <p className="mt-3 rounded-2xl border border-orange-500/20 bg-orange-50 p-4 text-[11px] font-bold text-orange-400">
                         Seul le rôle Administrateur peut créer ou modifier les comptes utilisateurs.
                       </p>
                     ) : (
@@ -4321,7 +4321,7 @@ const [storageMode] = useState("online");
                                   <td className="px-4 py-3">
                                     <p className="font-black uppercase text-white">{u.fullName}</p>
                                     <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">{u.username}</p>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{u.phone || "Téléphone non défini"}</p>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">{u.phone || "Téléphone non défini"}</p>
                                   </td>
                                   <td className="px-4 py-3">
                                     <select className="text-white rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80"
@@ -4342,7 +4342,7 @@ const [storageMode] = useState("online");
                                     <button
                                       onClick={() => toggleTeamUserStatus(u.id)}
                                       className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
-                                        u.isActive !== false ? "bg-emerald-100 text-emerald-700" : "bg-emerald-800/40 text-emerald-200/80"
+                                        u.isActive !== false ? "bg-emerald-100 text-emerald-400" : "bg-emerald-800/40 text-emerald-200/80"
                                       }`}
                                     >
                                       {u.isActive !== false ? "Actif" : "Inactif"}
@@ -4402,7 +4402,7 @@ const [storageMode] = useState("online");
                         </p>
                         <button
                           onClick={exportAuditCsv}
-                          className="rounded-xl border border-emerald-200 bg-emerald-900/30 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-700"
+                          className="rounded-xl border border-emerald-200 bg-emerald-900/30 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400"
                         >
                           Export CSV
                         </button>
@@ -4680,12 +4680,12 @@ const [storageMode] = useState("online");
                 onChange={(e) => setNewMember((s) => ({ ...s, customAmount: e.target.value }))}
               />
             )}
-            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-900/30 p-4">
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700">Récapitulatif engagement</p>
+            <div className="mt-4 rounded-2xl border border-emerald-500/20 bg-emerald-900/30 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">Récapitulatif engagement</p>
               <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Mensualité: {money(selectedMonthlyAmount)}</span>
                 <span>
-                  Total ({config.months} mois): <span className="text-emerald-700">{money(selectedTotalAmount)}</span>
+                  Total ({config.months} mois): <span className="text-emerald-400">{money(selectedTotalAmount)}</span>
                 </span>
               </div>
             </div>
@@ -4789,12 +4789,12 @@ const [storageMode] = useState("online");
                 onChange={(e) => setEditingMember((s) => ({ ...s, customAmount: e.target.value }))}
               />
             )}
-            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-900/30 p-4">
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700">Récapitulatif engagement</p>
+            <div className="mt-4 rounded-2xl border border-emerald-500/20 bg-emerald-900/30 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">Récapitulatif engagement</p>
               <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Mensualité: {money(editingMonthlyAmount)}</span>
                 <span>
-                  Total ({config.months} mois): <span className="text-emerald-700">{money(editingTotalAmount)}</span>
+                  Total ({config.months} mois): <span className="text-emerald-400">{money(editingTotalAmount)}</span>
                 </span>
               </div>
             </div>
@@ -4966,12 +4966,12 @@ const [storageMode] = useState("online");
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 p-4">
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-700">Impact immédiat</p>
+            <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-50 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-400">Impact immédiat</p>
               <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Dépense saisie: {money(newExpense.amount || 0)}</span>
                 <span>
-                  Caisse après sortie: <span className="text-red-700">{money(stats.cashInHand - toNumber(newExpense.amount))}</span>
+                  Caisse après sortie: <span className="text-red-400">{money(stats.cashInHand - toNumber(newExpense.amount))}</span>
                 </span>
               </div>
             </div>
