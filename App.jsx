@@ -2403,8 +2403,9 @@ const [storageMode] = useState("online");
               >
                 Vision claire
               </motion.div>
-              <div className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-700/40 bg-gradient-to-r from-slate-950 to-slate-900/40 transition-transform duration-1000 ${landingOpen ? "-translate-x-[96%]" : "translate-x-0"}`} />
-              <div className={`pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-700/40 bg-gradient-to-l from-slate-950 to-slate-900/40 transition-transform duration-1000 ${landingOpen ? "translate-x-[96%]" : "translate-x-0"}`} />
+              <div className={`pointer-events-none absolute inset-y-0 left-0 z-30 w-1/2 border-r border-emerald-300/25 bg-gradient-to-r from-slate-950 via-slate-950 to-slate-900/90 transition-transform duration-[1350ms] ${landingOpen ? "-translate-x-[100%]" : "translate-x-0"}`} />
+              <div className={`pointer-events-none absolute inset-y-0 right-0 z-30 w-1/2 border-l border-blue-300/25 bg-gradient-to-l from-slate-950 via-slate-950 to-slate-900/90 transition-transform duration-[1350ms] ${landingOpen ? "translate-x-[100%]" : "translate-x-0"}`} />
+              <div className="relative z-40">
               <p className="inline-flex rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
                 Logiciel de trésorerie FAG
               </p>
@@ -2457,18 +2458,19 @@ const [storageMode] = useState("online");
                       <span className="h-2 w-2 rounded-full bg-amber-400/70" />
                       <span className="h-2 w-2 rounded-full bg-emerald-400/70" />
                     </div>
-                    <img src={LANDING_IMAGES.dashboard} alt="Dashboard église multi-écrans" className="h-24 w-full rounded-xl object-cover" />
+                    <img src={LANDING_IMAGES.dashboard} alt="Dashboard église multi-écrans" className="h-24 w-full rounded-xl bg-slate-900 object-contain p-1" />
                   </div>
                   <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-4">
-                    <img src={LANDING_IMAGES.prayer} alt="Communauté en prière" className="h-20 w-full rounded-xl object-cover" />
+                    <img src={LANDING_IMAGES.prayer} alt="Communauté en prière" className="h-20 w-full rounded-xl bg-slate-900 object-contain p-1" />
                   </div>
                   <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-3">
-                    <img src={LANDING_IMAGES.worship} alt="Louange communautaire" className="h-16 w-full rounded-xl object-cover" />
+                    <img src={LANDING_IMAGES.worship} alt="Louange communautaire" className="h-16 w-full rounded-xl bg-slate-900 object-contain p-1" />
                   </div>
                   <div className="col-span-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[11px] font-bold text-emerald-100 md:col-span-9">
                     « Que tout se fasse avec bienséance et avec ordre. » — 1 Cor 14:40
                   </div>
                 </div>
+              </div>
               </div>
             </section>
 
@@ -2499,7 +2501,7 @@ const [storageMode] = useState("online");
                 <img
                   src={LANDING_IMAGES.team}
                   alt="Équipe de gestion utilisant le logiciel"
-                  className="mt-4 h-40 w-full rounded-2xl border border-slate-700/60 object-cover"
+                  className="mt-4 h-48 w-full rounded-2xl border border-slate-700/60 bg-slate-900 object-contain p-1"
                 />
               </div>
             </section>
