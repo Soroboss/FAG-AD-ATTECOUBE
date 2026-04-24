@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "firebase/auth";
 import { addDoc, collection, deleteDoc, doc, getFirestore, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
@@ -288,7 +289,21 @@ function CountdownCard({ targetDate }) {
   );
 }
 
+const edenContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.04 }
+  }
+};
+
+const edenItemVariants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 210, damping: 24 } }
+};
+
 const App = () => {
+  const shouldReduceMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -2328,7 +2343,13 @@ const [storageMode] = useState("online");
 
   if (!isAppAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white" style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal" }}>
+      <motion.div
+        className="min-h-screen bg-slate-950 text-white"
+        style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal", willChange: "opacity, transform" }}
+        initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.995 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.45, ease: "easeOut" }}
+      >
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
         <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-10 md:px-10">
           <header className="flex items-center justify-between">
@@ -2435,10 +2456,31 @@ const [storageMode] = useState("online");
           </main>
         </div>
 
-        {showLoginModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-950/80" onClick={() => setShowLoginModal(false)} />
-            <form onSubmit={handleAppLogin} className="relative w-full max-w-md rounded-[2.5rem] border border-slate-700 bg-slate-900 p-8 shadow-2xl">
+        <AnimatePresence mode="wait">
+          {showLoginModal && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.22 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-slate-950/80"
+                onClick={() => setShowLoginModal(false)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+              <motion.form
+                onSubmit={handleAppLogin}
+                className="relative w-full max-w-md rounded-[2.5rem] border border-slate-700 bg-slate-900 p-8 shadow-2xl"
+                style={{ willChange: "transform, opacity" }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
+                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 240, damping: 24 }}
+              >
               <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setShowLoginModal(false)}>
                 <X />
               </button>
@@ -2472,19 +2514,35 @@ const [storageMode] = useState("online");
               <button type="submit" className="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-900/20">
                 Se connecter
               </button>
-            </form>
-          </div>
-        )}
-      </div>
+              </motion.form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     );
   }
 
   return (
-    <div
+    <motion.div
       className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 antialiased not-italic"
-      style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal" }}
+      style={{ fontFamily: "'Montserrat', sans-serif", fontStyle: "normal", willChange: "opacity, transform" }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <motion.div
+          className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl"
+          animate={shouldReduceMotion ? { opacity: 0.2 } : { x: [0, 38, 0], y: [0, -18, 0], opacity: [0.2, 0.35, 0.2] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-blue-300/20 blur-3xl"
+          animate={shouldReduceMotion ? { opacity: 0.2 } : { x: [0, -32, 0], y: [0, 22, 0], opacity: [0.18, 0.3, 0.18] }}
+          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        />
+      </div>
       <div className="min-h-screen md:flex">
         <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
           <div className="flex items-center gap-2">
@@ -2608,6 +2666,9 @@ const [storageMode] = useState("online");
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
+              <p className="mt-1 text-[10px] font-semibold italic text-emerald-700/90">
+                “L&apos;Eternel Dieu planta un jardin en Eden...” — Genèse 2:8
+              </p>
               {backendError && (
                 <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-red-700">
                   {backendError}
@@ -2635,11 +2696,20 @@ const [storageMode] = useState("online");
               <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Chargement des données FAG…</p>
             </div>
           ) : (
-            <>
+            <motion.section
+              key={activeTab}
+              initial={shouldReduceMotion ? false : "hidden"}
+              animate="visible"
+              variants={edenContainerVariants}
+            >
               {activeTab === "dashboard" && (
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-                    <div className="group relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <motion.div
+                      variants={edenItemVariants}
+                      whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
+                      className="group relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                    >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><HandCoins size={20} /></div>
@@ -2649,9 +2719,13 @@ const [storageMode] = useState("online");
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                         {stats.progression.toFixed(1)}% de l&apos;objectif
                       </p>
-                    </div>
+                    </motion.div>
 
-                    <div className="group relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <motion.div
+                      variants={edenItemVariants}
+                      whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
+                      className="group relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                    >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><Receipt size={20} /></div>
@@ -2661,9 +2735,13 @@ const [storageMode] = useState("online");
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-red-500/80">
                         {stats.totalCollected > 0 ? ((stats.totalExpenses / stats.totalCollected) * 100).toFixed(1) : "0.0"}% du collecté
                       </p>
-                    </div>
+                    </motion.div>
 
-                    <div className="group relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <motion.div
+                      variants={edenItemVariants}
+                      whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
+                      className="group relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                    >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Landmark size={20} /></div>
@@ -2671,7 +2749,7 @@ const [storageMode] = useState("online");
                       </div>
                       <p className="mt-4 text-[28px] font-black leading-none text-blue-600">{money(stats.totalHandedOver)}</p>
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-500/80">Banque & comité FAG</p>
-                    </div>
+                    </motion.div>
 
                     <div className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-6 text-white shadow-2xl transition hover:-translate-y-1 hover:shadow-emerald-900/40">
                       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-400/20 blur-3xl" />
@@ -2848,8 +2926,8 @@ const [storageMode] = useState("online");
                                   className={`h-2 rounded-full ${method === "Espèces" ? "bg-slate-900" : method === "Mobile Money" ? "bg-emerald-500" : "bg-blue-500"}`}
                                   style={{ width: `${Math.max(3, percent)}%` }}
                                 />
-                              </div>
-                            </div>
+      </div>
+    </div>
                           );
                         })}
                       </div>
@@ -4317,7 +4395,7 @@ const [storageMode] = useState("online");
                   </div>
                 </div>
               )}
-            </>
+            </motion.section>
           )}
         </main>
       </div>
@@ -5127,7 +5205,7 @@ const [storageMode] = useState("online");
           </form>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
