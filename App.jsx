@@ -2516,18 +2516,18 @@ const [storageMode] = useState("online");
               >
                 <span className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
                   <Sparkles size={12} className="animate-pulse" />
-                  Une Moisson Abondante
+                  Festival d'Action de Grâces
                 </span>
                 <h2 className="mt-8 text-6xl font-black leading-[1.1] md:text-7xl lg:text-8xl" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <span className="block text-white">Le Jardin de</span>
-                  <span className="block text-gold-gradient mt-2">La Grâce</span>
+                  <span className="block text-white">Célébrons</span>
+                  <span className="block text-gold-gradient mt-2">L'Action de Grâces</span>
                 </h2>
                 <p className="mt-8 max-w-xl text-lg font-light leading-relaxed text-emerald-100/80" style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem' }}>
-                  "Et l'Éternel Dieu planta un jardin en Éden... Il fit pousser du sol des arbres de toute espèce, agréables à voir et bons à manger."
-                  <span className="block mt-4 text-emerald-400 font-sans text-sm font-semibold tracking-wider uppercase">— Genèse 2:8-9</span>
+                  "Rendez grâces à l'Éternel, car il est bon, Car sa miséricorde dure à toujours !"
+                  <span className="block mt-4 text-emerald-400 font-sans text-sm font-semibold tracking-wider uppercase">— Psaumes 136:1</span>
                 </p>
                 <p className="mt-6 max-w-xl text-sm font-medium leading-relaxed text-emerald-200/60">
-                  Orchestrez le festival d'action de grâce avec une pureté et une clarté dignes de l'excellence divine. Une gestion transparente, sécurisée et baignée de lumière.
+                  Orchestrez le Festival d'Action de Grâces avec une pureté et une clarté dignes de l'excellence divine. Une gestion transparente, sécurisée et baignée de lumière.
                 </p>
               </motion.div>
 
@@ -2597,7 +2597,7 @@ const [storageMode] = useState("online");
                     </motion.button>
                     
                     <div className="rounded-2xl border border-emerald-500/20 bg-black/20 p-6 backdrop-blur-md">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/80 mb-4">Le Temps de la Moisson</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/80 mb-4">La Grande Célébration</p>
                       <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
                     </div>
                   </div>
