@@ -2361,59 +2361,100 @@ const [storageMode] = useState("online");
   if (!isAppAuthenticated) {
     return (
       <motion.div
-        className="min-h-screen bg-slate-50 text-slate-900 selection:bg-fag-primary/30"
+        className="min-h-screen bg-[#022c22] text-emerald-50 selection:bg-emerald-500/30 overflow-hidden relative"
         style={{ fontFamily: "'Montserrat', sans-serif" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
+        transition={{ duration: 1.5 }}
       >
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');
-          .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+          @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Cinzel:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+          .glass-eden {
+            background: rgba(4, 47, 46, 0.4);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
           }
-          .text-gradient {
-            background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
+          .glass-eden-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          .text-gold-gradient {
+            background: linear-gradient(135deg, #fde047 0%, #d97706 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          .text-emerald-gradient {
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
           }
         `}</style>
 
-        {/* Dynamic Background */}
+        {/* Ambient Light & Eden Background */}
         <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          {/* Main sunlight */}
           <motion.div 
-            className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-fag-primary/10 blur-[120px]"
+            className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-yellow-500/20 blur-[150px]"
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Deep green ambient */}
+          <motion.div 
+            className="absolute top-[30%] -left-[20%] w-[70%] h-[70%] rounded-full bg-emerald-900/40 blur-[150px]"
             animate={{ 
               x: [0, 50, 0],
               y: [0, 30, 0],
             }}
             transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           />
+          {/* Subtle gold glow at bottom */}
           <motion.div 
-            className="absolute top-[20%] -right-[5%] w-[35%] h-[35%] rounded-full bg-fag-secondary/10 blur-[120px]"
-            animate={{ 
-              x: [0, -40, 0],
-              y: [0, 50, 0],
-            }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-amber-600/10 blur-[120px]"
           />
+
+          {/* Floating particles (spores/light dust) */}
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 rounded-full bg-yellow-200/40"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -100 - Math.random() * 100],
+                x: [0, (Math.random() - 0.5) * 100],
+                opacity: [0, 0.8, 0],
+                scale: [0, 1.5, 0],
+              }}
+              transition={{
+                duration: 5 + Math.random() * 10,
+                repeat: Infinity,
+                delay: Math.random() * 5,
+                ease: "linear",
+              }}
+            />
+          ))}
         </div>
 
-        {/* Intro Curtains - Enhanced */}
+        {/* Intro Curtains - The Opening of the Garden */}
         <AnimatePresence>
           {!landingOpen && (
             <>
               <motion.div 
-                className="fixed inset-y-0 left-0 z-[100] w-1/2 bg-slate-50 border-r border-blue-200/50"
+                className="fixed inset-y-0 left-0 z-[100] w-1/2 bg-[#022c22] border-r border-emerald-900/50"
                 exit={{ x: "-100%" }}
-                transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                transition={{ duration: 1.5, ease: [0.83, 0, 0.173, 1] }}
               />
               <motion.div 
-                className="fixed inset-y-0 right-0 z-[100] w-1/2 bg-slate-50 border-l border-emerald-200/50"
+                className="fixed inset-y-0 right-0 z-[100] w-1/2 bg-[#022c22] border-l border-emerald-900/50"
                 exit={{ x: "100%" }}
-                transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                transition={{ duration: 1.5, ease: [0.83, 0, 0.173, 1] }}
               />
             </>
           )}
@@ -2423,159 +2464,144 @@ const [storageMode] = useState("online");
           {/* Header */}
           <motion.header 
             className="flex items-center justify-between"
-            initial={{ y: -20, opacity: 0 }}
+            initial={{ y: -30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ delay: 0.8, duration: 1 }}
           >
             <div className="flex items-center gap-4">
               <div className="relative">
                 <motion.div 
-                  className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-fag-primary to-fag-secondary opacity-50 blur-sm"
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 4, repeat: Infinity }}
+                  className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-yellow-500 opacity-40 blur-md"
+                  animate={{ opacity: [0.2, 0.5, 0.2] }}
+                  transition={{ duration: 5, repeat: Infinity }}
                 />
-                <img src="/logos/logo-ad-att.png" alt="Logo AD" className="relative h-14 w-14 rounded-2xl object-cover shadow-2xl border border-white/10" />
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 border border-emerald-500/30 backdrop-blur-sm overflow-hidden">
+                   <img src="/logos/logo-ad-att.png" alt="Logo AD" className="h-full w-full object-cover" />
+                </div>
               </div>
               <div>
-                <h1 className="text-xl font-black uppercase tracking-tighter leading-none text-slate-900">FAG {DEFAULT_CONFIG.year}</h1>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-fag-primary">Festival d&apos;Action de Grâce</p>
+                <h1 className="text-xl font-black uppercase tracking-[0.1em] text-white" style={{ fontFamily: "'Cinzel', serif" }}>FAG {DEFAULT_CONFIG.year}</h1>
+                <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.4em] text-emerald-400">Jardin d&apos;Abondance</p>
               </div>
             </div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowLoginModal(true)}
-              className="group relative overflow-hidden rounded-2xl bg-slate-900 px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-white shadow-xl"
+              className="group relative overflow-hidden rounded-2xl bg-emerald-900/40 border border-emerald-500/30 px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-emerald-50 backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all hover:border-emerald-400/60"
             >
-              <span className="relative z-10">Accès Comité</span>
+              <span className="relative z-10">Accès Portail</span>
               <motion.div 
-                className="absolute inset-0 bg-fag-primary"
-                initial={{ x: "-100%" }}
-                whileHover={{ x: 0 }}
-                transition={{ duration: 0.3 }}
+                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-emerald-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               />
             </motion.button>
           </motion.header>
 
-          <main className="mt-12 grid flex-1 grid-cols-1 gap-12 lg:grid-cols-12 items-center">
+          <main className="mt-12 grid flex-1 grid-cols-1 gap-16 lg:grid-cols-12 items-center">
             {/* Left Column: Hero Content */}
-            <div className="lg:col-span-7 space-y-10">
+            <div className="lg:col-span-7 space-y-12">
               <motion.div
-                initial={{ x: -30, opacity: 0 }}
+                initial={{ x: -40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.7, duration: 0.8 }}
+                transition={{ delay: 1, duration: 1, ease: "easeOut" }}
               >
-                <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 shadow-sm">
+                <span className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
                   <Sparkles size={12} className="animate-pulse" />
-                  Logiciel de Gestion Nouvelle Génération
+                  Une Moisson Abondante
                 </span>
-                <h2 className="mt-6 text-6xl font-black uppercase leading-[1.1] md:text-7xl lg:text-8xl" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <span className="block text-gradient">L&apos;Action de</span>
-                  <span className="block text-slate-900">Grâce 2026</span>
+                <h2 className="mt-8 text-6xl font-black leading-[1.1] md:text-7xl lg:text-8xl" style={{ fontFamily: "'Cinzel', serif" }}>
+                  <span className="block text-white">Le Jardin de</span>
+                  <span className="block text-gold-gradient mt-2">La Grâce</span>
                 </h2>
-                <p className="mt-8 max-w-xl text-lg font-medium leading-relaxed text-slate-600">
-                  Une plateforme intelligente pour orchestrer votre festival avec <span className="text-fag-primary font-bold">excellence</span>, 
-                  <span className="text-emerald-600 font-bold"> transparence</span> et <span className="text-slate-900 font-bold">spiritualité</span>.
+                <p className="mt-8 max-w-xl text-lg font-light leading-relaxed text-emerald-100/80" style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem' }}>
+                  "Et l'Éternel Dieu planta un jardin en Éden... Il fit pousser du sol des arbres de toute espèce, agréables à voir et bons à manger."
+                  <span className="block mt-4 text-emerald-400 font-sans text-sm font-semibold tracking-wider uppercase">— Genèse 2:8-9</span>
+                </p>
+                <p className="mt-6 max-w-xl text-sm font-medium leading-relaxed text-emerald-200/60">
+                  Orchestrez le festival d'action de grâce avec une pureté et une clarté dignes de l'excellence divine. Une gestion transparente, sécurisée et baignée de lumière.
                 </p>
               </motion.div>
 
               <motion.div 
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2"
-                initial={{ y: 30, opacity: 0 }}
+                className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+                initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.9, duration: 0.8 }}
+                transition={{ delay: 1.2, duration: 1, ease: "easeOut" }}
               >
                 {[
-                  { icon: Activity, title: "Temps Réel", desc: "Suivez chaque promesse en direct" },
-                  { icon: ShieldCheck, title: "Sécurisé", desc: "Données cryptées et sauvegardées" },
-                  { icon: Megaphone, title: "WhatsApp+", desc: "Relances fraternelles automatisées" },
-                  { icon: BarChart3, title: "Analytics", desc: "Tableaux de bord prédictifs" }
+                  { icon: Target, title: "Moisson Suivie", desc: "La croissance des dons en temps réel" },
+                  { icon: ShieldCheck, title: "Sanctuaire Sûr", desc: "Protection absolue des données" },
+                  { icon: HandCoins, title: "Bénédictions", desc: "Traçabilité de chaque offrande" },
+                  { icon: Activity, title: "Sagesse", desc: "Analyses et visions claires" }
                 ].map((feature, i) => (
                   <motion.div 
                     key={i}
-                    whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
-                    className="flex items-start gap-4 rounded-3xl border border-slate-100 bg-white p-5 transition-all shadow-sm"
+                    whileHover={{ y: -5, backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+                    className="flex items-start gap-5 rounded-3xl border border-emerald-500/20 glass-eden-card p-5 transition-all group"
                   >
-                    <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
-                      <feature.icon size={20} />
+                    <div className="rounded-2xl bg-emerald-900/50 border border-emerald-500/20 p-3 text-emerald-400 group-hover:text-yellow-400 group-hover:border-yellow-500/30 transition-colors">
+                      <feature.icon size={22} strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase tracking-wider text-slate-900">{feature.title}</h4>
-                      <p className="mt-1 text-xs text-slate-500">{feature.desc}</p>
+                      <h4 className="text-sm font-bold tracking-wide text-emerald-50">{feature.title}</h4>
+                      <p className="mt-1.5 text-[11px] font-medium text-emerald-200/50">{feature.desc}</p>
                     </div>
                   </motion.div>
                 ))}
               </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.1, duration: 1 }}
-                className="flex items-center gap-6"
-              >
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200" />
-                  ))}
-                </div>
-                <p className="text-sm font-semibold text-slate-500">
-                  Rejoint par <span className="text-fag-primary font-bold">+50</span> membres du comité
-                </p>
-              </motion.div>
             </div>
 
-            {/* Right Column: Interaction Card */}
+            {/* Right Column: The Gateway Card */}
             <motion.div 
               className="lg:col-span-5 relative"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.8, type: "spring" }}
+              initial={{ scale: 0.95, opacity: 0, rotateY: 10 }}
+              animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+              transition={{ delay: 1.1, duration: 1.2, type: "spring", bounce: 0.4 }}
+              style={{ perspective: 1000 }}
             >
-              <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-br from-blue-400/30 to-emerald-400/30 blur-2xl opacity-70" />
-              <div className="glass-card relative rounded-[3rem] p-8 md:p-10 border border-white overflow-hidden shadow-2xl">
-                <div className="absolute -top-10 -right-10 p-6 opacity-[0.03] text-fag-primary">
-                  <Landmark size={240} />
+              <div className="absolute -inset-1 rounded-[3rem] bg-gradient-to-br from-emerald-400/30 via-yellow-500/20 to-emerald-900/50 blur-2xl opacity-60" />
+              <div className="glass-eden relative rounded-[3rem] p-10 overflow-hidden">
+                <div className="absolute -top-12 -right-12 p-6 opacity-[0.05] text-yellow-400 pointer-events-none">
+                  <Sparkles size={280} />
                 </div>
                 
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600">Terminal de Contrôle</span>
+                  <div className="flex items-center gap-3 mb-10">
+                    <div className="h-2 w-2 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-400">Portail des Gardiens</span>
                   </div>
 
-                  <h3 className="text-3xl font-black uppercase text-slate-900" style={{ fontFamily: "'Cinzel', serif" }}>Prêt à piloter ?</h3>
-                  <p className="mt-4 text-sm font-medium leading-relaxed text-slate-500">
-                    Connectez-vous pour accéder au cockpit de gestion, suivre les dons et coordonner les actions du festival.
+                  <h3 className="text-3xl font-black text-white" style={{ fontFamily: "'Cinzel', serif" }}>Entrez dans<br/>le sanctuaire</h3>
+                  <p className="mt-5 text-sm font-medium leading-relaxed text-emerald-100/70">
+                    Connectez-vous pour administrer les ressources, cultiver la croissance et préparer la grande célébration.
                   </p>
 
-                  <div className="mt-10 space-y-4">
+                  <div className="mt-12 space-y-5">
                     <motion.button
                       whileHover={{ scale: 1.02, x: 5 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowLoginModal(true)}
-                      className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 p-5 text-white shadow-xl shadow-blue-500/20"
+                      className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-400 p-5 text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)]"
                     >
-                      <span className="text-[12px] font-black uppercase tracking-widest">Ouvrir la session</span>
+                      <span className="text-[12px] font-black uppercase tracking-widest text-white shadow-sm">Ouvrir les portes</span>
                       <ChevronRight size={20} className="transition-transform group-hover:translate-x-1" />
                     </motion.button>
                     
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 shadow-inner">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Prochain jalon</p>
-                      <div className="mt-3">
-                        <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
-                      </div>
+                    <div className="rounded-2xl border border-emerald-500/20 bg-black/20 p-6 backdrop-blur-md">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/80 mb-4">Le Temps de la Moisson</p>
+                      <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
                     </div>
                   </div>
 
-                  <div className="mt-8 pt-8 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-10 pt-8 border-t border-emerald-800/50 flex items-center justify-between">
                     <div className="text-center">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Version</p>
-                      <p className="text-xs font-bold text-slate-900">4.2.0-Pro</p>
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Version</p>
+                      <p className="text-xs font-bold text-emerald-100 mt-1">Eden 4.2.0</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Statut</p>
-                      <p className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Opérationnel
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Statut</p>
+                      <p className="text-xs font-bold text-yellow-400 mt-1 flex items-center justify-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 shadow-[0_0_5px_rgba(250,204,21,0.8)]" /> Divin
                       </p>
                     </div>
                   </div>
@@ -2586,18 +2612,18 @@ const [storageMode] = useState("online");
 
           {/* Footer */}
           <motion.footer 
-            className="mt-12 py-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6"
+            className="mt-16 py-8 border-t border-emerald-900/50 flex flex-col md:flex-row items-center justify-between gap-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.3 }}
+            transition={{ delay: 1.5, duration: 1 }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              © 2026 AD ATTÉCOUBÉ • Église Locale
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500/80">
+              © {DEFAULT_CONFIG.year} AD ATTÉCOUBÉ • Église Locale
             </p>
             <div className="flex items-center gap-8">
-              <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-fag-primary transition-colors">Support</a>
-              <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-fag-primary transition-colors">Confidentialité</a>
-              <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-fag-primary transition-colors">Bible Online</a>
+              <a href="#" className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500/80 hover:text-yellow-400 transition-colors">Support</a>
+              <a href="#" className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500/80 hover:text-yellow-400 transition-colors">Confidentialité</a>
+              <a href="#" className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500/80 hover:text-yellow-400 transition-colors">Bible Online</a>
             </div>
           </motion.footer>
         </div>
@@ -2612,42 +2638,42 @@ const [storageMode] = useState("online");
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+                className="absolute inset-0 bg-[#022c22]/90 backdrop-blur-xl"
                 onClick={() => setShowLoginModal(false)}
               />
               <motion.form
                 onSubmit={handleAppLogin}
-                className="relative w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl bg-white border border-slate-200"
-                initial={{ y: 50, opacity: 0, scale: 0.9 }}
+                className="relative w-full max-w-md rounded-[2.5rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-emerald-500/20 glass-eden"
+                initial={{ y: 50, opacity: 0, scale: 0.95 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 30, opacity: 0, scale: 0.95 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
-                <button type="button" className="absolute right-8 top-8 text-slate-400 hover:text-slate-900 transition-colors" onClick={() => setShowLoginModal(false)}>
+                <button type="button" className="absolute right-8 top-8 text-emerald-500/50 hover:text-yellow-400 transition-colors" onClick={() => setShowLoginModal(false)}>
                   <X />
                 </button>
-                <h3 className="text-3xl font-black uppercase text-slate-900" style={{ fontFamily: "'Cinzel', serif" }}>Connexion</h3>
-                <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-fag-primary">Accès Restreint Comité FAG</p>
+                <h3 className="text-3xl font-black text-white" style={{ fontFamily: "'Cinzel', serif" }}>Le Portail</h3>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Accès Restreint aux Gardiens</p>
                 
-                <div className="mt-10 space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Identifiant</label>
+                <div className="mt-10 space-y-5">
+                  <div className="space-y-2">
+                    <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Identifiant Sacré</label>
                     <input
                       type="text"
                       required
                       placeholder="Email ou Téléphone"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none focus:border-fag-primary transition-colors"
+                      className="w-full rounded-2xl border border-emerald-500/20 bg-black/20 px-5 py-4 font-bold text-white placeholder-emerald-800 outline-none focus:border-yellow-500/50 focus:bg-black/40 transition-all shadow-inner"
                       value={loginData.identifier}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, identifier: e.target.value }))}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Mot de passe</label>
+                  <div className="space-y-2">
+                    <label className="ml-4 text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Sceau de passage</label>
                     <input
                       type="password"
                       required
                       placeholder="••••••••"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-900 outline-none focus:border-fag-primary transition-colors"
+                      className="w-full rounded-2xl border border-emerald-500/20 bg-black/20 px-5 py-4 font-bold text-white placeholder-emerald-800 outline-none focus:border-yellow-500/50 focus:bg-black/40 transition-all shadow-inner"
                       value={loginData.password}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, password: e.target.value }))}
                     />
@@ -2655,14 +2681,14 @@ const [storageMode] = useState("online");
                 </div>
 
                 <div className="mt-6 flex items-center justify-between">
-                  <label className="flex items-center gap-3 text-xs font-bold text-slate-400 cursor-pointer">
+                  <label className="flex items-center gap-3 text-xs font-bold text-emerald-400/80 cursor-pointer hover:text-emerald-300 transition-colors">
                     <input
                       type="checkbox"
-                      className="accent-fag-primary"
+                      className="accent-yellow-500 w-4 h-4 rounded border-emerald-700 bg-black/20"
                       checked={loginData.remember}
                       onChange={(e) => setLoginData((prev) => ({ ...prev, remember: e.target.checked }))}
                     />
-                    Rester connecté
+                    Préserver l'accès
                   </label>
                 </div>
 
@@ -2670,7 +2696,7 @@ const [storageMode] = useState("online");
                   <motion.p 
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
-                    className="mt-6 rounded-2xl bg-red-500/10 border border-red-500/20 p-4 text-xs font-bold text-red-400"
+                    className="mt-6 rounded-2xl bg-red-900/30 border border-red-500/30 p-4 text-xs font-bold text-red-400"
                   >
                     {loginError}
                   </motion.p>
@@ -2680,9 +2706,9 @@ const [storageMode] = useState("online");
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit" 
-                  className="mt-10 w-full rounded-2xl bg-gradient-to-r from-fag-primary to-fag-secondary px-4 py-5 text-[12px] font-black uppercase tracking-widest text-white shadow-2xl shadow-fag-primary/20"
+                  className="mt-10 w-full rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-500 px-4 py-5 text-[12px] font-black uppercase tracking-[0.2em] text-amber-950 shadow-[0_10px_20px_rgba(250,204,21,0.2)] hover:from-yellow-400 hover:to-amber-400 transition-all"
                 >
-                  Authentification
+                  Franchir le Portail
                 </motion.button>
               </motion.form>
             </motion.div>
