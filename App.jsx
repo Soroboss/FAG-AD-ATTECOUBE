@@ -58,6 +58,13 @@ const insforgeFunctionsBase =
     ? __insforge_functions_base
     : "https://7sr4t2xf.functions.insforge.app";
 const managementApiUrl = `${insforgeFunctionsBase}/management-api`;
+const LANDING_IMAGES = {
+  hero: "/landing/hero-eglise-ivoirienne.png",
+  prayer: "/landing/communaute-priere-ivoirienne.png",
+  worship: "/landing/louange-ivoirienne.png",
+  dashboard: "/landing/dashboard-mockup-eglise.png",
+  team: "/landing/equipe-logiciel-eglise.png"
+};
 
 const DEFAULT_CONFIG = {
   year: 2026,
@@ -2375,6 +2382,12 @@ const [storageMode] = useState("online");
 
           <main className="mt-14 grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
             <section className="relative overflow-hidden rounded-[2.8rem] border border-emerald-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-8 shadow-[0_28px_80px_rgba(15,23,42,0.65)] lg:col-span-7">
+              <img
+                src={LANDING_IMAGES.hero}
+                alt="Communauté ivoirienne à l'église"
+                className="absolute inset-0 h-full w-full object-cover opacity-30"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/75 to-slate-900/35" />
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.18),transparent_35%)]" />
               <motion.div
                 className="pointer-events-none absolute right-10 top-10 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-200"
@@ -2434,7 +2447,7 @@ const [storageMode] = useState("online");
               <div className="mt-6 max-w-md">
                 <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
               </div>
-              <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+              <div className="relative mt-7 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Aperçu plateforme</p>
                 <p className="mt-1 text-[11px] font-semibold text-slate-200">Une expérience harmonisée sur grand écran, tablette et mobile.</p>
                 <div className="mt-4 grid grid-cols-12 gap-3">
@@ -2444,13 +2457,13 @@ const [storageMode] = useState("online");
                       <span className="h-2 w-2 rounded-full bg-amber-400/70" />
                       <span className="h-2 w-2 rounded-full bg-emerald-400/70" />
                     </div>
-                    <div className="h-24 rounded-xl bg-gradient-to-r from-emerald-500/25 via-blue-500/15 to-slate-800" />
+                    <img src={LANDING_IMAGES.dashboard} alt="Dashboard église multi-écrans" className="h-24 w-full rounded-xl object-cover" />
                   </div>
                   <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-4">
-                    <div className="h-20 rounded-xl bg-gradient-to-b from-blue-500/20 to-slate-800" />
+                    <img src={LANDING_IMAGES.prayer} alt="Communauté en prière" className="h-20 w-full rounded-xl object-cover" />
                   </div>
                   <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-3">
-                    <div className="h-16 rounded-xl bg-gradient-to-b from-emerald-500/25 to-slate-800" />
+                    <img src={LANDING_IMAGES.worship} alt="Louange communautaire" className="h-16 w-full rounded-xl object-cover" />
                   </div>
                   <div className="col-span-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[11px] font-bold text-emerald-100 md:col-span-9">
                     « Que tout se fasse avec bienséance et avec ordre. » — 1 Cor 14:40
@@ -2483,6 +2496,11 @@ const [storageMode] = useState("online");
                 <p className="rounded-2xl border border-blue-700/40 bg-blue-900/20 p-4 text-[11px] font-semibold leading-relaxed text-slate-200">
                   Bienvenue dans l&apos;espace de pilotage FAG. Ici, chaque contribution est suivie avec rigueur et gratitude pour la gloire de Dieu.
                 </p>
+                <img
+                  src={LANDING_IMAGES.team}
+                  alt="Équipe de gestion utilisant le logiciel"
+                  className="mt-4 h-40 w-full rounded-2xl border border-slate-700/60 object-cover"
+                />
               </div>
             </section>
           </main>
