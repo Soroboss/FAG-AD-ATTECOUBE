@@ -1307,15 +1307,24 @@ const [storageMode] = useState("online");
   const handlePayment = async (e) => {
     e.preventDefault();
     if (!selectedMember || !paymentData.amount) return;
+    const isEditing = !!paymentData.id;
     const payment = {
-      id: Date.now().toString(),
+      id: isEditing ? paymentData.id : Date.now().toString(),
       amount: toNumber(paymentData.amount),
       method: paymentData.method,
       date: paymentData.date,
-      timestamp: new Date().toISOString()
+      timestamp: isEditing ? paymentData.timestamp : new Date().toISOString()
     };
+    
+    const getUpdatedPayments = () => {
+      if (isEditing) {
+        return (selectedMember.payments || []).map((p) => p.id === payment.id ? payment : p);
+      }
+      return [...(selectedMember.payments || []), payment];
+    };
+    const updatedPayments = getUpdatedPayments();
+
     if (managementBackendReady) {
-      const updatedPayments = [...(selectedMember.payments || []), payment];
       setMembers((prev) =>
         prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: updatedPayments } : m))
       );
@@ -1328,46 +1337,46 @@ const [storageMode] = useState("online");
         // optimistic fallback
       }
       await writeAuditLog({
-        action: "ENREGISTREMENT_PAIEMENT",
+        action: isEditing ? "MODIFICATION_PAIEMENT" : "ENREGISTREMENT_PAIEMENT",
         scope: "finance",
         targetType: "member",
         targetId: selectedMember.id,
         targetLabel: selectedMember.name,
-        details: `${money(payment.amount)} via ${payment.method}.`
+        details: isEditing ? `Paiement modifié: ${money(payment.amount)} via ${payment.method}.` : `${money(payment.amount)} via ${payment.method}.`
       });
-      notify("success", "Paiement enregistré avec succès.");
+      notify("success", isEditing ? "Paiement modifié avec succès." : "Paiement enregistré avec succès.");
       return;
     }
     if (storageMode === "local") {
       setMembers((prev) =>
-        prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: [...(m.payments || []), payment] } : m))
+        prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: updatedPayments } : m))
       );
-      setSelectedMember((prev) => ({ ...prev, payments: [...(prev?.payments || []), payment] }));
+      setSelectedMember((prev) => ({ ...prev, payments: updatedPayments }));
       setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
       setIsPaymentModalOpen(false);
       writeAuditLog({
-        action: "ENREGISTREMENT_PAIEMENT",
+        action: isEditing ? "MODIFICATION_PAIEMENT" : "ENREGISTREMENT_PAIEMENT",
         scope: "finance",
         targetType: "member",
         targetId: selectedMember.id,
         targetLabel: selectedMember.name,
-        details: `${money(payment.amount)} via ${payment.method}.`
+        details: isEditing ? `Paiement modifié: ${money(payment.amount)} via ${payment.method}.` : `${money(payment.amount)} via ${payment.method}.`
       });
       return;
     }
     if (!user) return;
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "members", selectedMember.id), {
-      payments: [...(selectedMember.payments || []), payment]
+      payments: updatedPayments
     });
     setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
     setIsPaymentModalOpen(false);
     writeAuditLog({
-      action: "ENREGISTREMENT_PAIEMENT",
+      action: isEditing ? "MODIFICATION_PAIEMENT" : "ENREGISTREMENT_PAIEMENT",
       scope: "finance",
       targetType: "member",
       targetId: selectedMember.id,
       targetLabel: selectedMember.name,
-      details: `${money(payment.amount)} via ${payment.method}.`
+      details: isEditing ? `Paiement modifié: ${money(payment.amount)} via ${payment.method}.` : `${money(payment.amount)} via ${payment.method}.`
     });
   };
 
@@ -4190,7 +4199,7 @@ const [storageMode] = useState("online");
                       <div key={cat.id} className="grid grid-cols-1 gap-4 rounded-3xl border border-emerald-500/10 p-5 md:grid-cols-12">
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Label</label>
-                          <input className="text-white w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black uppercase"
+                          <input className="text-white w-full rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-black uppercase"
                             value={cat.label}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4205,7 +4214,7 @@ const [storageMode] = useState("online");
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant mensuel</label>
                           <input type="number"
                             disabled={cat.id === "cat5"}
-                            className="text-white w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
+                            className="text-white w-full rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-black"
                             value={cat.amount}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4219,7 +4228,7 @@ const [storageMode] = useState("online");
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Cible</label>
                           <input type="number"
-                            className="text-white w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
+                            className="text-white w-full rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-black"
                             value={cat.targetPeople}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4855,7 +4864,7 @@ const [storageMode] = useState("online");
                 type="number"
                 required
                 placeholder="Montant"
-                className="text-white w-full rounded-2xl border-2 border-emerald-500/20 px-12 py-4 text-right text-3xl font-black outline-none focus:border-emerald-500"
+                className="text-white w-full rounded-2xl border-2 border-emerald-500/20 bg-[#022c22] px-12 py-4 text-right text-3xl font-black outline-none focus:border-emerald-500"
                 value={paymentData.amount}
                 onChange={(e) => setPaymentData((s) => ({ ...s, amount: e.target.value }))}
               />
@@ -4892,6 +4901,19 @@ const [storageMode] = useState("online");
                       <td className="py-3 font-extrabold">{p.method}</td>
                       <td className="py-3 text-right font-black">{money(p.amount)}</td>
                       <td className="py-3 text-center">
+                        {canManageUsers && (
+                          <button
+                            onClick={() => {
+                              setPaymentData({ id: p.id, amount: p.amount, method: p.method, date: p.date, timestamp: p.timestamp });
+                              setIsHistoryModalOpen(false);
+                              setIsPaymentModalOpen(true);
+                            }}
+                            className="rounded-xl p-2 text-slate-300 hover:text-yellow-500"
+                            title="Modifier ce versement"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
                         <button
                           onClick={async () => {
                             if (!(await askConfirm("Supprimer ce versement ?"))) return;
