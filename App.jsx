@@ -2166,7 +2166,7 @@ const [storageMode] = useState("online");
       import.meta.env?.VITE_INSFORGE_OSS_HOST;
     const ak = import.meta.env?.VITE_INSFORGE_ANON_KEY;
     if (!base || !ak) {
-      return { error: "Variables VITE_INSFORGE_URL et VITE_INSFORGE_ANON_KEY requises (build) pour l’upload." };
+      return { error: "Le service de fichiers est momentanément indisponible. Réessayez plus tard." };
     }
     const { createClient } = await import("@insforge/sdk");
     const insforge = createClient({ baseUrl: base, anonKey: ak });
@@ -2374,8 +2374,22 @@ const [storageMode] = useState("online");
           </header>
 
           <main className="mt-14 grid flex-1 grid-cols-1 gap-8 lg:grid-cols-12">
-            <section className="relative overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-7">
+            <section className="relative overflow-hidden rounded-[2.8rem] border border-emerald-400/20 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-8 shadow-[0_28px_80px_rgba(15,23,42,0.65)] lg:col-span-7">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.18),transparent_35%)]" />
+              <motion.div
+                className="pointer-events-none absolute right-10 top-10 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-200"
+                animate={shouldReduceMotion ? { opacity: 1 } : { y: [0, -6, 0], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
+              >
+                Gestion vivante
+              </motion.div>
+              <motion.div
+                className="pointer-events-none absolute bottom-10 right-12 rounded-2xl border border-blue-300/30 bg-blue-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-blue-100"
+                animate={shouldReduceMotion ? { opacity: 1 } : { y: [0, 7, 0], opacity: [0.65, 1, 0.65] }}
+                transition={{ duration: 5.6, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+              >
+                Vision claire
+              </motion.div>
               <div className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 border-r border-slate-700/40 bg-gradient-to-r from-slate-950 to-slate-900/40 transition-transform duration-1000 ${landingOpen ? "-translate-x-[96%]" : "translate-x-0"}`} />
               <div className={`pointer-events-none absolute inset-y-0 right-0 w-1/2 border-l border-slate-700/40 bg-gradient-to-l from-slate-950 to-slate-900/40 transition-transform duration-1000 ${landingOpen ? "translate-x-[96%]" : "translate-x-0"}`} />
               <p className="inline-flex rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
@@ -2420,19 +2434,32 @@ const [storageMode] = useState("online");
               <div className="mt-6 max-w-md">
                 <CountdownCard targetDate={`${DEFAULT_CONFIG.year}-10-31T23:59:59`} />
               </div>
-              <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
-                {[
-                  "« Dieu aime celui qui donne avec joie. » - 2 Cor 9:7",
-                  "« Ne nous lassons pas de faire le bien. » - Gal 6:9"
-                ].map((quote) => (
-                  <div key={quote} className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[11px] font-bold text-emerald-100">
-                    {quote}
+              <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-200">Aperçu plateforme</p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-200">Une expérience harmonisée sur grand écran, tablette et mobile.</p>
+                <div className="mt-4 grid grid-cols-12 gap-3">
+                  <div className="col-span-12 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-8">
+                    <div className="mb-2 flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-red-400/70" />
+                      <span className="h-2 w-2 rounded-full bg-amber-400/70" />
+                      <span className="h-2 w-2 rounded-full bg-emerald-400/70" />
+                    </div>
+                    <div className="h-24 rounded-xl bg-gradient-to-r from-emerald-500/25 via-blue-500/15 to-slate-800" />
                   </div>
-                ))}
+                  <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-4">
+                    <div className="h-20 rounded-xl bg-gradient-to-b from-blue-500/20 to-slate-800" />
+                  </div>
+                  <div className="col-span-6 rounded-2xl border border-slate-600/60 bg-slate-950/70 p-3 md:col-span-3">
+                    <div className="h-16 rounded-xl bg-gradient-to-b from-emerald-500/25 to-slate-800" />
+                  </div>
+                  <div className="col-span-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-[11px] font-bold text-emerald-100 md:col-span-9">
+                    « Que tout se fasse avec bienséance et avec ordre. » — 1 Cor 14:40
+                  </div>
+                </div>
               </div>
             </section>
 
-            <section className="rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl lg:col-span-5">
+            <section className="rounded-[2.8rem] border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 p-8 shadow-[0_28px_80px_rgba(15,23,42,0.65)] lg:col-span-5">
               <div className="mb-4 flex items-center justify-center">
                 <img src="/logos/logo-att.png" alt="Logo ATT ECOUBE" className="h-28 w-28 rounded-2xl object-cover shadow-lg" />
               </div>
@@ -2443,7 +2470,7 @@ const [storageMode] = useState("online");
               <div className="mt-6 space-y-3">
                 <button
                   onClick={() => setShowLoginModal(true)}
-                  className="w-full rounded-2xl bg-emerald-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white"
+                  className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-900/30"
                 >
                   Ouvrir le formulaire de connexion
                 </button>
@@ -2639,8 +2666,8 @@ const [storageMode] = useState("online");
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
-          <header className="sticky top-0 z-30 mb-6 flex flex-col gap-4 bg-gradient-to-b from-slate-50 via-slate-50/95 to-slate-50/70 pb-4 pt-1 backdrop-blur md:mb-8 md:flex-row md:items-start md:justify-between">
+        <main className="relative min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
+          <header className="sticky top-0 z-30 mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/80 px-5 pb-4 pt-4 shadow-sm backdrop-blur md:mb-8 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 md:text-3xl">
@@ -3972,7 +3999,7 @@ const [storageMode] = useState("online");
                   </div>
                   <div className="rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm">
                     <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Journal des envois WhatsApp</h3>
-                    <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">200 derniers enregistrements côté API</p>
+                    <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">200 derniers enregistrements</p>
                     {whatsAppLogs.length === 0 ? (
                       <p className="mt-4 text-[10px] font-extrabold uppercase text-slate-400">Aucun envoi enregistré pour l&apos;instant.</p>
                     ) : (
@@ -4015,10 +4042,6 @@ const [storageMode] = useState("online");
                         Verrouiller les écritures comptables (dépenses, remises, versements) — trésoriers : lecture seule
                       </label>
                     )}
-                    <p className="text-[10px] text-slate-500">
-                      Stockage InsForge (upload) : <code className="rounded bg-white px-1">VITE_INSFORGE_URL</code>, <code className="rounded bg-white px-1">VITE_INSFORGE_ANON_KEY</code> et
-                      seau <code className="rounded bg-white px-1">fag-attachments</code>
-                    </p>
                   </div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
                     <div>
@@ -5120,7 +5143,7 @@ const [storageMode] = useState("online");
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setUrlAttachmentModal(null)} />
           <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
             <h3 className="text-lg font-black uppercase text-slate-900">Pièce jointe / lien</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">URL (Drive, etc.) — ou fichier vers le stockage InsForge</p>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">URL (Drive, etc.) — ou import direct d&apos;un fichier</p>
             <input
               className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
               placeholder="https://…"
@@ -5128,7 +5151,7 @@ const [storageMode] = useState("online");
               onChange={(e) => setUrlAttachmentModal((s) => ({ ...s, url: e.target.value }))}
             />
             <label className="mt-3 flex cursor-pointer flex-col gap-1 rounded-2xl border border-dashed border-slate-300 p-3 text-[10px] font-extrabold uppercase text-slate-500">
-              Fichier (PDF, image) — créez le seau « fag-attachments » côté InsForge si besoin
+              Fichier (PDF, image)
               <input
                 type="file"
                 accept="application/pdf,image/*"
