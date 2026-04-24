@@ -5,17 +5,17 @@ export default {
     extend: {
       colors: {
         fag: {
-          primary: '#2563eb', // Blue 600
-          secondary: '#10b981', // Emerald 500
-          accent: '#f59e0b', // Amber 500
-          dark: '#0f172a', // Slate 900
-          surface: '#ffffff', // White
-          border: '#e2e8f0', // Slate 200
+          primary: '#10b981', // Emerald 500 (Abundance)
+          secondary: '#facc15', // Yellow 400 (Divine Light)
+          accent: '#d97706', // Amber 600 (Harvest)
+          dark: '#022c22', // Deep Green (Garden Night)
+          surface: '#042f2e', // Emerald Surface
+          border: '#064e3b', // Emerald Border
         }
       },
       backgroundImage: {
-        'gradient-premium': 'linear-gradient(135deg, #020617 0%, #0f172a 100%)',
-        'gradient-accent': 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
+        'gradient-premium': 'linear-gradient(135deg, #022c22 0%, #042f2e 100%)',
+        'gradient-accent': 'linear-gradient(135deg, #10b981 0%, #facc15 100%)',
       },
       animation: {
         'slow-spin': 'spin 12s linear infinite',

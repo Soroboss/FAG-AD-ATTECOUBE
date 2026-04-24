@@ -2720,37 +2720,64 @@ const [storageMode] = useState("online");
 
   return (
     <motion.div
-      className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 antialiased selection:bg-fag-primary/30"
+      className="min-h-screen overflow-x-hidden bg-[#022c22] text-emerald-50 antialiased selection:bg-fag-primary/30"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800&display=swap');`}</style>
+      
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <motion.div
-          className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl"
-          animate={shouldReduceMotion ? { opacity: 0.2 } : { x: [0, 38, 0], y: [0, -18, 0], opacity: [0.2, 0.35, 0.2] }}
-          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        {/* Main sunlight */}
+        <motion.div 
+          className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-yellow-500/10 blur-[150px]"
+          animate={shouldReduceMotion ? { opacity: 0.1 } : { scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
-          className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl"
-          animate={shouldReduceMotion ? { opacity: 0.2 } : { x: [0, -32, 0], y: [0, 22, 0], opacity: [0.18, 0.3, 0.18] }}
-          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        {/* Deep green ambient */}
+        <motion.div 
+          className="absolute top-[30%] -left-[20%] w-[70%] h-[70%] rounded-full bg-emerald-900/20 blur-[150px]"
+          animate={shouldReduceMotion ? { opacity: 0.1 } : { x: [0, 50, 0], y: [0, 30, 0], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
+        {/* Floating particles (spores/light dust) */}
+        {!shouldReduceMotion && [...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-yellow-200/30"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -100 - Math.random() * 100],
+              x: [0, (Math.random() - 0.5) * 100],
+              opacity: [0, 0.6, 0],
+              scale: [0, 1.5, 0],
+            }}
+            transition={{
+              duration: 10 + Math.random() * 15,
+              repeat: Infinity,
+              delay: Math.random() * 10,
+              ease: "linear",
+            }}
+          />
+        ))}
       </div>
+
       <div className="min-h-screen md:flex">
-        <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-40 flex items-center justify-between border-b border-emerald-500/20 bg-[#042f2e]/95 backdrop-blur-xl border-b border-emerald-500/20 px-4 py-3 backdrop-blur md:hidden">
           <div className="flex items-center gap-2">
             <img src="/logos/logo-ad-att.png" alt="Logo AD" className="h-9 w-9 rounded-xl object-cover" />
             <div>
-              <p className="text-sm font-black uppercase leading-none text-slate-900">FAG {config.year}</p>
-              <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Trésorerie</p>
+              <p className="text-sm font-black uppercase leading-none text-white">FAG {config.year}</p>
+              <p className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-500/80">Trésorerie</p>
             </div>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-700"
+            className="rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-2 text-emerald-100"
             aria-label="Ouvrir le menu"
           >
             <Menu size={18} />
@@ -2764,7 +2791,7 @@ const [storageMode] = useState("online");
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+          <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/10 blur-3xl" />
           <div className="relative mb-10 flex items-center gap-3">
             <div className="relative">
               <div className="absolute -inset-1 rounded-2xl bg-fag-primary/20 blur-sm" />
@@ -2772,7 +2799,7 @@ const [storageMode] = useState("online");
             </div>
             <div>
               <h1 className="text-lg font-black uppercase leading-none tracking-tight text-white">FAG {config.year}</h1>
-              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-blue-200">Tableau de Bord</p>
+              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-yellow-200/80">Tableau de Bord</p>
             </div>
           </div>
           <nav className="relative flex-1 space-y-2 overflow-y-auto pr-1">
@@ -2796,11 +2823,11 @@ const [storageMode] = useState("online");
                     }}
                     className={`group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl px-4 py-4 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
                       isActive
-                        ? "bg-white text-fag-primary shadow-lg shadow-black/10"
-                        : "text-blue-100 hover:bg-white/10 hover:text-white"
+                        ? "bg-[#042f2e]/40 backdrop-blur-md glass-eden-card text-fag-primary shadow-lg shadow-black/10"
+                        : "text-yellow-100/80 hover:bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/10 hover:text-white"
                     }`}
                   >
-                    <Icon size={18} className={isActive ? "text-fag-primary" : "text-blue-200 group-hover:text-white transition-colors"} />
+                    <Icon size={18} className={isActive ? "text-fag-primary" : "text-yellow-200/80 group-hover:text-white transition-colors"} />
                     <span className="flex-1 text-left">{label}</span>
                     {isActive && <motion.div layoutId="activeNav" className="h-1.5 w-1.5 rounded-full bg-fag-primary" />}
                   </button>
@@ -2808,12 +2835,12 @@ const [storageMode] = useState("online");
               })}
           </nav>
           
-          <div className="relative mt-6 overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-100">Caisse Actuelle</p>
+          <div className="relative mt-6 overflow-hidden rounded-3xl border border-white/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/10 p-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-100/80">Caisse Actuelle</p>
             <p className="mt-2 text-2xl font-black text-white">{money(stats.cashInHand)}</p>
             <div className="mt-4 h-1 w-full bg-black/20 rounded-full overflow-hidden">
               <motion.div 
-                className="h-full bg-white"
+                className="h-full bg-[#042f2e]/40 backdrop-blur-md glass-eden-card"
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(100, stats.progression)}%` }}
               />
@@ -2823,18 +2850,18 @@ const [storageMode] = useState("online");
           <div className="mt-6 border-t border-white/20 pt-6 space-y-4">
             {sessionUser && (
               <div className="flex items-center gap-3 px-2">
-                <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-black">
+                <div className="h-8 w-8 rounded-full bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/20 flex items-center justify-center text-white text-xs font-black">
                   {sessionUser.fullName?.[0]}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-[10px] font-black uppercase tracking-wider text-white">{sessionUser.fullName}</p>
-                  <p className="truncate text-[9px] font-bold text-blue-200 uppercase tracking-widest">{ROLE_LABELS[sessionUser.role] || sessionUser.role}</p>
+                  <p className="truncate text-[9px] font-bold text-yellow-200/80 uppercase tracking-widest">{ROLE_LABELS[sessionUser.role] || sessionUser.role}</p>
                 </div>
               </div>
             )}
             <button
               onClick={handleAppLogout}
-              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 border border-white/20 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-500 hover:border-red-500 transition-all duration-300"
+              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/10 border border-white/20 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-500 hover:border-red-500 transition-all duration-300"
             >
               Déconnexion
             </button>
@@ -2842,13 +2869,13 @@ const [storageMode] = useState("online");
         </aside>
 
         <main className="relative min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
-          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2.5rem] border border-slate-200/60 bg-white/80 px-8 py-6 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2.5rem] border border-emerald-500/20 bg-[#042f2e]/80 backdrop-blur-xl glass-eden-card px-8 py-6 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-3 mb-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-fag-primary animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Système de Pilotage</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400/80">Système de Pilotage</span>
               </div>
-              <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 md:text-4xl">
+              <h2 className="text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
                 {activeTab === "dashboard" && "Dashboard"}
                 {activeTab === "members" && "Fidèles"}
                 {activeTab === "expenses" && "Dépenses"}
@@ -2860,11 +2887,11 @@ const [storageMode] = useState("online");
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
                 >
-                  <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-500" : "bg-red-500"}`} />
+                  <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-900/300" : "bg-red-500"}`} />
                   {managementBackendReady ? "Service en ligne" : "Service indisponible"}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${netOnline ? "bg-slate-200 text-slate-700" : "bg-amber-100 text-amber-800"}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${netOnline ? "bg-emerald-800/40 text-emerald-100" : "bg-amber-100 text-amber-800"}`}
                 >
                   {netOnline ? "Réseau OK" : "Hors ligne"}
                 </span>
@@ -2874,7 +2901,7 @@ const [storageMode] = useState("online");
                   </span>
                 )}
               </div>
-              <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-500">
+              <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-400/80">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
               <motion.p
@@ -2891,15 +2918,15 @@ const [storageMode] = useState("online");
               )}
             </div>
             {activeTab === "dashboard" && (
-              <div className="hidden shrink-0 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm md:flex md:items-center md:gap-4">
+              <div className="hidden shrink-0 rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-4 py-3 shadow-sm md:flex md:items-center md:gap-4">
                 <div className="text-right">
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Progression</p>
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-500/80">Progression</p>
                   <p className="text-xl font-black text-emerald-600">{stats.progression.toFixed(1)}%</p>
                 </div>
-                <div className="h-10 w-px bg-slate-200" />
+                <div className="h-10 w-px bg-emerald-800/40" />
                 <div className="text-right">
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Fidèles</p>
-                  <p className="text-xl font-black text-slate-900">{members.length}</p>
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-500/80">Fidèles</p>
+                  <p className="text-xl font-black text-white">{members.length}</p>
                 </div>
               </div>
             )}
@@ -2908,7 +2935,7 @@ const [storageMode] = useState("online");
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Activity size={40} className="animate-spin text-emerald-500" />
-              <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Chargement des données FAG…</p>
+              <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">Chargement des données FAG…</p>
             </div>
           ) : (
             <motion.section
@@ -2929,8 +2956,8 @@ const [storageMode] = useState("online");
                     >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><HandCoins size={20} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Total encaissé</p>
+                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-600"><HandCoins size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Total encaissé</p>
                       </div>
                       <p className="mt-4 text-[28px] font-black leading-none text-emerald-600">{money(stats.totalCollected)}</p>
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
@@ -2946,7 +2973,7 @@ const [storageMode] = useState("online");
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><Receipt size={20} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Dépenses validées</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Dépenses validées</p>
                       </div>
                       <p className="mt-4 text-[28px] font-black leading-none text-red-600">{money(stats.totalExpenses)}</p>
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-red-500/80">
@@ -2957,14 +2984,14 @@ const [storageMode] = useState("online");
                     <motion.div
                       variants={edenItemVariants}
                       whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
-                      className="group relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm transition hover:shadow-xl"
+                      className="group relative overflow-hidden rounded-[2rem] border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm transition hover:shadow-xl"
                     >
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Landmark size={20} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Versements comité</p>
+                        <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Landmark size={20} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Versements comité</p>
                       </div>
-                      <p className="mt-4 text-[28px] font-black leading-none text-blue-600">{money(stats.totalHandedOver)}</p>
+                      <p className="mt-4 text-[28px] font-black leading-none text-yellow-400">{money(stats.totalHandedOver)}</p>
                       <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-500/80">Banque & comité FAG</p>
                     </motion.div>
 
@@ -2981,30 +3008,30 @@ const [storageMode] = useState("online");
                     <div className={`group relative overflow-hidden rounded-[2rem] border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${stats.recoveryRate >= 60 ? "border-emerald-100 bg-gradient-to-br from-emerald-50 to-white" : "border-orange-100 bg-gradient-to-br from-orange-50 to-white"}`}>
                       <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${stats.recoveryRate >= 60 ? "bg-emerald-400/10" : "bg-orange-400/10"}`} />
                       <div className="flex items-center gap-3">
-                        <div className={`rounded-2xl p-2.5 ${stats.recoveryRate >= 60 ? "bg-emerald-500/15 text-emerald-600" : "bg-orange-500/15 text-orange-600"}`}>
+                        <div className={`rounded-2xl p-2.5 ${stats.recoveryRate >= 60 ? "bg-emerald-900/300/15 text-emerald-600" : "bg-orange-500/15 text-orange-600"}`}>
                           <Target size={20} />
                         </div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Taux recouvrement</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Taux recouvrement</p>
                       </div>
                       <p className={`mt-4 text-[28px] font-black leading-none ${stats.recoveryRate >= 60 ? "text-emerald-600" : "text-orange-600"}`}>
                         {stats.recoveryRate.toFixed(1)}%
                       </p>
-                      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-emerald-800/40">
                         <div
-                          className={`h-1.5 rounded-full transition-all duration-700 ${stats.recoveryRate >= 60 ? "bg-emerald-500" : "bg-orange-500"}`}
+                          className={`h-1.5 rounded-full transition-all duration-700 ${stats.recoveryRate >= 60 ? "bg-emerald-900/300" : "bg-orange-500"}`}
                           style={{ width: `${Math.min(100, stats.recoveryRate)}%` }}
                         />
                       </div>
                     </div>
 
-                    <div className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <div className="group relative overflow-hidden rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-slate-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900/90 p-2.5 text-white"><Sparkles size={20} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Reste à mobiliser</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Reste à mobiliser</p>
                       </div>
-                      <p className="mt-4 text-[28px] font-black leading-none text-slate-900">{money(stats.remainingGoal)}</p>
-                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                      <p className="mt-4 text-[28px] font-black leading-none text-white">{money(stats.remainingGoal)}</p>
+                      <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                         {stats.monthlyGrowth >= 0 ? (
                           <span className="inline-flex items-center gap-1 text-emerald-600"><TrendingUp size={12} /> +{stats.monthlyGrowth.toFixed(1)}% vs mois -1</span>
                         ) : (
@@ -3013,25 +3040,25 @@ const [storageMode] = useState("online");
                         <br />
                         Objectif: {money(config.globalGoal)}
                       </p>
-                      <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Signal du mois</p>
+                      <div className="mt-4 rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Signal du mois</p>
                         <p className={`mt-2 text-lg font-black ${stats.monthlyGrowth >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                           {stats.monthlyGrowth >= 0 ? "+" : ""}
                           {stats.monthlyGrowth.toFixed(1)}%
                         </p>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Variation des encaissements vs mois précédent</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Variation des encaissements vs mois précédent</p>
                       </div>
                     </div>
 
-                    <div className="min-w-0 rounded-[2.5rem] bg-white p-8 shadow-sm lg:col-span-8">
-                      <h3 className="mb-6 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">
+                    <div className="min-w-0 rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm lg:col-span-8">
+                      <h3 className="mb-6 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">
                         <BarChart3 size={16} className="text-emerald-500" />
                         Analyse prévisionnelle
                       </h3>
                       <div className="overflow-x-auto">
                         <table className="w-full text-left">
                           <thead>
-                            <tr className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                            <tr className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                               <th className="pb-4">Catégorie</th>
                               <th className="pb-4 text-center">Inscrits/Cible</th>
                               <th className="pb-4 text-right">Promesses</th>
@@ -3042,7 +3069,7 @@ const [storageMode] = useState("online");
                             {stats.categories.map((cat) => (
                               <tr key={cat.id}>
                                 <td className="py-4 font-black uppercase">{cat.label}</td>
-                                <td className="py-4 text-center font-extrabold text-slate-600">
+                                <td className="py-4 text-center font-extrabold text-emerald-200/80">
                                   {cat.count} {cat.target > 0 ? `/ ${cat.target}` : ""}
                                 </td>
                                 <td className="py-4 text-right font-extrabold">{money(cat.promised)}</td>
@@ -3055,21 +3082,21 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="rounded-[2rem] border border-white/5 bg-white/[0.03] p-8">
+                  <div className="rounded-[2rem] border border-white/5 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/[0.03] p-8">
                     <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
                       <HandCoins size={18} className="text-fag-primary" />
                       Rapprochement de Caisse
                     </h3>
-                    <p className="mt-4 text-sm text-slate-400">
+                    <p className="mt-4 text-sm text-emerald-500/80">
                       Calcul théorique basé sur le flux enregistré: Encaissements − Dépenses − Remises.
                     </p>
                     <div className="mt-6 flex flex-wrap items-center gap-4 text-xl font-black text-white">
                       <span className="text-fag-primary">{money(stats.totalCollected)}</span>
-                      <span className="text-slate-600">−</span>
+                      <span className="text-emerald-200/80">−</span>
                       <span className="text-red-400">{money(stats.totalExpenses)}</span>
-                      <span className="text-slate-600">−</span>
+                      <span className="text-emerald-200/80">−</span>
                       <span className="text-fag-secondary">{money(stats.totalHandedOver)}</span>
-                      <span className="text-slate-600">=</span>
+                      <span className="text-emerald-200/80">=</span>
                       <span className="bg-fag-primary/10 px-4 py-2 rounded-2xl text-fag-primary border border-fag-primary/20">
                         {money(stats.cashInHand)}
                       </span>
@@ -3077,40 +3104,40 @@ const [storageMode] = useState("online");
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-                    <div className="min-w-0 rounded-[2.5rem] bg-white p-8 shadow-sm lg:col-span-8">
-                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">
+                    <div className="min-w-0 rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm lg:col-span-8">
+                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">
                         Courbe de performance mensuelle (encaissements vs dépenses)
                       </h3>
                       {stats.monthlyFinance.length === 0 ? (
-                        <p className="rounded-2xl border border-slate-100 bg-slate-50 p-6 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                        <p className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-6 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                           Pas encore de données mensuelles
                         </p>
                       ) : (
                         <div className="space-y-4">
                           {stats.monthlyFinance.map((row) => (
-                            <div key={row.monthKey} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                            <div key={row.monthKey} className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
                               <div className="mb-2 flex items-center justify-between">
-                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">{row.monthKey}</span>
+                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">{row.monthKey}</span>
                                 <span className={`text-[10px] font-extrabold uppercase tracking-widest ${row.net >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                                   Net {money(row.net)}
                                 </span>
                               </div>
                               <div className="space-y-2">
                                 <div>
-                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                     <span>Encaissements</span>
                                     <span>{money(row.collected)}</span>
                                   </div>
-                                  <div className="h-2 rounded-full bg-slate-200">
-                                    <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${(row.collected / maxMonthlyCollected) * 100}%` }} />
+                                  <div className="h-2 rounded-full bg-emerald-800/40">
+                                    <div className="h-2 rounded-full bg-emerald-900/300" style={{ width: `${(row.collected / maxMonthlyCollected) * 100}%` }} />
                                   </div>
                                 </div>
                                 <div>
-                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                     <span>Dépenses</span>
                                     <span>{money(row.spent)}</span>
                                   </div>
-                                  <div className="h-2 rounded-full bg-slate-200">
+                                  <div className="h-2 rounded-full bg-emerald-800/40">
                                     <div className="h-2 rounded-full bg-red-500" style={{ width: `${(row.spent / maxMonthlySpent) * 100}%` }} />
                                   </div>
                                 </div>
@@ -3121,23 +3148,23 @@ const [storageMode] = useState("online");
                       )}
                     </div>
 
-                    <div className="min-w-0 rounded-[2.5rem] bg-white p-8 shadow-sm lg:col-span-4">
-                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Diagramme des canaux de paiement</h3>
+                    <div className="min-w-0 rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm lg:col-span-4">
+                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">Diagramme des canaux de paiement</h3>
                       <div className="space-y-4">
                         {Object.entries(stats.methodBreakdown).map(([method, amount]) => {
                           const total = Math.max(1, stats.totalCollected);
                           const percent = (amount / total) * 100;
                           return (
                             <div key={method}>
-                              <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                              <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                 <span>{method}</span>
                                 <span>
                                   {percent.toFixed(1)}% • {money(amount)}
                                 </span>
                               </div>
-                              <div className="h-2 rounded-full bg-slate-200">
+                              <div className="h-2 rounded-full bg-emerald-800/40">
                                 <div
-                                  className={`h-2 rounded-full ${method === "Espèces" ? "bg-slate-900" : method === "Mobile Money" ? "bg-emerald-500" : "bg-blue-500"}`}
+                                  className={`h-2 rounded-full ${method === "Espèces" ? "bg-slate-900" : method === "Mobile Money" ? "bg-emerald-900/300" : "bg-emerald-900/200"}`}
                                   style={{ width: `${Math.max(3, percent)}%` }}
                                 />
       </div>
@@ -3145,22 +3172,22 @@ const [storageMode] = useState("online");
                           );
                         })}
                       </div>
-                      <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Ticket moyen</p>
-                        <p className="mt-1 text-xl font-black text-slate-900">{money(stats.averageContribution)}</p>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Montant moyen encaissé par membre</p>
+                      <div className="mt-6 rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Ticket moyen</p>
+                        <p className="mt-1 text-xl font-black text-white">{money(stats.averageContribution)}</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant moyen encaissé par membre</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-                    <div className="min-w-0 rounded-[2.5rem] bg-white p-8 shadow-sm lg:col-span-8">
-                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Santé des mensualités (M1 à M6)</h3>
+                    <div className="min-w-0 rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm lg:col-span-8">
+                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">Santé des mensualités (M1 à M6)</h3>
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
                         {stats.monthlyGlobalProgress.map((count, i) => (
-                          <div key={i} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-center">
-                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">M{i + 1}</p>
-                            <p className="mt-2 text-2xl font-black text-slate-900">{count}</p>
+                          <div key={i} className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4 text-center">
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">M{i + 1}</p>
+                            <p className="mt-2 text-2xl font-black text-white">{count}</p>
                           </div>
                         ))}
                       </div>
@@ -3177,7 +3204,7 @@ const [storageMode] = useState("online");
                         ))}
                       </div>
                       {bestCategory && (
-                        <div className="mt-4 rounded-2xl bg-emerald-500/20 p-4">
+                        <div className="mt-4 rounded-2xl bg-emerald-900/300/20 p-4">
                           <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">Catégorie leader</p>
                           <p className="mt-1 text-sm font-black uppercase text-white">{bestCategory.label}</p>
                           <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-300">{money(bestCategory.collected)} encaissés</p>
@@ -3186,18 +3213,18 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="space-y-8 rounded-[3rem] border border-slate-200/60 bg-white p-8 shadow-sm">
-                    <div className="flex flex-col gap-2 border-b border-slate-100 pb-6 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-8 rounded-[3rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm">
+                    <div className="flex flex-col gap-2 border-b border-emerald-500/10 pb-6 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Synthèse Opérationnelle</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Performance par segment et cumul mensuel</p>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Synthèse Opérationnelle</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80 mt-1">Performance par segment et cumul mensuel</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-                      <div className="min-w-0 overflow-x-auto rounded-[2rem] border border-slate-200/60 bg-slate-50 lg:col-span-8">
+                      <div className="min-w-0 overflow-x-auto rounded-[2rem] border border-emerald-500/20 bg-[#022c22] lg:col-span-8">
                         <table className="w-full min-w-[760px] text-left">
-                          <thead className="bg-slate-100/50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                          <thead className="bg-emerald-900/40/50 text-[10px] font-black uppercase tracking-widest text-emerald-400/80">
                             <tr>
                               <th className="px-6 py-4">Catégorie</th>
                               <th className="px-6 py-4 text-center">Inscrits</th>
@@ -3209,15 +3236,15 @@ const [storageMode] = useState("online");
                           </thead>
                           <tbody className="divide-y divide-white/5 text-[11px] font-bold text-white uppercase">
                             {categorySheetRows.map((row) => (
-                              <tr key={row.id} className="hover:bg-white/[0.03] transition-colors">
+                              <tr key={row.id} className="hover:bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/[0.03] transition-colors">
                                 <td className="px-6 py-4 font-black">{row.label}</td>
-                                <td className="px-6 py-4 text-center">{row.count} <span className="text-slate-600">/ {row.target > 0 ? row.target : "∞"}</span></td>
+                                <td className="px-6 py-4 text-center">{row.count} <span className="text-emerald-200/80">/ {row.target > 0 ? row.target : "∞"}</span></td>
                                 <td className="px-6 py-4 text-center text-fag-secondary">{row.recruitRate.toFixed(1)}%</td>
                                 <td className="px-6 py-4 text-right">{money(row.promised)}</td>
                                 <td className="px-6 py-4 text-right text-fag-primary">{money(row.collected)}</td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="flex items-center gap-2 justify-center">
-                                    <div className="h-1.5 w-12 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="h-1.5 w-12 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/5 rounded-full overflow-hidden">
                                       <div className="h-full bg-fag-primary" style={{ width: `${row.realizationRate}%` }} />
                                     </div>
                                     <span className="w-10">{row.realizationRate.toFixed(1)}%</span>
@@ -3230,8 +3257,8 @@ const [storageMode] = useState("online");
                       </div>
 
                       <div className="lg:col-span-4 space-y-6">
-                        <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] p-6">
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6">Volumes de Collecte</h4>
+                        <div className="rounded-[2rem] border border-white/5 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/[0.02] p-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400/80 mb-6">Volumes de Collecte</h4>
                           <div className="space-y-6">
                             {categorySheetRows.map((row) => (
                               <div key={`bar-${row.id}`}>
@@ -3239,7 +3266,7 @@ const [storageMode] = useState("online");
                                   <span className="text-white">{row.label}</span>
                                   <span className="text-fag-primary">{money(row.collected)}</span>
                                 </div>
-                                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div className="h-1.5 rounded-full bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/5 overflow-hidden">
                                   <motion.div 
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(row.collected / maxCategoryCollected) * 100}%` }}
@@ -3261,33 +3288,33 @@ const [storageMode] = useState("online");
                   <div className="rounded-[2rem] border border-emerald-100 bg-gradient-to-r from-emerald-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Module fidèles</h2>
-                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-slate-600">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Module fidèles</h2>
+                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-emerald-200/80">
                           Gérez les inscriptions, les engagements par catégorie et les encaissements. La recherche porte sur le nom, le WhatsApp,
                           le quartier et la fonction.
                         </p>
                       </div>
-                      <div className="rounded-xl bg-white/90 px-3 py-2 text-center shadow-sm md:text-left">
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Vue filtrée</p>
+                      <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Vue filtrée</p>
                         <p className="mt-1 text-lg font-black text-emerald-700">
                           {memberFilteredStats.count} / {members.length}
                         </p>
                       </div>
                     </div>
                     {memberFilteredStats.count > 0 && (
-                      <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-4">
-                        <div className="flex flex-col gap-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 md:flex-row md:items-center md:justify-between">
+                      <div className="mt-4 rounded-2xl border border-emerald-500/10 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4">
+                        <div className="flex flex-col gap-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 md:flex-row md:items-center md:justify-between">
                           <span>
-                            Engagement (filtre): <span className="text-slate-900">{money(memberFilteredStats.promised)}</span>
+                            Engagement (filtre): <span className="text-white">{money(memberFilteredStats.promised)}</span>
                           </span>
                           <span>
                             Versé (filtre): <span className="text-emerald-600">{money(memberFilteredStats.paid)}</span>
                           </span>
                           <span>
-                            Taux sur la sélection: <span className="text-blue-600">{memberFilteredStats.progressPct.toFixed(1)}%</span>
+                            Taux sur la sélection: <span className="text-yellow-400">{memberFilteredStats.progressPct.toFixed(1)}%</span>
                           </span>
                         </div>
-                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-900/40">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all duration-500"
                             style={{ width: `${memberFilteredStats.progressPct}%` }}
@@ -3298,19 +3325,19 @@ const [storageMode] = useState("online");
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="group relative overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/10 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><Users size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Fidèles enregistrés</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Fidèles enregistrés</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-slate-900">{members.length}</p>
+                      <p className="mt-3 text-3xl font-black text-white">{members.length}</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Engagements soldés</p>
+                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Engagements soldés</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-emerald-600">{memberInsights.completed}</p>
                     </div>
@@ -3318,17 +3345,17 @@ const [storageMode] = useState("online");
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Clock size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Reliquats actifs</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Reliquats actifs</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-orange-600">{memberInsights.pending}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Sparkles size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Meilleur contributeur</p>
+                        <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Sparkles size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Meilleur contributeur</p>
                       </div>
-                      <p className="mt-3 text-base font-black uppercase text-slate-900">{memberInsights.topContributorName}</p>
+                      <p className="mt-3 text-base font-black uppercase text-white">{memberInsights.topContributorName}</p>
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{money(memberInsights.topContributorAmount)}</p>
                     </div>
                   </div>
@@ -3338,14 +3365,14 @@ const [storageMode] = useState("online");
                       <div className="relative w-full">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                         <input
-                          className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
+                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
                           placeholder="Nom, WhatsApp, quartier, fonction…"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
                       <select
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-emerald-500"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
                         value={memberCategoryFilter}
                         onChange={(e) => setMemberCategoryFilter(e.target.value)}
                       >
@@ -3367,7 +3394,7 @@ const [storageMode] = useState("online");
                           key={id}
                           onClick={() => setMemberFilter(id)}
                           className={`rounded-xl px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest ${
-                            memberFilter === id ? "bg-slate-900 text-white" : "bg-white text-slate-600"
+                            memberFilter === id ? "bg-slate-900 text-white" : "bg-[#042f2e]/40 backdrop-blur-md glass-eden-card text-emerald-200/80"
                           }`}
                         >
                           {label}
@@ -3382,14 +3409,14 @@ const [storageMode] = useState("online");
                           setMemberFilter("all");
                           setMemberCategoryFilter("all");
                         }}
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 hover:bg-[#022c22]"
                       >
                         Réinitialiser filtres
                       </button>
                       <button
                         type="button"
                         onClick={exportMembersCsv}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 hover:bg-emerald-100"
+                        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-900/30 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 hover:bg-emerald-100"
                       >
                         <Download size={16} />
                         Export Excel (CSV)
@@ -3403,9 +3430,9 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card shadow-sm border border-emerald-500/20">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <thead className="bg-[#022c22] text-[10px] font-black uppercase tracking-widest text-emerald-400/80">
                         <tr>
                           <th className="px-8 py-5 text-left">Fidèle</th>
                           <th className="px-8 py-5 text-left">Identité & Contact</th>
@@ -3415,11 +3442,11 @@ const [storageMode] = useState("online");
                           <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-900">
+                      <tbody className="divide-y divide-slate-100 text-white">
                         {filteredMembers.length === 0 && (
                           <tr>
                             <td colSpan={6} className="px-6 py-16 text-center">
-                              <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                              <p className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                                 Aucun fidèle ne correspond aux filtres. Élargissez la recherche ou réinitialisez.
                               </p>
                             </td>
@@ -3437,10 +3464,10 @@ const [storageMode] = useState("online");
                           return (
                             <tr
                               key={m.id}
-                              className={`group transition-colors hover:bg-slate-50 ${isSettled ? "bg-emerald-50/50" : ""}`}
+                              className={`group transition-colors hover:bg-[#022c22] ${isSettled ? "bg-emerald-900/30/50" : ""}`}
                             >
                               <td className="px-8 py-6">
-                                <p className="font-black uppercase tracking-tight text-slate-900">{m.name}</p>
+                                <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
                                 <div className="mt-1 flex items-center gap-2">
                                   <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
                                     {cat?.label || "Libre"}
@@ -3449,11 +3476,11 @@ const [storageMode] = useState("online");
                                 </div>
                               </td>
                               <td className="px-8 py-6">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-200/80">
                                   {m.churchFunction || "Membre"}
                                 </p>
-                                <p className="mt-1 text-[10px] font-bold text-slate-500">{m.whatsapp || "Non renseigné"}</p>
-                                <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-400">{m.district || "Secteur Alpha"}</p>
+                                <p className="mt-1 text-[10px] font-bold text-emerald-400/80">{m.whatsapp || "Non renseigné"}</p>
+                                <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-emerald-500/80">{m.district || "Secteur Alpha"}</p>
                               </td>
                               <td className="px-8 py-6">
                                 <div className="flex justify-center gap-1.5">
@@ -3462,8 +3489,8 @@ const [storageMode] = useState("online");
                                       key={i}
                                       className={`flex h-8 w-8 items-center justify-center rounded-xl border text-[10px] font-black transition-all ${
                                         i < fullMonths
-                                          ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                                          : "border-slate-200 bg-slate-100 text-slate-400"
+                                          ? "border-emerald-500 bg-emerald-900/300 text-white shadow-lg shadow-emerald-200"
+                                          : "border-emerald-500/20 bg-emerald-900/40 text-emerald-500/80"
                                       }`}
                                     >
                                       {i < fullMonths ? <CheckCircle size={14} /> : i + 1}
@@ -3471,18 +3498,18 @@ const [storageMode] = useState("online");
                                   ))}
                                 </div>
                               </td>
-                              <td className="px-8 py-6 text-right font-black text-slate-900">{money(paid)}</td>
+                              <td className="px-8 py-6 text-right font-black text-white">{money(paid)}</td>
                               <td className="px-8 py-6">
                                 <div className="mx-auto max-w-[140px]">
                                   <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest mb-2">
-                                    <span className={isSettled ? "text-emerald-600" : "text-slate-400"}>{progressRow.toFixed(0)}%</span>
-                                    <span className="text-slate-500">/ {money(totalCommit)}</span>
+                                    <span className={isSettled ? "text-emerald-600" : "text-emerald-500/80"}>{progressRow.toFixed(0)}%</span>
+                                    <span className="text-emerald-400/80">/ {money(totalCommit)}</span>
                                   </div>
-                                  <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-emerald-900/40">
                                     <motion.div
                                       initial={{ width: 0 }}
                                       animate={{ width: `${progressRow}%` }}
-                                      className={`h-full rounded-full ${isSettled ? "bg-emerald-500" : "bg-blue-400"}`}
+                                      className={`h-full rounded-full ${isSettled ? "bg-emerald-900/300" : "bg-blue-400"}`}
                                     />
                                   </div>
                                 </div>
@@ -3492,7 +3519,7 @@ const [storageMode] = useState("online");
                                   <button
                                     type="button"
                                     onClick={() => openEditMemberModal(m)}
-                                    className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
+                                    className="p-2.5 rounded-xl bg-emerald-900/40 text-emerald-400/80 hover:bg-emerald-800/40 hover:text-white transition-all"
                                   >
                                     <Pencil size={16} />
                                   </button>
@@ -3514,7 +3541,7 @@ const [storageMode] = useState("online");
                                       setSelectedMember(m);
                                       setIsHistoryModalOpen(true);
                                     }}
-                                    className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-slate-50"
+                                    className="rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-2 text-emerald-400/80 hover:bg-[#022c22]"
                                   >
                                     <Clock size={14} />
                                   </button>
@@ -3545,26 +3572,26 @@ const [storageMode] = useState("online");
                   <div className="rounded-[2rem] border border-red-100 bg-gradient-to-r from-red-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Module dépenses</h2>
-                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-slate-600">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Module dépenses</h2>
+                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-emerald-200/80">
                           Sorties de caisse validées : suivi par poste budgétaire et par mode de règlement. Le tableau est trié par date (plus récent en premier).
                         </p>
                       </div>
-                      <div className="rounded-xl bg-white/90 px-3 py-2 text-center shadow-sm md:text-left">
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Lignes filtrées</p>
+                      <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Lignes filtrées</p>
                         <p className="mt-1 text-lg font-black text-red-700">
                           {filteredExpenses.length} / {expenses.length}
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-slate-100 bg-white p-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 md:flex-row md:items-center md:justify-between">
+                    <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-emerald-500/10 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80 md:flex-row md:items-center md:justify-between">
                       <span>
                         Part des dépenses filtrées vs collecté total :{" "}
-                        <span className="text-slate-900">
+                        <span className="text-white">
                           {stats.totalCollected > 0 ? ((expenseFilteredSum / stats.totalCollected) * 100).toFixed(1) : "0.0"}%
                         </span>
                       </span>
-                      <span className="text-slate-400">Collecté à ce jour : {money(stats.totalCollected)}</span>
+                      <span className="text-emerald-500/80">Collecté à ce jour : {money(stats.totalCollected)}</span>
                     </div>
                   </div>
 
@@ -3573,52 +3600,52 @@ const [storageMode] = useState("online");
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><Receipt size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Total dépenses</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Total dépenses</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-red-600">{money(stats.totalExpenses)}</p>
-                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Historique complet</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Historique complet</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-slate-900/5 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-slate-900 p-2.5 text-white"><BarChart3 size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Montant filtré</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Montant filtré</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-slate-900">{money(expenseFilteredSum)}</p>
+                      <p className="mt-3 text-3xl font-black text-white">{money(expenseFilteredSum)}</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Activity size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Opérations</p>
+                        <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Activity size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Opérations</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-slate-900">{filteredExpenses.length}</p>
+                      <p className="mt-3 text-3xl font-black text-white">{filteredExpenses.length}</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-orange-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-orange-500/15 p-2.5 text-orange-600"><Coins size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Ticket moyen (filtre)</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Ticket moyen (filtre)</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-slate-900">
+                      <p className="mt-3 text-3xl font-black text-white">
                         {money(filteredExpenses.length > 0 ? expenseFilteredSum / filteredExpenses.length : 0)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between rounded-[2.5rem] bg-white p-6 shadow-sm">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm">
                     <div className="flex w-full flex-col gap-3 lg:max-w-3xl lg:flex-row">
                       <div className="relative w-full">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                         <input
-                          className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-red-500"
+                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-red-500"
                           placeholder="Rechercher dans la description…"
                           value={expenseSearchTerm}
                           onChange={(e) => setExpenseSearchTerm(e.target.value)}
                         />
                       </div>
                       <select
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-red-500"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-red-500"
                         value={expenseCategoryFilter}
                         onChange={(e) => setExpenseCategoryFilter(e.target.value)}
                       >
@@ -3636,7 +3663,7 @@ const [storageMode] = useState("online");
                           setExpenseSearchTerm("");
                           setExpenseCategoryFilter("all");
                         }}
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 hover:bg-[#022c22]"
                       >
                         Réinitialiser
                       </button>
@@ -3657,9 +3684,9 @@ const [storageMode] = useState("online");
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                    <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200 lg:col-span-8">
+                    <div className="overflow-x-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card shadow-sm border border-emerald-500/20 lg:col-span-8">
                       <table className="w-full min-w-[980px]">
-                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <thead className="bg-[#022c22] text-[10px] font-black uppercase tracking-widest text-emerald-400/80">
                         <tr>
                           <th className="px-8 py-5 text-left">Date</th>
                           <th className="px-8 py-5 text-left">Désignation</th>
@@ -3669,30 +3696,30 @@ const [storageMode] = useState("online");
                           <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-900">
+                      <tbody className="divide-y divide-slate-100 text-white">
                         {sortedFilteredExpenses.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
+                            <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-emerald-400/80 italic">
                               Aucune dépense enregistrée.
                             </td>
                           </tr>
                         )}
                         {sortedFilteredExpenses.map((e) => (
-                          <tr key={e.id} className="group hover:bg-slate-50 transition-colors">
-                            <td className="px-8 py-6 font-bold text-slate-500">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
+                          <tr key={e.id} className="group hover:bg-[#022c22] transition-colors">
+                            <td className="px-8 py-6 font-bold text-emerald-400/80">{new Date(e.date).toLocaleDateString("fr-FR")}</td>
                             <td className="px-8 py-6 font-black uppercase tracking-tight">{e.description}</td>
                             <td className="px-8 py-6">
-                              <span className="bg-slate-100 border border-slate-200 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-600">
+                              <span className="bg-emerald-900/40 border border-emerald-500/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-emerald-200/80">
                                 {e.category}
                               </span>
                             </td>
-                            <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">{e.method || "Espèces"}</td>
+                            <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-emerald-400/80">{e.method || "Espèces"}</td>
                             <td className="px-8 py-6 text-right font-black text-red-600">{money(e.amount)}</td>
                             <td className="px-8 py-6 text-center">
                               <div className="flex flex-wrap items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                   onClick={() => openEditExpense(e)}
-                                  className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
+                                  className="p-2.5 rounded-xl bg-emerald-900/40 text-emerald-400/80 hover:bg-emerald-800/40 hover:text-white transition-all"
                                 >
                                   <Pencil size={16} />
                                 </button>
@@ -3713,10 +3740,10 @@ const [storageMode] = useState("online");
                     </table>
                   </div>
                     <div className="space-y-4 lg:col-span-4">
-                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-200">
-                        <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par catégorie</h3>
+                      <div className="rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm border border-emerald-500/20">
+                        <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">Par catégorie</h3>
                         {expenseBreakdown.length === 0 ? (
-                          <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                          <p className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                             Aucune donnée filtrée
                           </p>
                         ) : (
@@ -3726,13 +3753,13 @@ const [storageMode] = useState("online");
                               const percent = (amount / totalFiltered) * 100;
                               return (
                                 <div key={category}>
-                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                     <span>{category}</span>
                                     <span>
                                       {percent.toFixed(1)}% • {money(amount)}
                                     </span>
                                   </div>
-                                  <div className="h-2 rounded-full bg-slate-200">
+                                  <div className="h-2 rounded-full bg-emerald-800/40">
                                     <div className="h-2 rounded-full bg-red-500" style={{ width: `${Math.max(4, percent)}%` }} />
                                   </div>
                                 </div>
@@ -3741,10 +3768,10 @@ const [storageMode] = useState("online");
                           </div>
                         )}
                       </div>
-                      <div className="rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-200">
-                        <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-slate-800">Par mode de paiement</h3>
+                      <div className="rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm border border-emerald-500/20">
+                        <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">Par mode de paiement</h3>
                         {expenseMethodBreakdown.length === 0 ? (
-                          <p className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                          <p className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-5 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                             Aucune donnée filtrée
                           </p>
                         ) : (
@@ -3754,14 +3781,14 @@ const [storageMode] = useState("online");
                               const percent = (amount / totalFiltered) * 100;
                               return (
                                 <div key={mode}>
-                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                     <span>{mode}</span>
                                     <span>
                                       {percent.toFixed(1)}% • {money(amount)}
                                     </span>
                                   </div>
-                                  <div className="h-2 rounded-full bg-slate-200">
-                                    <div className="h-2 rounded-full bg-blue-500" style={{ width: `${Math.max(4, percent)}%` }} />
+                                  <div className="h-2 rounded-full bg-emerald-800/40">
+                                    <div className="h-2 rounded-full bg-emerald-900/200" style={{ width: `${Math.max(4, percent)}%` }} />
                                   </div>
                                 </div>
                               );
@@ -3776,18 +3803,18 @@ const [storageMode] = useState("online");
 
               {activeTab === "deposits" && (
                 <div className="space-y-6">
-                  <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-r from-blue-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
+                  <div className="rounded-[2rem] border border-yellow-500/20 bg-gradient-to-r from-blue-50/80 via-white to-slate-50 p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Module comité &amp; banque</h2>
-                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-slate-600">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Module comité &amp; banque</h2>
+                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-emerald-200/80">
                           Historique des décharges de caisse vers le comité : traçabilité par responsable, montant et référence de bordereau. Les lignes
                           sans référence sont mises en évidence pour complétion rapide.
                         </p>
                       </div>
-                      <div className="rounded-xl bg-white/90 px-3 py-2 text-center shadow-sm md:text-left">
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Vue filtrée</p>
-                        <p className="mt-1 text-lg font-black text-blue-700">
+                      <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Vue filtrée</p>
+                        <p className="mt-1 text-lg font-black text-yellow-500">
                           {depositFilteredRefSummary.n} / {deposits.length}
                         </p>
                         <p className="mt-1 text-[9px] font-extrabold uppercase tracking-widest text-emerald-600">
@@ -3795,13 +3822,13 @@ const [storageMode] = useState("online");
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-600 md:grid-cols-2">
+                    <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-500/10 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80 md:grid-cols-2">
                       <p>
-                        Cumul toutes remises : <span className="text-slate-900">{money(depositInsights.sumAll)}</span>
-                        <span className="ml-2 text-slate-400">({depositInsights.countAll} décharge{depositInsights.countAll !== 1 ? "s" : ""})</span>
+                        Cumul toutes remises : <span className="text-white">{money(depositInsights.sumAll)}</span>
+                        <span className="ml-2 text-emerald-500/80">({depositInsights.countAll} décharge{depositInsights.countAll !== 1 ? "s" : ""})</span>
                       </p>
                       <p>
-                        Sélection affichée : <span className="text-blue-600">{money(depositInsights.totalFiltered)}</span>
+                        Sélection affichée : <span className="text-yellow-400">{money(depositInsights.totalFiltered)}</span>
                         {depositFilteredRefSummary.missing > 0 && (
                           <span className="ml-2 text-red-600">• {depositFilteredRefSummary.missing} sans réf.</span>
                         )}
@@ -3810,7 +3837,7 @@ const [storageMode] = useState("online");
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-5 text-white shadow-xl transition hover:-translate-y-1">
+                    <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-5 text-white shadow-xl transition hover:-translate-y-1">
                       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-emerald-400/20 p-2.5 text-emerald-300"><PiggyBank size={18} /></div>
@@ -3822,45 +3849,45 @@ const [storageMode] = useState("online");
                     <div className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-emerald-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-emerald-500/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Décharges documentées</p>
+                        <div className="rounded-2xl bg-emerald-900/300/15 p-2.5 text-emerald-600"><CheckCircle size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Décharges documentées</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-emerald-600">{depositInsights.withRef}</p>
-                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Réf. ou lien pièce (total)</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Réf. ou lien pièce (total)</p>
                     </div>
                     <div className="group relative overflow-hidden rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-red-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
                         <div className="rounded-2xl bg-red-500/15 p-2.5 text-red-600"><BellRing size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">À compléter</p>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">À compléter</p>
                       </div>
                       <p className="mt-3 text-3xl font-black text-red-600">{depositInsights.missingRef}</p>
-                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Sans référence (total)</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Sans référence (total)</p>
                     </div>
-                    <div className="group relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div className="group relative overflow-hidden rounded-3xl border border-yellow-500/20 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl" />
                       <div className="flex items-center gap-3">
-                        <div className="rounded-2xl bg-blue-500/15 p-2.5 text-blue-600"><Landmark size={18} /></div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Montant sélection</p>
+                        <div className="rounded-2xl bg-emerald-900/200/15 p-2.5 text-yellow-400"><Landmark size={18} /></div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Montant sélection</p>
                       </div>
-                      <p className="mt-3 text-3xl font-black text-blue-600">{money(depositInsights.totalFiltered)}</p>
-                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">Selon filtres actifs</p>
+                      <p className="mt-3 text-3xl font-black text-yellow-400">{money(depositInsights.totalFiltered)}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Selon filtres actifs</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between rounded-[2.5rem] bg-white p-6 shadow-sm">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm">
                     <div className="flex w-full flex-col gap-3 lg:max-w-3xl lg:flex-row">
                       <div className="relative w-full">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                         <input
-                          className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-blue-500"
+                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-blue-500"
                           placeholder="Responsable ou référence…"
                           value={depositSearchTerm}
                           onChange={(e) => setDepositSearchTerm(e.target.value)}
                         />
                       </div>
                       <select
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-blue-500"
                         value={depositFilter}
                         onChange={(e) => setDepositFilter(e.target.value)}
                       >
@@ -3876,14 +3903,14 @@ const [storageMode] = useState("online");
                           setDepositSearchTerm("");
                           setDepositFilter("all");
                         }}
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 hover:bg-[#022c22]"
                       >
                         Réinitialiser
                       </button>
                       <button
                         type="button"
                         onClick={exportDepositsCsv}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-blue-800 hover:bg-blue-100"
+                        className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-emerald-900/20 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-blue-800 hover:bg-yellow-500/20"
                       >
                         <Download size={16} />
                         Export Excel (CSV)
@@ -3896,9 +3923,9 @@ const [storageMode] = useState("online");
                       </button>
                     </div>
                   </div>
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card shadow-sm border border-emerald-500/20">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <thead className="bg-[#022c22] text-[10px] font-black uppercase tracking-widest text-emerald-400/80">
                         <tr>
                           <th className="px-8 py-5 text-left">Date</th>
                           <th className="px-8 py-5 text-left">Responsable</th>
@@ -3908,10 +3935,10 @@ const [storageMode] = useState("online");
                           <th className="px-8 py-5 text-center">Gestion</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-900">
+                      <tbody className="divide-y divide-slate-100 text-white">
                         {sortedFilteredDeposits.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
+                            <td colSpan={6} className="px-8 py-16 text-center text-[10px] font-black uppercase tracking-widest text-emerald-400/80 italic">
                               Aucune décharge enregistrée.
                             </td>
                           </tr>
@@ -3921,9 +3948,9 @@ const [storageMode] = useState("online");
                           return (
                             <tr
                               key={d.id}
-                              className={`group transition-colors hover:bg-slate-50 ${hasTrace ? "" : "bg-orange-50/30"}`}
+                              className={`group transition-colors hover:bg-[#022c22] ${hasTrace ? "" : "bg-orange-50/30"}`}
                             >
-                              <td className="px-8 py-6 font-bold text-slate-500">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
+                              <td className="px-8 py-6 font-bold text-emerald-400/80">{new Date(d.date).toLocaleDateString("fr-FR")}</td>
                               <td className="px-8 py-6 font-black uppercase tracking-tight">{d.recipient}</td>
                               <td className="px-8 py-6 text-right font-black text-fag-secondary">{money(d.amount)}</td>
                               <td className="px-8 py-6 text-center">
@@ -3939,7 +3966,7 @@ const [storageMode] = useState("online");
                               </td>
                               <td className="px-8 py-6 text-center">
                                 {d.bordereauRef ? (
-                                  <span className="rounded-xl bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-700 border border-slate-200">
+                                  <span className="rounded-xl bg-emerald-900/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-100 border border-emerald-500/20">
                                     {d.bordereauRef}
                                   </span>
                                 ) : (
@@ -3963,33 +3990,33 @@ const [storageMode] = useState("online");
               {activeTab === "marketing" && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Contacts ciblés</p>
-                      <p className="mt-2 text-2xl font-black text-slate-900">{marketingMembers.length}</p>
+                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Contacts ciblés</p>
+                      <p className="mt-2 text-2xl font-black text-white">{marketingMembers.length}</p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Filtre actif</p>
+                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Filtre actif</p>
                       <p className="mt-2 text-sm font-black uppercase text-emerald-600">
                         {marketingFilter === "all" ? "Tous les fidèles" : marketingFilter === "pending" ? "Reliquats" : "Soldés"}
                       </p>
                     </div>
-                    <div className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Objectif relationnel</p>
-                      <p className="mt-2 text-sm font-black uppercase text-slate-800">Écoute, amour, fidélité</p>
+                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Objectif relationnel</p>
+                      <p className="mt-2 text-sm font-black uppercase text-emerald-50">Écoute, amour, fidélité</p>
                     </div>
                   </div>
 
-                  <div className="rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-200">
+                  <div className="rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-sm border border-emerald-500/20">
                     <div className="relative w-full lg:max-w-xl">
                       <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                       <input
-                        className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
+                        className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
                         placeholder="Rechercher un contact (nom/WhatsApp)"
                         value={marketingSearchTerm}
                         onChange={(e) => setMarketingSearchTerm(e.target.value)}
                       />
                     </div>
-                    <p className="mt-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <p className="mt-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                       Conseil: alterner inscription puis engagement puis merci puis rappel pour un suivi fraternel complet.
                     </p>
                   </div>
@@ -4004,40 +4031,40 @@ const [storageMode] = useState("online");
                         key={s.id}
                         onClick={() => setMarketingFilter(s.id)}
                         className={`relative group overflow-hidden rounded-[2.5rem] border p-8 text-left transition-all ${
-                          marketingFilter === s.id ? "border-fag-primary bg-slate-50 shadow-lg" : "border-slate-200 bg-white hover:bg-slate-50"
+                          marketingFilter === s.id ? "border-fag-primary bg-[#022c22] shadow-lg" : "border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card hover:bg-[#022c22]"
                         }`}
                       >
                         <div className={`inline-flex rounded-2xl p-4 ${s.bg} ${s.color}`}>
                           <s.icon size={28} />
                         </div>
-                        <p className={`mt-6 text-xl font-black uppercase tracking-tight ${marketingFilter === s.id ? "text-slate-900" : "text-slate-400"}`}>
+                        <p className={`mt-6 text-xl font-black uppercase tracking-tight ${marketingFilter === s.id ? "text-white" : "text-emerald-500/80"}`}>
                           {s.label}
                         </p>
                         <div className={`absolute bottom-0 left-0 h-1 bg-fag-primary transition-all duration-500 ${marketingFilter === s.id ? "w-full" : "w-0"}`} />
                       </button>
                     ))}
                   </div>
-                  <div className="overflow-x-auto rounded-[2.5rem] bg-white shadow-sm border border-slate-200">
+                  <div className="overflow-x-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card shadow-sm border border-emerald-500/20">
                     <table className="w-full min-w-[900px]">
-                      <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <thead className="bg-[#022c22] text-[10px] font-black uppercase tracking-widest text-emerald-400/80">
                         <tr>
                           <th className="px-8 py-5 text-left">Fidèle & Contact</th>
                           <th className="px-8 py-5 text-left">Action Fiche</th>
                           <th className="px-8 py-5 text-right">Diffusion WhatsApp</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-900">
+                      <tbody className="divide-y divide-slate-100 text-white">
                         {marketingMembers.map((m) => (
-                          <tr key={m.id} className="group hover:bg-slate-50 transition-colors">
+                          <tr key={m.id} className="group hover:bg-[#022c22] transition-colors">
                             <td className="px-8 py-6">
-                              <p className="font-black uppercase text-slate-900 tracking-tight">{m.name}</p>
+                              <p className="font-black uppercase text-white tracking-tight">{m.name}</p>
                               <p className="mt-1 text-[10px] font-bold text-fag-primary">{m.whatsapp}</p>
                             </td>
                             <td className="px-8 py-6">
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => openEditMemberModal(m)}
-                                  className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
+                                  className="p-2.5 rounded-xl bg-emerald-900/40 text-emerald-400/80 hover:bg-emerald-800/40 hover:text-white transition-all"
                                 >
                                   <Pencil size={16} />
                                 </button>
@@ -4055,11 +4082,11 @@ const [storageMode] = useState("online");
                             <td className="px-8 py-6">
                               <div className="flex flex-wrap justify-end gap-2">
                                 {[
-                                  { type: "welcome", label: "Accueil", color: "bg-slate-100 hover:bg-fag-primary hover:text-white" },
-                                  { type: "engagement", label: "Engagement", color: "bg-slate-100 hover:bg-blue-600 hover:text-white" },
-                                  { type: "reminder", label: "Rappel", color: "bg-slate-100 hover:bg-orange-500 hover:text-white" },
-                                  { type: "thanks", label: "Merci", color: "bg-slate-100 hover:bg-slate-700 hover:text-white" },
-                                  { type: "congrats", label: "Félicitations", color: "bg-slate-100 hover:bg-emerald-600 hover:text-white" }
+                                  { type: "welcome", label: "Accueil", color: "bg-emerald-900/40 hover:bg-fag-primary hover:text-white" },
+                                  { type: "engagement", label: "Engagement", color: "bg-emerald-900/40 hover:bg-blue-600 hover:text-white" },
+                                  { type: "reminder", label: "Rappel", color: "bg-emerald-900/40 hover:bg-orange-500 hover:text-white" },
+                                  { type: "thanks", label: "Merci", color: "bg-emerald-900/40 hover:bg-slate-700 hover:text-white" },
+                                  { type: "congrats", label: "Félicitations", color: "bg-emerald-900/40 hover:bg-emerald-600 hover:text-white" }
                                 ].map((btn) => (
                                   <button
                                     key={btn.type}
@@ -4077,29 +4104,29 @@ const [storageMode] = useState("online");
                     </table>
                   </div>
 
-                  <div className="rounded-[3rem] border border-slate-200 bg-white p-8 shadow-sm mt-10">
+                  <div className="rounded-[3rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm mt-10">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="rounded-2xl bg-blue-100 p-3 text-blue-600">
+                      <div className="rounded-2xl bg-yellow-500/20 p-3 text-yellow-400">
                         <Activity size={20} />
                       </div>
                       <div>
-                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Log de Diffusion</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Traçabilité des envois automatiques</p>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-white">Log de Diffusion</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80 mt-1">Traçabilité des envois automatiques</p>
                       </div>
                     </div>
                     <div className="max-h-80 overflow-y-auto pr-4 custom-scrollbar">
                       {whatsAppLogs.length === 0 ? (
-                        <p className="text-[10px] font-bold text-slate-500 italic">Aucune activité enregistrée.</p>
+                        <p className="text-[10px] font-bold text-emerald-400/80 italic">Aucune activité enregistrée.</p>
                       ) : (
                         <div className="space-y-3">
                           {whatsAppLogs.map((w) => (
-                            <div key={w.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                            <div key={w.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#022c22] border border-emerald-500/10">
                               <div className="flex items-center gap-4">
-                                <span className="text-[9px] font-black text-slate-400">{new Date(w.createdAt).toLocaleTimeString()}</span>
-                                <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[9px] font-black uppercase">{w.messageType}</span>
-                                <span className="text-xs font-bold text-slate-900">{w.memberName}</span>
+                                <span className="text-[9px] font-black text-emerald-500/80">{new Date(w.createdAt).toLocaleTimeString()}</span>
+                                <span className="px-2 py-0.5 rounded-md bg-yellow-500/20 text-yellow-500 text-[9px] font-black uppercase">{w.messageType}</span>
+                                <span className="text-xs font-bold text-white">{w.memberName}</span>
                               </div>
-                              <span className="text-[9px] font-black text-slate-500 italic">{w.providerStatus}</span>
+                              <span className="text-[9px] font-black text-emerald-400/80 italic">{w.providerStatus}</span>
                             </div>
                           ))}
                         </div>
@@ -4111,13 +4138,13 @@ const [storageMode] = useState("online");
 
               {activeTab === "settings" && (
                 <div className="space-y-8">
-                  <div className="rounded-[3rem] border border-slate-200 bg-white p-10 shadow-sm">
-                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-slate-100">
+                  <div className="rounded-[3rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-10 shadow-sm">
+                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-emerald-500/10">
                       <div>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Configuration Campagne</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">Paramètres globaux et objectifs annuels</p>
+                        <h3 className="text-2xl font-black text-white tracking-tight">Configuration Campagne</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80 mt-1">Paramètres globaux et objectifs annuels</p>
                       </div>
-                      <button onClick={exportDataBackup} className="rounded-2xl bg-slate-100 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-all border border-slate-200">
+                      <button onClick={exportDataBackup} className="rounded-2xl bg-emerald-900/40 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-200/80 hover:bg-emerald-800/40 transition-all border border-emerald-500/20">
                         Sauvegarde Système
                       </button>
                     </div>
@@ -4130,12 +4157,12 @@ const [storageMode] = useState("online");
                         { label: "Date de Lancement", key: "launchDate", type: "date" }
                       ].map((field) => (
                         <div key={field.key} className="space-y-3">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">{field.label}</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400/80 ml-4">{field.label}</label>
                           <input
                             type={field.type}
                             min={field.min}
                             max={field.max}
-                            className="w-full rounded-[1.5rem] bg-slate-50 border border-slate-200 px-6 py-4 text-slate-900 font-black outline-none focus:border-emerald-500 transition-all"
+                            className="w-full rounded-[1.5rem] bg-[#022c22] border border-emerald-500/20 px-6 py-4 text-white font-black outline-none focus:border-emerald-500 transition-all"
                             value={config[field.key] || ""}
                             onChange={(e) => {
                               const next = { ...config, [field.key]: field.type === "number" ? toNumber(e.target.value) : e.target.value };
@@ -4147,21 +4174,21 @@ const [storageMode] = useState("online");
                       ))}
                     </div>
                   <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Objectif mensuel moyen</p>
-                      <p className="mt-1 text-xl font-black text-slate-900">{money(config.globalGoal / Math.max(1, config.months))}</p>
+                    <div className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Objectif mensuel moyen</p>
+                      <p className="mt-1 text-xl font-black text-white">{money(config.globalGoal / Math.max(1, config.months))}</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Potentiel total catégories</p>
+                    <div className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Potentiel total catégories</p>
                       <p className="mt-1 text-xl font-black text-emerald-600">
                         {money(
                           config.categories.reduce((sum, c) => sum + toNumber(c.amount) * toNumber(c.targetPeople) * Math.max(1, config.months), 0)
                         )}
                       </p>
                     </div>
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Écart potentiel vs objectif</p>
-                      <p className="mt-1 text-xl font-black text-blue-600">
+                    <div className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Écart potentiel vs objectif</p>
+                      <p className="mt-1 text-xl font-black text-yellow-400">
                         {money(
                           config.categories.reduce((sum, c) => sum + toNumber(c.amount) * toNumber(c.targetPeople) * Math.max(1, config.months), 0) -
                             toNumber(config.globalGoal)
@@ -4171,11 +4198,11 @@ const [storageMode] = useState("online");
                   </div>
                   <div className="mt-8 space-y-4">
                     {config.categories.map((cat, idx) => (
-                      <div key={cat.id} className="grid grid-cols-1 gap-4 rounded-3xl border border-slate-100 p-5 md:grid-cols-12">
+                      <div key={cat.id} className="grid grid-cols-1 gap-4 rounded-3xl border border-emerald-500/10 p-5 md:grid-cols-12">
                         <div className="md:col-span-4">
-                          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Label</label>
+                          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Label</label>
                           <input
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2 font-black uppercase"
+                            className="w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black uppercase"
                             value={cat.label}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4187,11 +4214,11 @@ const [storageMode] = useState("online");
                           />
                         </div>
                         <div className="md:col-span-4">
-                          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Montant mensuel</label>
+                          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant mensuel</label>
                           <input
                             type="number"
                             disabled={cat.id === "cat5"}
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2 font-black"
+                            className="w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
                             value={cat.amount}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4203,10 +4230,10 @@ const [storageMode] = useState("online");
                           />
                         </div>
                         <div className="md:col-span-4">
-                          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Cible</label>
+                          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Cible</label>
                           <input
                             type="number"
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2 font-black"
+                            className="w-full rounded-xl border border-emerald-500/20 px-3 py-2 font-black"
                             value={cat.targetPeople}
                             onChange={(e) => {
                               const cats = [...config.categories];
@@ -4238,8 +4265,8 @@ const [storageMode] = useState("online");
                   </div>
                   </div>
 
-                  <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50 p-5">
-                    <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-800">Comptes équipe & niveaux d&apos;accès</h4>
+                  <div className="mt-8 rounded-3xl border border-emerald-500/10 bg-[#022c22] p-5">
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-50">Comptes équipe & niveaux d&apos;accès</h4>
                     {!canManageUsers ? (
                       <p className="mt-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-[11px] font-bold text-orange-700">
                         Seul le rôle Administrateur peut créer ou modifier les comptes utilisateurs.
@@ -4250,20 +4277,20 @@ const [storageMode] = useState("online");
                           <input
                             required
                             placeholder="Nom complet"
-                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.fullName}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
                           />
                           <input
                             type="email"
                             placeholder="Email connexion (optionnel)"
-                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.username}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, username: e.target.value }))}
                           />
                           <input
                             placeholder="Téléphone connexion (optionnel)"
-                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.phone}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, phone: e.target.value }))}
                           />
@@ -4271,13 +4298,13 @@ const [storageMode] = useState("online");
                             required
                             type="password"
                             placeholder="Mot de passe"
-                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                            className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                             value={newTeamUser.password}
                             onChange={(e) => setNewTeamUser((prev) => ({ ...prev, password: e.target.value }))}
                           />
                           <div className="flex gap-2">
                             <select
-                              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-emerald-500"
+                              className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
                               value={newTeamUser.role}
                               onChange={(e) => setNewTeamUser((prev) => ({ ...prev, role: e.target.value }))}
                             >
@@ -4296,9 +4323,9 @@ const [storageMode] = useState("online");
                           </div>
                         </form>
 
-                        <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
+                        <div className="mt-4 overflow-x-auto rounded-2xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card">
                           <table className="w-full min-w-[960px]">
-                            <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                            <thead className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                               <tr>
                                 <th className="px-4 py-3 text-left">Utilisateur</th>
                                 <th className="px-4 py-3 text-left">Rôle</th>
@@ -4311,13 +4338,13 @@ const [storageMode] = useState("online");
                               {teamUsers.map((u) => (
                                 <tr key={u.id}>
                                   <td className="px-4 py-3">
-                                    <p className="font-black uppercase text-slate-900">{u.fullName}</p>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{u.username}</p>
+                                    <p className="font-black uppercase text-white">{u.fullName}</p>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">{u.username}</p>
                                     <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">{u.phone || "Téléphone non défini"}</p>
                                   </td>
                                   <td className="px-4 py-3">
                                     <select
-                                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-600"
+                                      className="rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80"
                                       value={u.role}
                                       onChange={(e) => updateTeamUserRole(u.id, e.target.value)}
                                     >
@@ -4328,14 +4355,14 @@ const [storageMode] = useState("online");
                                       ))}
                                     </select>
                                   </td>
-                                  <td className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                                  <td className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                     {(ROLE_PERMISSIONS[u.role] || []).join(" • ")}
                                   </td>
                                   <td className="px-4 py-3 text-center">
                                     <button
                                       onClick={() => toggleTeamUserStatus(u.id)}
                                       className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
-                                        u.isActive !== false ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                                        u.isActive !== false ? "bg-emerald-100 text-emerald-700" : "bg-emerald-800/40 text-emerald-200/80"
                                       }`}
                                     >
                                       {u.isActive !== false ? "Actif" : "Inactif"}
@@ -4354,7 +4381,7 @@ const [storageMode] = useState("online");
                                             role: u.role || "tresorier"
                                           })
                                         }
-                                        className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700 hover:bg-blue-100"
+                                        className="rounded-xl border border-blue-200 bg-emerald-900/20 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-yellow-500 hover:bg-yellow-500/20"
                                       >
                                         Modifier
                                       </button>
@@ -4378,30 +4405,30 @@ const [storageMode] = useState("online");
                     )}
                   </div>
 
-                  <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+                  <div className="mt-8 rounded-3xl border border-emerald-500/10 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <h4 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-800">
-                          <FileClock size={15} className="text-blue-600" />
+                        <h4 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-emerald-50">
+                          <FileClock size={15} className="text-yellow-400" />
                           Historique des logs d&apos;audit
                         </h4>
-                        <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                        <p className="mt-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                           Traçabilité des accès et actions sensibles du logiciel
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                        <p className="rounded-full bg-emerald-900/40 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80">
                           {filteredAuditLogs.length} logs affichés
                         </p>
                         <button
                           onClick={exportAuditCsv}
-                          className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-700"
+                          className="rounded-xl border border-emerald-200 bg-emerald-900/30 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-700"
                         >
                           Export CSV
                         </button>
                         <button
                           onClick={exportAuditPdf}
-                          className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-blue-700"
+                          className="rounded-xl border border-blue-200 bg-emerald-900/20 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-yellow-500"
                         >
                           Export PDF
                         </button>
@@ -4414,13 +4441,13 @@ const [storageMode] = useState("online");
                           value={auditSearchTerm}
                           onChange={(e) => setAuditSearchTerm(e.target.value)}
                           placeholder="Rechercher: acteur, action, cible, détail..."
-                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-semibold outline-none focus:border-blue-500"
+                          className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-semibold outline-none focus:border-blue-500"
                         />
                       </div>
                       <select
                         value={auditFilter}
                         onChange={(e) => setAuditFilter(e.target.value)}
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500"
+                        className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-blue-500"
                       >
                         <option value="all">Tous les logs</option>
                         <option value="access">Accès</option>
@@ -4430,7 +4457,7 @@ const [storageMode] = useState("online");
                       </select>
                     </div>
 
-                    <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-100">
+                    <div className="mt-4 overflow-x-auto rounded-2xl border border-emerald-500/10">
                       <table className="w-full min-w-[980px]">
                         <thead className="bg-slate-900 text-[10px] font-extrabold uppercase tracking-widest text-white">
                           <tr>
@@ -4441,33 +4468,33 @@ const [storageMode] = useState("online");
                             <th className="px-4 py-3 text-left">Détails</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 bg-white text-[11px] font-semibold">
+                        <tbody className="divide-y divide-slate-100 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card text-[11px] font-semibold">
                           {filteredAuditLogs.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                              <td colSpan={5} className="px-4 py-8 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                                 Aucun log pour ce filtre
                               </td>
                             </tr>
                           ) : (
                             filteredAuditLogs.slice(0, 400).map((log, idx) => (
-                              <tr key={`${log.id || log.timestamp || "log"}-${idx}`} className="hover:bg-slate-50/70">
-                                <td className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                              <tr key={`${log.id || log.timestamp || "log"}-${idx}`} className="hover:bg-[#022c22]/70">
+                                <td className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                                   {new Date(log.timestamp || Date.now()).toLocaleString("fr-FR")}
                                 </td>
                                 <td className="px-4 py-3">
-                                  <p className="font-black uppercase text-slate-900">{log.actorName || "Système"}</p>
-                                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{log.actorRole || "N/A"}</p>
+                                  <p className="font-black uppercase text-white">{log.actorName || "Système"}</p>
+                                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">{log.actorRole || "N/A"}</p>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-700">
+                                  <span className="rounded-full bg-yellow-500/20 px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest text-yellow-500">
                                     {log.action || "ACTION"}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <p className="font-black uppercase text-slate-800">{log.targetLabel || "N/A"}</p>
-                                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{log.targetType || "N/A"}</p>
+                                  <p className="font-black uppercase text-emerald-50">{log.targetLabel || "N/A"}</p>
+                                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">{log.targetType || "N/A"}</p>
                                 </td>
-                                <td className="px-4 py-3 text-slate-600">{log.details || "-"}</td>
+                                <td className="px-4 py-3 text-emerald-200/80">{log.details || "-"}</td>
                               </tr>
                             ))
                           )}
@@ -4488,7 +4515,7 @@ const [storageMode] = useState("online");
             role="status"
             className={`animate-fag-toast-in pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest shadow-xl ${
               flashMessage.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                ? "border-emerald-200 bg-emerald-900/30 text-emerald-800"
                 : "border-red-200 bg-red-50 text-red-800"
             }`}
           >
@@ -4515,58 +4542,58 @@ const [storageMode] = useState("online");
               });
               if (ok) setEditingTeamUser(null);
             }}
-            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10"
+            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
           >
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setEditingTeamUser(null)}>
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingTeamUser(null)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-slate-900">Modifier le compte</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
+            <h3 className="text-2xl font-black uppercase text-white">Modifier le compte</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">
               Mettez à jour l&apos;identité, les identifiants, le mot de passe et le niveau d&apos;accès du membre de gestion.
             </p>
             <div className="mt-6 grid grid-cols-1 gap-3">
               <div>
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Nom complet</label>
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Nom complet</label>
                 <input
                   required
-                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingTeamUser.fullName}
                   onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, fullName: e.target.value }))}
                 />
               </div>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div>
-                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Email</label>
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Email</label>
                   <input
                     type="email"
-                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                    className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                     value={editingTeamUser.username}
                     onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, username: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Téléphone</label>
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Téléphone</label>
                   <input
-                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                    className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                     value={editingTeamUser.phone}
                     onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, phone: e.target.value }))}
                   />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Nouveau mot de passe (optionnel)</label>
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Nouveau mot de passe (optionnel)</label>
                 <input
                   type="password"
                   placeholder="Laisser vide pour conserver le mot de passe actuel"
-                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingTeamUser.password}
                   onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, password: e.target.value }))}
                 />
               </div>
               <div>
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Rôle & accès</label>
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Rôle & accès</label>
                 <select
-                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-600 outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-[11px] font-extrabold uppercase tracking-widest text-emerald-200/80 outline-none focus:border-emerald-500"
                   value={editingTeamUser.role}
                   onChange={(e) => setEditingTeamUser((prev) => ({ ...prev, role: e.target.value }))}
                 >
@@ -4576,7 +4603,7 @@ const [storageMode] = useState("online");
                     </option>
                   ))}
                 </select>
-                <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                <p className="mt-2 rounded-xl bg-[#022c22] px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
                   Modules accessibles : {(ROLE_PERMISSIONS[editingTeamUser.role] || []).join(" • ") || "Aucun"}
                 </p>
               </div>
@@ -4585,7 +4612,7 @@ const [storageMode] = useState("online");
               <button
                 type="button"
                 onClick={() => setEditingTeamUser(null)}
-                className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600"
+                className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-5 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-200/80"
               >
                 Annuler
               </button>
@@ -4603,40 +4630,40 @@ const [storageMode] = useState("online");
       {isMemberModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsMemberModalOpen(false)} />
-          <form onSubmit={addMember} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10">
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setIsMemberModalOpen(false)}>
+          <form onSubmit={addMember} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10">
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsMemberModalOpen(false)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-slate-900">Inscrire un fidèle</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
+            <h3 className="text-2xl font-black uppercase text-white">Inscrire un fidèle</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">
               Identification membre FAG
             </p>
 
-            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
-              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Informations d&apos;identité</p>
+            <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations d&apos;identité</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <input
                   required
                   placeholder="Nom et prénoms"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.name}
                   onChange={(e) => setNewMember((s) => ({ ...s, name: e.target.value }))}
                 />
                 <input
                   required
                   placeholder="WhatsApp (ex: 2250700000000)"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.whatsapp}
                   onChange={(e) => setNewMember((s) => ({ ...s, whatsapp: e.target.value }))}
                 />
                 <input
                   placeholder="Quartier / cellule"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.district}
                   onChange={(e) => setNewMember((s) => ({ ...s, district: e.target.value }))}
                 />
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-black outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-emerald-500"
                   value={newMember.churchFunctionType}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -4655,7 +4682,7 @@ const [storageMode] = useState("online");
               {newMember.churchFunctionType === "__other__" && (
                 <input
                   placeholder="Préciser la fonction"
-                  className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={newMember.churchFunction}
                   onChange={(e) => setNewMember((s) => ({ ...s, churchFunction: e.target.value }))}
                 />
@@ -4663,7 +4690,7 @@ const [storageMode] = useState("online");
             </div>
 
             <select
-              className="mt-4 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
+              className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#022c22] px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
               value={newMember.categoryId}
               onChange={(e) => setNewMember((s) => ({ ...s, categoryId: e.target.value }))}
             >
@@ -4684,16 +4711,16 @@ const [storageMode] = useState("online");
                 onChange={(e) => setNewMember((s) => ({ ...s, customAmount: e.target.value }))}
               />
             )}
-            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-900/30 p-4">
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700">Récapitulatif engagement</p>
-              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-slate-700 md:flex-row md:items-center md:justify-between">
+              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Mensualité: {money(selectedMonthlyAmount)}</span>
                 <span>
                   Total ({config.months} mois): <span className="text-emerald-700">{money(selectedTotalAmount)}</span>
                 </span>
               </div>
             </div>
-            <label className="mt-4 flex items-center gap-2 text-sm font-bold text-slate-700">
+            <label className="mt-4 flex items-center gap-2 text-sm font-bold text-emerald-100">
               <input
                 type="checkbox"
                 checked={newMember.commsOptIn !== false}
@@ -4713,41 +4740,41 @@ const [storageMode] = useState("online");
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingMember(null)} />
           <form
             onSubmit={saveMemberUpdate}
-            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10"
+            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
           >
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setEditingMember(null)}>
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingMember(null)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-slate-900">Modifier le fidèle</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
+            <h3 className="text-2xl font-black uppercase text-white">Modifier le fidèle</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">
               Mettre à jour les informations et l&apos;engagement (les versements enregistrés sont conservés).
             </p>
 
-            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
-              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Informations d&apos;identité</p>
+            <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations d&apos;identité</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <input
                   required
                   placeholder="Nom et prénoms"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.name}
                   onChange={(e) => setEditingMember((s) => ({ ...s, name: e.target.value }))}
                 />
                 <input
                   required
                   placeholder="WhatsApp (ex: 0757228731)"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.whatsapp}
                   onChange={(e) => setEditingMember((s) => ({ ...s, whatsapp: e.target.value }))}
                 />
                 <input
                   placeholder="Quartier / cellule"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.district}
                   onChange={(e) => setEditingMember((s) => ({ ...s, district: e.target.value }))}
                 />
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-black outline-none focus:border-emerald-500"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-emerald-500"
                   value={editingMember.churchFunctionType}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -4770,7 +4797,7 @@ const [storageMode] = useState("online");
               {editingMember.churchFunctionType === "__other__" && (
                 <input
                   placeholder="Préciser la fonction"
-                  className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                  className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-emerald-500"
                   value={editingMember.churchFunction}
                   onChange={(e) => setEditingMember((s) => ({ ...s, churchFunction: e.target.value }))}
                 />
@@ -4778,7 +4805,7 @@ const [storageMode] = useState("online");
             </div>
 
             <select
-              className="mt-4 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
+              className="mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#022c22] px-4 py-3 font-black uppercase outline-none focus:border-emerald-500"
               value={editingMember.categoryId}
               onChange={(e) => setEditingMember((s) => ({ ...s, categoryId: e.target.value }))}
             >
@@ -4799,16 +4826,16 @@ const [storageMode] = useState("online");
                 onChange={(e) => setEditingMember((s) => ({ ...s, customAmount: e.target.value }))}
               />
             )}
-            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-900/30 p-4">
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700">Récapitulatif engagement</p>
-              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-slate-700 md:flex-row md:items-center md:justify-between">
+              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Mensualité: {money(editingMonthlyAmount)}</span>
                 <span>
                   Total ({config.months} mois): <span className="text-emerald-700">{money(editingTotalAmount)}</span>
                 </span>
               </div>
             </div>
-            <label className="mt-4 flex items-center gap-2 text-sm font-bold text-slate-700">
+            <label className="mt-4 flex items-center gap-2 text-sm font-bold text-emerald-100">
               <input
                 type="checkbox"
                 checked={editingMember.commsOptIn !== false}
@@ -4820,7 +4847,7 @@ const [storageMode] = useState("online");
               <button
                 type="button"
                 onClick={() => setEditingMember(null)}
-                className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-[11px] font-black uppercase tracking-widest text-slate-600"
+                className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-6 py-3 text-[11px] font-black uppercase tracking-widest text-emerald-200/80"
               >
                 Annuler
               </button>
@@ -4838,8 +4865,8 @@ const [storageMode] = useState("online");
       {isPaymentModalOpen && selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsPaymentModalOpen(false)} />
-          <form onSubmit={handlePayment} className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl">
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setIsPaymentModalOpen(false)}>
+          <form onSubmit={handlePayment} className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl">
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsPaymentModalOpen(false)}>
               <X />
             </button>
             <h3 className="mb-6 text-xl font-black uppercase">Encaissement - {selectedMember.name}</h3>
@@ -4847,12 +4874,12 @@ const [storageMode] = useState("online");
               <input
                 type="date"
                 required
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-bold"
+                className="rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-bold"
                 value={paymentData.date}
                 onChange={(e) => setPaymentData((s) => ({ ...s, date: e.target.value }))}
               />
               <select
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-bold"
+                className="rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-bold"
                 value={paymentData.method}
                 onChange={(e) => setPaymentData((s) => ({ ...s, method: e.target.value }))}
               >
@@ -4868,7 +4895,7 @@ const [storageMode] = useState("online");
                 type="number"
                 required
                 placeholder="Montant"
-                className="w-full rounded-2xl border-2 border-slate-200 px-12 py-4 text-right text-3xl font-black outline-none focus:border-emerald-500"
+                className="w-full rounded-2xl border-2 border-emerald-500/20 px-12 py-4 text-right text-3xl font-black outline-none focus:border-emerald-500"
                 value={paymentData.amount}
                 onChange={(e) => setPaymentData((s) => ({ ...s, amount: e.target.value }))}
               />
@@ -4883,14 +4910,14 @@ const [storageMode] = useState("online");
       {isHistoryModalOpen && selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsHistoryModalOpen(false)} />
-          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl">
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setIsHistoryModalOpen(false)}>
+          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl">
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsHistoryModalOpen(false)}>
               <X />
             </button>
             <h3 className="mb-6 text-xl font-black uppercase">Grand livre - {selectedMember.name}</h3>
             <div className="max-h-[50vh] overflow-y-auto">
               <table className="w-full">
-                <thead className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                <thead className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                   <tr>
                     <th className="pb-3 text-left">Date</th>
                     <th className="pb-3 text-left">Mode</th>
@@ -4901,7 +4928,7 @@ const [storageMode] = useState("online");
                 <tbody className="divide-y divide-slate-100">
                   {(selectedMember.payments || []).map((p) => (
                     <tr key={p.id}>
-                      <td className="py-3 font-bold text-slate-500">{new Date(p.date).toLocaleDateString("fr-FR")}</td>
+                      <td className="py-3 font-bold text-emerald-400/80">{new Date(p.date).toLocaleDateString("fr-FR")}</td>
                       <td className="py-3 font-extrabold">{p.method}</td>
                       <td className="py-3 text-right font-black">{money(p.amount)}</td>
                       <td className="py-3 text-center">
@@ -4927,25 +4954,25 @@ const [storageMode] = useState("online");
       {isExpenseModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsExpenseModalOpen(false)} />
-          <form onSubmit={handleExpense} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10">
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setIsExpenseModalOpen(false)}>
+          <form onSubmit={handleExpense} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10">
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsExpenseModalOpen(false)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-slate-900">Nouvelle dépense</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Sortie de caisse projet FAG</p>
+            <h3 className="text-2xl font-black uppercase text-white">Nouvelle dépense</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">Sortie de caisse projet FAG</p>
 
-            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
-              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Détails de l&apos;opération</p>
+            <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Détails de l&apos;opération</p>
               <input
                 required
                 placeholder="Description de la dépense"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                 value={newExpense.description}
                 onChange={(e) => setNewExpense((s) => ({ ...s, description: e.target.value }))}
               />
               <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.category}
                   onChange={(e) => setNewExpense((s) => ({ ...s, category: e.target.value }))}
                 >
@@ -4956,7 +4983,7 @@ const [storageMode] = useState("online");
                   <option>Autre</option>
                 </select>
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.method}
                   onChange={(e) => setNewExpense((s) => ({ ...s, method: e.target.value }))}
                 >
@@ -4968,7 +4995,7 @@ const [storageMode] = useState("online");
                 <input
                   type="date"
                   required
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={newExpense.date}
                   onChange={(e) => setNewExpense((s) => ({ ...s, date: e.target.value }))}
                 />
@@ -4977,7 +5004,7 @@ const [storageMode] = useState("online");
                   required
                   min="1"
                   placeholder="Montant"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-black outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-red-400"
                   value={newExpense.amount}
                   onChange={(e) => setNewExpense((s) => ({ ...s, amount: e.target.value }))}
                 />
@@ -4986,7 +5013,7 @@ const [storageMode] = useState("online");
 
             <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 p-4">
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-700">Impact immédiat</p>
-              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-slate-700 md:flex-row md:items-center md:justify-between">
+              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Dépense saisie: {money(newExpense.amount || 0)}</span>
                 <span>
                   Caisse après sortie: <span className="text-red-700">{money(stats.cashInHand - toNumber(newExpense.amount))}</span>
@@ -5006,24 +5033,24 @@ const [storageMode] = useState("online");
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingExpense(null)} />
           <form
             onSubmit={saveExpenseUpdate}
-            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10"
+            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
           >
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setEditingExpense(null)}>
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingExpense(null)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-slate-900">Modifier la dépense</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Mise à jour de la sortie de caisse</p>
-            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
+            <h3 className="text-2xl font-black uppercase text-white">Modifier la dépense</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">Mise à jour de la sortie de caisse</p>
+            <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
               <input
                 required
                 placeholder="Description"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                className="w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                 value={editingExpense.description}
                 onChange={(e) => setEditingExpense((s) => ({ ...s, description: e.target.value }))}
               />
               <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={editingExpense.category}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, category: e.target.value }))}
                 >
@@ -5034,7 +5061,7 @@ const [storageMode] = useState("online");
                   <option>Autre</option>
                 </select>
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={editingExpense.method}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, method: e.target.value }))}
                 >
@@ -5046,7 +5073,7 @@ const [storageMode] = useState("online");
                 <input
                   type="date"
                   required
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-red-400"
                   value={editingExpense.date}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, date: e.target.value }))}
                 />
@@ -5055,7 +5082,7 @@ const [storageMode] = useState("online");
                   required
                   min="1"
                   placeholder="Montant"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-black outline-none focus:border-red-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-black outline-none focus:border-red-400"
                   value={editingExpense.amount}
                   onChange={(e) => setEditingExpense((s) => ({ ...s, amount: e.target.value }))}
                 />
@@ -5065,7 +5092,7 @@ const [storageMode] = useState("online");
               <button
                 type="button"
                 onClick={() => setEditingExpense(null)}
-                className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-[11px] font-black uppercase tracking-widest text-slate-600"
+                className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-6 py-3 text-[11px] font-black uppercase tracking-widest text-emerald-200/80"
               >
                 Annuler
               </button>
@@ -5083,15 +5110,15 @@ const [storageMode] = useState("online");
       {isDepositModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsDepositModalOpen(false)} />
-          <form onSubmit={handleDeposit} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl md:p-10">
-            <button type="button" className="absolute right-6 top-6 text-slate-400" onClick={() => setIsDepositModalOpen(false)}>
+          <form onSubmit={handleDeposit} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10">
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsDepositModalOpen(false)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-slate-900">Décharge comité</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Remise physique des fonds au comité</p>
+            <h3 className="text-2xl font-black uppercase text-white">Décharge comité</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">Remise physique des fonds au comité</p>
 
-            <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/70 p-4 md:p-5">
-              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Informations de remise</p>
+            <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations de remise</p>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <input
                   type="number"
@@ -5099,14 +5126,14 @@ const [storageMode] = useState("online");
                   min="1"
                   max={Math.max(0, stats.cashInHand)}
                   placeholder="Montant remis"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-2xl font-black outline-none focus:border-blue-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-2xl font-black outline-none focus:border-blue-400"
                   value={newDeposit.amount}
                   onChange={(e) => setNewDeposit((s) => ({ ...s, amount: e.target.value }))}
                 />
                 <input
                   type="date"
                   required
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-blue-400"
+                  className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                   value={newDeposit.date}
                   onChange={(e) => setNewDeposit((s) => ({ ...s, date: e.target.value }))}
                 />
@@ -5114,30 +5141,30 @@ const [storageMode] = useState("online");
               <input
                 required
                 placeholder="Nom du responsable"
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-blue-400"
+                className="mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                 value={newDeposit.recipient}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, recipient: e.target.value }))}
               />
               <input
                 placeholder="Référence bordereau (optionnel)"
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-blue-400"
+                className="mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                 value={newDeposit.bordereauRef}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauRef: e.target.value }))}
               />
               <input
                 placeholder="Lien pièce jointe (optionnel, URL https://…)"
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-blue-400"
+                className="mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
                 value={newDeposit.bordereauUrl}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
               />
             </div>
 
-            <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-blue-700">Contrôle de caisse</p>
-              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-slate-700 md:flex-row md:items-center md:justify-between">
+            <div className="mt-4 rounded-2xl border border-yellow-500/20 bg-emerald-900/20 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-yellow-500">Contrôle de caisse</p>
+              <div className="mt-2 flex flex-col gap-1 text-[11px] font-extrabold uppercase text-emerald-100 md:flex-row md:items-center md:justify-between">
                 <span>Cash disponible: {money(stats.cashInHand)}</span>
                 <span>
-                  Solde après remise: <span className="text-blue-700">{money(stats.cashInHand - toNumber(newDeposit.amount))}</span>
+                  Solde après remise: <span className="text-yellow-500">{money(stats.cashInHand - toNumber(newDeposit.amount))}</span>
                 </span>
               </div>
             </div>
@@ -5158,12 +5185,12 @@ const [storageMode] = useState("online");
               setConfirmState(null);
             }}
           />
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            <p className="text-sm font-bold text-slate-800">{confirmState.message}</p>
+          <div className="relative w-full max-w-md rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-2xl">
+            <p className="text-sm font-bold text-emerald-50">{confirmState.message}</p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                className="rounded-2xl border border-slate-200 px-4 py-2 text-[11px] font-black uppercase text-slate-600"
+                className="rounded-2xl border border-emerald-500/20 px-4 py-2 text-[11px] font-black uppercase text-emerald-200/80"
                 onClick={() => {
                   confirmState.resolve(false);
                   setConfirmState(null);
@@ -5189,16 +5216,16 @@ const [storageMode] = useState("online");
       {urlAttachmentModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setUrlAttachmentModal(null)} />
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-black uppercase text-slate-900">Pièce jointe / lien</h3>
-            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">URL (Drive, etc.) — ou import direct d&apos;un fichier</p>
+          <div className="relative w-full max-w-lg rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-2xl">
+            <h3 className="text-lg font-black uppercase text-white">Pièce jointe / lien</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">URL (Drive, etc.) — ou import direct d&apos;un fichier</p>
             <input
-              className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+              className="mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3 text-sm"
               placeholder="https://…"
               value={urlAttachmentModal.url}
               onChange={(e) => setUrlAttachmentModal((s) => ({ ...s, url: e.target.value }))}
             />
-            <label className="mt-3 flex cursor-pointer flex-col gap-1 rounded-2xl border border-dashed border-slate-300 p-3 text-[10px] font-extrabold uppercase text-slate-500">
+            <label className="mt-3 flex cursor-pointer flex-col gap-1 rounded-2xl border border-dashed border-emerald-500/30 p-3 text-[10px] font-extrabold uppercase text-emerald-400/80">
               Fichier (PDF, image)
               <input
                 type="file"
@@ -5223,7 +5250,7 @@ const [storageMode] = useState("online");
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                className="rounded-2xl border border-slate-200 px-4 py-2 text-[11px] font-black uppercase"
+                className="rounded-2xl border border-emerald-500/20 px-4 py-2 text-[11px] font-black uppercase"
                 onClick={() => setUrlAttachmentModal(null)}
               >
                 Annuler
@@ -5249,7 +5276,7 @@ const [storageMode] = useState("online");
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setBordereauFormModal(null)} />
           <form
-            className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl"
+            className="relative w-full max-w-lg rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-6 shadow-2xl"
             onSubmit={async (e) => {
               e.preventDefault();
               const { depositId, ref, url } = bordereauFormModal;
@@ -5262,16 +5289,16 @@ const [storageMode] = useState("online");
               await applyDepositReceiptRef(depositId, String(ref).trim(), attachmentUrl);
             }}
           >
-            <h3 className="text-lg font-black uppercase text-slate-900">Bordereau comité</h3>
+            <h3 className="text-lg font-black uppercase text-white">Bordereau comité</h3>
             <input
               required
-              className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              className="mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
               placeholder="Référence bordereau"
               value={bordereauFormModal.ref}
               onChange={(e) => setBordereauFormModal((s) => ({ ...s, ref: e.target.value }))}
             />
             <input
-              className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              className="mt-3 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
               placeholder="Lien pièce jointe (optionnel)"
               value={bordereauFormModal.url}
               onChange={(e) => setBordereauFormModal((s) => ({ ...s, url: e.target.value }))}
