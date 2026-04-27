@@ -1239,7 +1239,27 @@ const [storageMode] = useState("online");
       customAmount: prepared.categoryId === "cat5" ? toNumber(prepared.customAmount) : 0,
       commsOptIn: prepared.commsOptIn !== false
     };
-    const nextMember = { ...existing, ...patch };
+    const oldMember = members.find(m => m.id === memberId);
+    const oldCat = config.categories.find(c => c.id === oldMember?.categoryId);
+    const newCat = config.categories.find(c => c.id === patch.categoryId);
+    
+    let consolidatedSurplus = oldMember?.consolidatedSurplus || 0;
+    
+    if (oldMember && oldMember.categoryId !== patch.categoryId) {
+      const oldTarget = (oldCat?.id === "cat5" ? (oldMember.customAmount || 0) : (oldCat?.amount || 0)) * config.months;
+      const newTarget = (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months;
+      
+      if (newTarget < oldTarget) {
+        consolidatedSurplus += (oldMember.paid || 0);
+      }
+    }
+
+    const nextMember = { 
+      ...existing, 
+      ...patch, 
+      consolidatedSurplus,
+      targetAmount: (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months
+    };
 
     if (managementBackendReady) {
       try {
@@ -1252,7 +1272,8 @@ const [storageMode] = useState("online");
             whatsapp: nextMember.whatsapp,
             categoryId: nextMember.categoryId,
             customAmount: nextMember.customAmount,
-            commsOptIn: nextMember.commsOptIn !== false
+            commsOptIn: nextMember.commsOptIn !== false,
+            consolidatedSurplus: nextMember.consolidatedSurplus
           }
         });
       } catch (error) {
@@ -1269,7 +1290,7 @@ const [storageMode] = useState("online");
         targetType: "member",
         targetId: memberId,
         targetLabel: nextMember.name,
-        details: "Informations du fidèle modifiées."
+        details: `Catégorie modifiée. Surplus consolidé: ${money(consolidatedSurplus)}.`
       });
       return;
     }
@@ -1284,7 +1305,7 @@ const [storageMode] = useState("online");
         targetType: "member",
         targetId: memberId,
         targetLabel: nextMember.name,
-        details: "Informations du fidèle modifiées (local)."
+        details: `Modification locale. Surplus: ${money(consolidatedSurplus)}.`
       });
       return;
     }
@@ -1295,7 +1316,8 @@ const [storageMode] = useState("online");
       district: nextMember.district,
       whatsapp: nextMember.whatsapp,
       categoryId: nextMember.categoryId,
-      customAmount: nextMember.customAmount
+      customAmount: nextMember.customAmount,
+      consolidatedSurplus: nextMember.consolidatedSurplus
     });
     setMembers((prev) => prev.map((mm) => (mm.id === memberId ? nextMember : mm)));
     if (selectedMember?.id === memberId) setSelectedMember(nextMember);
@@ -2468,15 +2490,15 @@ const [storageMode] = useState("online");
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Cinzel:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
           .glass-eden {
-            background: rgba(6, 78, 59, 0.5); /* Lighter Emerald */
+            background: rgba(255, 255, 255, 0.08); /* Brighter base */
             backdrop-filter: blur(24px);
-            border: 1px solid rgba(52, 211, 153, 0.4);
-            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(52, 211, 153, 0.5);
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.4);
           }
           .glass-eden-card {
-            background: rgba(255, 255, 255, 0.12); /* Brighter for popups */
+            background: rgba(255, 255, 255, 0.15); /* More light for cards */
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.25);
           }
           .text-gold-gradient {
             background: linear-gradient(135deg, #fde047 0%, #d97706 50%, #f59e0b 100%);
@@ -2494,25 +2516,25 @@ const [storageMode] = useState("online");
         <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
           {/* Main sunlight */}
           <motion.div 
-            className="absolute -top-[15%] -right-[5%] w-[55%] h-[55%] rounded-full bg-yellow-400/25 blur-[120px]"
+            className="absolute -top-[15%] -right-[5%] w-[60%] h-[60%] rounded-full bg-yellow-400/30 blur-[130px]"
             animate={{ 
-              scale: [1, 1.15, 1],
-              opacity: [0.4, 0.6, 0.4],
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0.8, 0.5],
             }}
             transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
           />
-          {/* Lighter emerald ambient */}
+          {/* Brighter emerald ambient */}
           <motion.div 
-            className="absolute top-[25%] -left-[15%] w-[65%] h-[65%] rounded-full bg-emerald-500/15 blur-[130px]"
+            className="absolute top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-emerald-400/25 blur-[140px]"
             animate={{ 
-              x: [0, 40, 0],
-              y: [0, 20, 0],
-              opacity: [0.3, 0.5, 0.3],
+              x: [0, 60, 0],
+              y: [0, 40, 0],
+              opacity: [0.4, 0.6, 0.4],
             }}
             transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           />
           {/* Soft gold floor reflection */}
-          <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-emerald-500/20 to-transparent blur-3xl opacity-60" />
+          <div className="absolute bottom-0 left-0 right-0 h-[50%] bg-gradient-to-t from-emerald-400/20 to-transparent blur-3xl opacity-70" />
 
 
           {/* Floating particles (spores/light dust) */}
@@ -3515,7 +3537,7 @@ const [storageMode] = useState("online");
 
                   <div className="overflow-x-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card shadow-sm border border-emerald-500/20">
                     <table className="w-full min-w-[1180px]">
-                      <thead className="bg-[#022c22] text-[10px] font-black uppercase tracking-widest text-emerald-400/80">
+                      <thead className="bg-emerald-900/60 text-[10px] font-black uppercase tracking-widest text-emerald-100">
                         <tr>
                           <th className="px-8 py-5 text-left">Fidèle</th>
                           <th className="px-8 py-5 text-left">Identité & Contact</th>
@@ -3536,28 +3558,36 @@ const [storageMode] = useState("online");
                           </tr>
                         )}
                         {filteredMembers.map((m) => {
-                          const cat = config.categories.find((c) => c.id === m.categoryId);
-                          const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
-                          const paid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
-                          const totalCommit = monthly * config.months;
-                          const progressRow = totalCommit > 0 ? Math.min(100, (paid / totalCommit) * 100) : 0;
-                          const isSettled = totalCommit > 0 && paid >= totalCommit;
-                          const fullMonths = monthly > 0 ? Math.floor(paid / monthly) : 0;
-                          const credit = monthly > 0 ? paid % monthly : 0;
-                          return (
-                            <tr
-                              key={m.id}
-                              className={`group transition-colors hover:bg-[#022c22] ${isSettled ? "bg-emerald-900/30/50" : ""}`}
-                            >
-                              <td className="px-8 py-6">
-                                <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
-                                <div className="mt-1 flex items-center gap-2">
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-100 px-2 py-0.5 rounded-md">
-                                    {cat?.label || "Libre"}
-                                  </span>
-                                  {credit > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">+ {money(credit)}</span>}
-                                </div>
-                              </td>
+                           const cat = config.categories.find((c) => c.id === m.categoryId);
+                           const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+                           const totalPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+                           const surplus = m.consolidatedSurplus || 0;
+                           const currentPaid = Math.max(0, totalPaid - surplus);
+                           
+                           const totalCommit = monthly * config.months;
+                           const progressRow = totalCommit > 0 ? Math.min(100, (currentPaid / totalCommit) * 100) : 0;
+                           const isSettled = totalCommit > 0 && currentPaid >= totalCommit;
+                           const fullMonths = monthly > 0 ? Math.floor(currentPaid / monthly) : 0;
+                           const credit = monthly > 0 ? currentPaid % monthly : 0;
+                           return (
+                             <tr
+                               key={m.id}
+                               className={`group transition-colors border-b border-emerald-500/10 hover:bg-emerald-800/20 ${isSettled ? "bg-emerald-500/10" : "bg-emerald-900/10"}`}
+                             >
+                               <td className="px-8 py-6">
+                                 <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
+                                 <div className="mt-1 flex flex-wrap items-center gap-2">
+                                   <span className="text-[9px] font-black uppercase tracking-widest text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200">
+                                     {cat?.label || "Libre"}
+                                   </span>
+                                   {surplus > 0 && (
+                                     <span className="text-[9px] font-black uppercase tracking-widest text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md border border-yellow-200" title="Surplus d'un ancien engagement">
+                                       Surplus: {money(surplus)}
+                                     </span>
+                                   )}
+                                   {credit > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400">+ Reliquat {money(credit)}</span>}
+                                 </div>
+                               </td>
                               <td className="px-8 py-6">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-emerald-200/80">
                                   {m.churchFunction || "Membre"}
@@ -4623,7 +4653,7 @@ const [storageMode] = useState("online");
               });
               if (ok) setEditingTeamUser(null);
             }}
-            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
+            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] bg-emerald-800/60 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
           >
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingTeamUser(null)}>
               <X />
@@ -4706,7 +4736,7 @@ const [storageMode] = useState("online");
       {isMemberModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsMemberModalOpen(false)} />
-          <form onSubmit={addMember} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10">
+          <form onSubmit={addMember} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-emerald-800/60 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10">
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsMemberModalOpen(false)}>
               <X />
             </button>
@@ -4810,7 +4840,7 @@ const [storageMode] = useState("online");
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingMember(null)} />
           <form
             onSubmit={saveMemberUpdate}
-            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
+            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-emerald-800/60 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10"
           >
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingMember(null)}>
               <X />
@@ -4929,7 +4959,7 @@ const [storageMode] = useState("online");
       {isPaymentModalOpen && selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/70" onClick={() => setIsPaymentModalOpen(false)} />
-          <form onSubmit={handlePayment} className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl">
+          <form onSubmit={handlePayment} className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2.5rem] bg-emerald-800/60 backdrop-blur-md glass-eden-card p-8 shadow-2xl">
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsPaymentModalOpen(false)}>
               <X />
             </button>

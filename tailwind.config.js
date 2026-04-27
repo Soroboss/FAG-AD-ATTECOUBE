@@ -5,12 +5,12 @@ export default {
     extend: {
       colors: {
         fag: {
-          primary: '#34d399', // Emerald 400 (Brighter for dark mode)
-          secondary: '#facc15', // Yellow 400 (Divine Light)
-          accent: '#d97706', // Amber 600 (Harvest)
-          dark: '#022c22', // Deep Green (Garden Night)
-          surface: '#042f2e', // Emerald Surface
-          border: '#064e3b', // Emerald Border
+          primary: '#34d399', // Emerald 400
+          secondary: '#facc15', // Yellow 400
+          accent: '#fbbf24', // Amber 400 (Brighter)
+          dark: '#064e3b', // Lighter Deep Green (was #022c22)
+          surface: '#065f46', // Lighter Emerald Surface (was #042f2e)
+          border: '#10b981', // Emerald 500 (was #064e3b)
         }
       },
       backgroundImage: {
