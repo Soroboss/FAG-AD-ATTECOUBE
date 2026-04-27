@@ -275,6 +275,7 @@ function phoneDigitVariants(raw) {
   const v = new Set([digits]);
   if (digits.length === 10 && digits.startsWith("0")) {
     v.add(digits.slice(1));
+    v.add("225" + digits);
     v.add("225" + digits.slice(1));
   }
   if (digits.length === 9) {
@@ -518,12 +519,12 @@ async function handleAddMember(dbUrl, payload, ctx) {
       );
     }
   }
-  const commsOpt = member.commsOptIn === false ? false : true;
+  const surplus = Number(member.consolidatedSurplus || 0);
   const inserted = await runQuery(
     dbUrl,
     `insert into public.members
-      (name, church_function, district, whatsapp, category_id, custom_amount, date_joined, comms_opt_in)
-     values ($1, $2, $3, $4, $5, $6, $7, $8)
+      (name, church_function, district, whatsapp, category_id, custom_amount, date_joined, comms_opt_in, consolidated_surplus)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      returning id`,
     [
       member.name || "",
@@ -533,7 +534,8 @@ async function handleAddMember(dbUrl, payload, ctx) {
       member.categoryId || "cat1",
       Number(member.customAmount || 0),
       member.dateJoined || new Date().toISOString(),
-      commsOpt
+      member.commsOptIn !== false,
+      surplus
     ]
   );
   return jsonResponse({ ok: true, id: inserted?.[0]?.id || null }, 200);
@@ -557,7 +559,7 @@ async function handleUpdateMember(dbUrl, payload, ctx) {
       return jsonResponse({ ok: false, error: "Un autre fidèle possède déjà ce numéro WhatsApp." }, 409);
     }
   }
-  const commsOpt = member.commsOptIn === false ? false : true;
+  const surplus = Number(member.consolidatedSurplus || 0);
   await runQuery(
     dbUrl,
     `update public.members
@@ -568,8 +570,9 @@ async function handleUpdateMember(dbUrl, payload, ctx) {
          category_id = $5,
          custom_amount = $6,
          comms_opt_in = $7,
+         consolidated_surplus = $8,
          updated_at = now()
-     where id = $8::uuid`,
+     where id = $9::uuid`,
     [
       member.name || "",
       member.churchFunction || null,
@@ -577,7 +580,8 @@ async function handleUpdateMember(dbUrl, payload, ctx) {
       phone,
       member.categoryId || "cat1",
       Number(member.customAmount || 0),
-      commsOpt,
+      member.commsOptIn !== false,
+      surplus,
       memberId
     ]
   );
@@ -760,6 +764,27 @@ async function runQuery(dbUrl, query, params) {
 }
 
 async function ensureDefaultAdmin(dbUrl) {
+  try {
+    await runQuery(
+      dbUrl,
+      `CREATE TABLE IF NOT EXISTS public.management_users (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          full_name TEXT NOT NULL,
+          email TEXT UNIQUE,
+          phone TEXT UNIQUE,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'consultation',
+          is_active BOOLEAN NOT NULL DEFAULT true,
+          last_login_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`,
+      []
+    );
+  } catch (e) {
+    console.error("Erreur lors de la création de la table users:", e?.message);
+  }
+
   const rows = await runQuery(dbUrl, "select count(*)::int as total from public.management_users", []);
   const total = Number(rows?.[0]?.total || 0);
   if (total > 0) return;
@@ -776,7 +801,8 @@ async function loadAppData(dbUrl) {
   const members = await runQuery(
     dbUrl,
     `select id, name, church_function, district, whatsapp, category_id, custom_amount, date_joined,
-            coalesce(comms_opt_in, true) as comms_opt_in
+            coalesce(comms_opt_in, true) as comms_opt_in,
+            coalesce(consolidated_surplus, 0) as consolidated_surplus
      from public.members
      order by created_at asc`,
     []
@@ -833,6 +859,7 @@ async function loadAppData(dbUrl) {
     customAmount: Number(row.custom_amount || 0),
     dateJoined: row.date_joined,
     commsOptIn: row.comms_opt_in !== false,
+    consolidatedSurplus: Number(row.consolidated_surplus || 0),
     payments: payByMember[row.id] || []
   }));
 

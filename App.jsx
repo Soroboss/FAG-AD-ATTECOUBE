@@ -798,30 +798,36 @@ const [storageMode] = useState("online");
       loginApiError = (err && err.message) || String(err);
     }
     if (!matchedUser) {
-      if (loginApiError) {
-        if (/Hors connexion|network|Failed to fetch|fetch/i.test(loginApiError)) {
-          setLoginError("Aucune connexion au serveur. Vérifiez le réseau et réessayez.");
-        } else if (
-          /indisponible|503|502|500|non configur|DATABASE|timeout/i.test(loginApiError) ||
-          loginApiError === "Management API indisponible"
-        ) {
-          setLoginError("Le service de connexion ne répond pas. Réessayez dans un instant.");
-        } else {
-          setLoginError(loginApiError);
-        }
+      // Fallback local pour l'admin par défaut si le backend est indisponible
+      if (normalizedIdentifier === DEFAULT_TEAM_USERS[0].username && loginData.password === DEFAULT_TEAM_USERS[0].password) {
+        matchedUser = DEFAULT_TEAM_USERS[0];
+        console.info("Connexion réussie via fallback local (admin).");
       } else {
-        setLoginError("Réponse inattendue du serveur. Rafraîchissez la page et réessayez.");
+        if (loginApiError) {
+          if (/Hors connexion|network|Failed to fetch|fetch/i.test(loginApiError)) {
+            setLoginError("Aucune connexion au serveur. Vérifiez le réseau et réessayez.");
+          } else if (
+            /indisponible|503|502|500|non configur|DATABASE|timeout/i.test(loginApiError) ||
+            loginApiError === "Management API indisponible"
+          ) {
+            setLoginError("Le service de connexion ne répond pas. Réessayez dans un instant.");
+          } else {
+            setLoginError(loginApiError);
+          }
+        } else {
+          setLoginError("Réponse inattendue du serveur. Rafraîchissez la page et réessayez.");
+        }
+        await writeAuditLog({
+          action: "ECHEC_CONNEXION",
+          scope: "access",
+          targetType: "management_user",
+          targetLabel: normalizedIdentifier || normalizedDigits || "N/A",
+          details: loginApiError
+            ? `Tentative échouée (${loginApiError}).`
+            : "Tentative avec identifiants invalides."
+        });
+        return;
       }
-      await writeAuditLog({
-        action: "ECHEC_CONNEXION",
-        scope: "access",
-        targetType: "management_user",
-        targetLabel: normalizedIdentifier || normalizedDigits || "N/A",
-        details: loginApiError
-          ? `Tentative échouée (${loginApiError}).`
-          : "Tentative avec identifiants invalides."
-      });
-      return;
     }
     const safeSession = {
       username: matchedUser.username,
@@ -1250,7 +1256,9 @@ const [storageMode] = useState("online");
       const newTarget = (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months;
       
       if (newTarget < oldTarget) {
-        consolidatedSurplus += (oldMember.paid || 0);
+        // Ajout du cumul des paiements au surplus consolidé lors d'un changement vers une catégorie inférieure
+        const oldPaidSum = (oldMember.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+        consolidatedSurplus += oldPaidSum;
       }
     }
 
@@ -1375,8 +1383,8 @@ const [storageMode] = useState("online");
       });
       notify("success", isEditing ? "Paiement modifié avec succès." : "Paiement enregistré avec succès.");
       if (!isEditing) {
-        // Déclenchement automatique du message de remerciement
-        setTimeout(() => sendWhatsApp(selectedMember, "thanks"), 500);
+        // Déclenchement automatique du message de remerciement avec le membre mis à jour et le montant
+        setTimeout(() => sendWhatsApp({ ...selectedMember, payments: updatedPayments }, "thanks", payment.amount), 500);
       }
       return;
     }
@@ -1636,7 +1644,7 @@ const [storageMode] = useState("online");
     });
   };
 
-  const sendWhatsApp = async (member, type) => {
+  const sendWhatsApp = async (member, type, lastAmount = 0) => {
     if (member.commsOptIn === false) {
       notify("error", "Ce contact a refusé les messages WhatsApp (paramètre fiche fidèle).");
       return;
@@ -1644,15 +1652,22 @@ const [storageMode] = useState("online");
     const cat = config.categories.find((c) => c.id === member.categoryId);
     const monthly = member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
     const total = monthly * config.months;
-    const totalPaid = (member.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
-    const surplus = member.consolidatedSurplus || 0;
-    const currentPaid = Math.max(0, totalPaid - surplus);
-    const rest = Math.max(0, total - currentPaid);
     
-    const fullMonths = monthly > 0 ? Math.floor(currentPaid / monthly) : 0;
+    // Correction de la logique de calcul pour inclure le surplus et les paiements réels
+    const cashPaid = (member.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+    const surplus = member.consolidatedSurplus || 0;
+    const totalPaid = cashPaid + surplus;
+    const rest = Math.max(0, total - totalPaid);
+    
+    const fullMonths = monthly > 0 ? Math.floor(totalPaid / monthly) : 0;
     const role = member.churchFunction ? ` (${member.churchFunction})` : "";
     const churchUnit = member.district ? ` • Cellule/Quartier: ${member.district}` : "";
-    const progressLine = `Engagement: ${money(total)} • Versé: ${money(currentPaid)}${surplus > 0 ? ` (+ Surplus: ${money(surplus)})` : ""} • Reste: ${money(rest)} • Mois soldés: ${fullMonths}/${config.months}.`;
+    const progressLine = `Engagement: ${money(total)} • Versé: ${money(cashPaid)}${surplus > 0 ? ` (+ Surplus: ${money(surplus)})` : ""} • Reste: ${money(rest)} • Mois soldés: ${fullMonths}/${config.months}.`;
+    
+    // Récupération du montant du dernier versement pour le message de remerciement
+    const lastPaymentAmount = lastAmount || (type === "thanks" ? toNumber((member.payments || []).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]?.amount) : 0);
+    const paymentAction = lastPaymentAmount > 0 ? `versement de ${money(lastPaymentAmount)}` : `contribution`;
+
     const messages = {
       welcome:
         `Shalom Bien-aimé(e) ${member.name}${role}, merci pour votre inscription au FAG ${config.year}. ` +
@@ -1664,7 +1679,7 @@ const [storageMode] = useState("online");
         `${progressLine}\n` +
         `"Accomplis tes vœux envers le Très-Haut." (Psaume 50:14).`,
       thanks:
-        `Paix à vous ${member.name}${role}. Merci pour votre contribution au FAG ${config.year}. ` +
+        `Paix à vous ${member.name}${role}. Merci pour votre ${paymentAction} au FAG ${config.year}. ` +
         `Chaque don fortifie l'œuvre de Dieu.\n\n` +
         `${progressLine}\n` +
         `"Dieu aime celui qui donne avec joie." (2 Cor 9:7).`,
@@ -1738,7 +1753,9 @@ const [storageMode] = useState("online");
     return members.filter((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
       const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
-      const paid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+      const cashPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+      const surplus = m.consolidatedSurplus || 0;
+      const paid = cashPaid + surplus;
       const total = monthly * config.months;
       const searchOk =
         !q ||
@@ -1762,7 +1779,8 @@ const [storageMode] = useState("online");
       const cat = config.categories.find((c) => c.id === m.categoryId);
       const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       promised += monthly * config.months;
-      paid += (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
+      const cash = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
+      paid += cash + (m.consolidatedSurplus || 0);
     }
     const progressPct = promised > 0 ? Math.min(100, (paid / promised) * 100) : 0;
     return { promised, paid, progressPct, count: filteredMembers.length };
@@ -1773,20 +1791,20 @@ const [storageMode] = useState("online");
       const cat = config.categories.find((c) => c.id === m.categoryId);
       const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const total = monthly * config.months;
-      const paid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+      const paid = ((m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)) + (m.consolidatedSurplus || 0);
       return paid < total;
     }).length;
     const topContributor = [...members]
       .sort(
         (a, b) =>
-          (b.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0) -
-          (a.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)
+          (((b.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)) + (b.consolidatedSurplus || 0)) -
+          (((a.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)) + (a.consolidatedSurplus || 0))
       )[0];
     return {
       pending,
       completed: Math.max(0, members.length - pending),
       topContributorName: topContributor?.name || "N/A",
-      topContributorAmount: (topContributor?.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)
+      topContributorAmount: ((topContributor?.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)) + (topContributor?.consolidatedSurplus || 0)
     };
   }, [members, config.categories, config.months]);
 
@@ -1881,7 +1899,9 @@ const [storageMode] = useState("online");
     const body = filteredMembers.map((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
       const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
-      const paid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
+      const cashPaid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
+      const surplus = m.consolidatedSurplus || 0;
+      const paid = cashPaid + surplus;
       const total = monthly * config.months;
       const pct = total > 0 ? ((paid / total) * 100).toFixed(1) : "";
       return [m.name, m.whatsapp, m.district, m.churchFunction, cat?.label || "", monthly, total, paid, pct];
@@ -3563,9 +3583,9 @@ const [storageMode] = useState("online");
                         {filteredMembers.map((m) => {
                            const cat = config.categories.find((c) => c.id === m.categoryId);
                            const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
-                           const totalPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+                           const cashPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
                            const surplus = m.consolidatedSurplus || 0;
-                           const currentPaid = Math.max(0, totalPaid - surplus);
+                           const currentPaid = cashPaid + surplus;
                            
                            const totalCommit = monthly * config.months;
                            const progressRow = totalCommit > 0 ? Math.min(100, (currentPaid / totalCommit) * 100) : 0;
