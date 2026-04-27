@@ -4049,6 +4049,7 @@ const [storageMode] = useState("online");
                                     className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-400 border border-orange-200 hover:bg-orange-200 transition-all"
                                   >
                                     Saisir réf.
+                                  </button>
                                 )}
                               </td>
                               <td className="px-8 py-6 text-center">
