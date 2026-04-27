@@ -342,6 +342,7 @@ const [storageMode] = useState("online");
     role: "tresorier"
   });
   const [editingTeamUser, setEditingTeamUser] = useState(null);
+  const [editingDeposit, setEditingDeposit] = useState(null);
   const [managementBackendReady, setManagementBackendReady] = useState(false);
   const [backendError, setBackendError] = useState("");
   const [flashMessage, setFlashMessage] = useState(null);
@@ -2190,6 +2191,84 @@ const [storageMode] = useState("online");
     });
   };
 
+  const openEditDepositModal = (d) => {
+    setEditingDeposit({
+      id: d.id,
+      recipient: d.recipient || "",
+      amount: String(d.amount || ""),
+      date: d.date || new Date().toISOString().split("T")[0],
+      bordereauRef: d.bordereauRef || "",
+      bordereauUrl: d.bordereauUrl || ""
+    });
+  };
+
+  const saveDepositUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingDeposit?.recipient?.trim() || !editingDeposit?.amount) {
+      notify("error", \"Indiquez le responsable et le montant.\");
+      return;
+    }
+    const dId = editingDeposit.id;
+    const patch = {
+      recipient: editingDeposit.recipient.trim(),
+      amount: toNumber(editingDeposit.amount),
+      date: editingDeposit.date,
+      bordereauRef: editingDeposit.bordereauRef.trim(),
+      bordereauUrl: editingDeposit.bordereauUrl.trim(),
+      isDeposited: !!(editingDeposit.bordereauRef.trim() || editingDeposit.bordereauUrl.trim())
+    };
+
+    if (managementBackendReady) {
+      try {
+        await callManagementApi(\"updateDeposit\", {
+          depositId: dId,
+          deposit: patch
+        });
+      } catch (error) {
+        // Fallback
+      }
+      setDeposits((prev) => prev.map((d) => (d.id === dId ? { ...d, ...patch } : d)));
+      setEditingDeposit(null);
+      notify(\"success\", \"Remise mise à jour.\");
+      await writeAuditLog({
+        action: \"MODIFICATION_REMISE\",
+        scope: \"finance\",
+        targetType: \"deposit\",
+        targetId: dId,
+        targetLabel: patch.recipient,
+        details: `Modification: ${money(patch.amount)}.`
+      });
+      return;
+    }
+    if (storageMode === \"local\") {
+      setDeposits((prev) => prev.map((d) => (d.id === dId ? { ...d, ...patch } : d)));
+      setEditingDeposit(null);
+      notify(\"success\", \"Remise mise à jour.\");
+      writeAuditLog({
+        action: \"MODIFICATION_REMISE\",
+        scope: \"finance\",
+        targetType: \"deposit\",
+        targetId: dId,
+        targetLabel: patch.recipient,
+        details: `Modification (local): ${money(patch.amount)}.`
+      });
+      return;
+    }
+    if (!user) return;
+    await updateDoc(doc(db, \"artifacts\", appId, \"public\", \"data\", \"deposits\", dId), patch);
+    setDeposits((prev) => prev.map((d) => (d.id === dId ? { ...d, ...patch } : d)));
+    setEditingDeposit(null);
+    notify(\"success\", \"Remise mise à jour.\");
+    writeAuditLog({
+      action: \"MODIFICATION_REMISE\",
+      scope: \"finance\",
+      targetType: \"deposit\",
+      targetId: dId,
+      targetLabel: patch.recipient,
+      details: `Modification: ${money(patch.amount)}.`
+    });
+  };
+
   const tryUploadDepositFile = async (file) => {
     const base =
       import.meta.env?.VITE_INSFORGE_URL ||
@@ -3975,6 +4054,13 @@ const [storageMode] = useState("online");
                               <td className="px-8 py-6 text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   <button
+                                    onClick={() => openEditDepositModal(d)}
+                                    className="p-2.5 rounded-xl bg-emerald-900/40 text-emerald-400/80 hover:bg-emerald-800/40 hover:text-white transition-all"
+                                    title="Modifier"
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button
                                     onClick={async () => {
                                       if (!(await askConfirm("Supprimer cette remise ?"))) return;
                                       await removeDeposit(d.id);
@@ -5144,6 +5230,71 @@ const [storageMode] = useState("online");
             <button type="submit" className="mt-6 w-full rounded-2xl bg-blue-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/20">
               Valider la remise
             </button>
+          </form>
+        </div>
+      )}
+
+      {editingDeposit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70" onClick={() => setEditingDeposit(null)} />
+          <form onSubmit={saveDepositUpdate} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-2xl md:p-10">
+            <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingDeposit(null)}>
+              <X />
+            </button>
+            <h3 className="text-2xl font-black uppercase text-white">Modifier la remise</h3>
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">Mise à jour de la décharge comité</p>
+
+            <div className="mt-6 rounded-3xl border border-emerald-500/10 bg-[#022c22]/70 p-4 md:p-5">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">Informations de remise</p>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <input type="number"
+                  required
+                  min="1"
+                  placeholder="Montant remis"
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 text-2xl font-black outline-none focus:border-blue-400"
+                  value={editingDeposit.amount}
+                  onChange={(e) => setEditingDeposit((s) => ({ ...s, amount: e.target.value }))}
+                />
+                <input type="date"
+                  required
+                  className="text-white rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+                  value={editingDeposit.date}
+                  onChange={(e) => setEditingDeposit((s) => ({ ...s, date: e.target.value }))}
+                />
+              </div>
+              <input required
+                placeholder="Nom du responsable"
+                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+                value={editingDeposit.recipient}
+                onChange={(e) => setEditingDeposit((s) => ({ ...s, recipient: e.target.value }))}
+              />
+              <input placeholder="Référence bordereau"
+                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+                value={editingDeposit.bordereauRef}
+                onChange={(e) => setEditingDeposit((s) => ({ ...s, bordereauRef: e.target.value }))}
+              />
+              <input placeholder="Lien pièce jointe"
+                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
+                value={editingDeposit.bordereauUrl}
+                onChange={(e) => setEditingDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
+              />
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEditingDeposit(null)}
+                className="rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-6 py-3 text-[11px] font-black uppercase tracking-widest text-emerald-200/80"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="rounded-2xl bg-blue-600 px-6 py-3 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/20"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
           </form>
         </div>
       )}
