@@ -2205,7 +2205,7 @@ const [storageMode] = useState("online");
   const saveDepositUpdate = async (e) => {
     e.preventDefault();
     if (!editingDeposit?.recipient?.trim() || !editingDeposit?.amount) {
-      notify("error", \"Indiquez le responsable et le montant.\");
+      notify("error", "Indiquez le responsable et le montant.");
       return;
     }
     const dId = editingDeposit.id;
@@ -2220,7 +2220,7 @@ const [storageMode] = useState("online");
 
     if (managementBackendReady) {
       try {
-        await callManagementApi(\"updateDeposit\", {
+        await callManagementApi("updateDeposit", {
           depositId: dId,
           deposit: patch
         });
@@ -2229,25 +2229,25 @@ const [storageMode] = useState("online");
       }
       setDeposits((prev) => prev.map((d) => (d.id === dId ? { ...d, ...patch } : d)));
       setEditingDeposit(null);
-      notify(\"success\", \"Remise mise à jour.\");
+      notify("success", "Remise mise à jour.");
       await writeAuditLog({
-        action: \"MODIFICATION_REMISE\",
-        scope: \"finance\",
-        targetType: \"deposit\",
+        action: "MODIFICATION_REMISE",
+        scope: "finance",
+        targetType: "deposit",
         targetId: dId,
         targetLabel: patch.recipient,
         details: `Modification: ${money(patch.amount)}.`
       });
       return;
     }
-    if (storageMode === \"local\") {
+    if (storageMode === "local") {
       setDeposits((prev) => prev.map((d) => (d.id === dId ? { ...d, ...patch } : d)));
       setEditingDeposit(null);
-      notify(\"success\", \"Remise mise à jour.\");
+      notify("success", "Remise mise à jour.");
       writeAuditLog({
-        action: \"MODIFICATION_REMISE\",
-        scope: \"finance\",
-        targetType: \"deposit\",
+        action: "MODIFICATION_REMISE",
+        scope: "finance",
+        targetType: "deposit",
         targetId: dId,
         targetLabel: patch.recipient,
         details: `Modification (local): ${money(patch.amount)}.`
@@ -2255,14 +2255,14 @@ const [storageMode] = useState("online");
       return;
     }
     if (!user) return;
-    await updateDoc(doc(db, \"artifacts\", appId, \"public\", \"data\", \"deposits\", dId), patch);
+    await updateDoc(doc(db, "artifacts", appId, "public", "data", "deposits", dId), patch);
     setDeposits((prev) => prev.map((d) => (d.id === dId ? { ...d, ...patch } : d)));
     setEditingDeposit(null);
-    notify(\"success\", \"Remise mise à jour.\");
+    notify("success", "Remise mise à jour.");
     writeAuditLog({
-      action: \"MODIFICATION_REMISE\",
-      scope: \"finance\",
-      targetType: \"deposit\",
+      action: "MODIFICATION_REMISE",
+      scope: "finance",
+      targetType: "deposit",
       targetId: dId,
       targetLabel: patch.recipient,
       details: `Modification: ${money(patch.amount)}.`
