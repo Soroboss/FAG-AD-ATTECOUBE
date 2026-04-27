@@ -3519,7 +3519,7 @@ const [storageMode] = useState("online");
                                 </div>
                               </td>
                               <td className="px-8 py-6 text-center">
-                                <div className="flex flex-wrap items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex flex-wrap items-center justify-center gap-2 transition-all">
                                   <button
                                     type="button"
                                     onClick={() => openEditMemberModal(m)}
@@ -3715,7 +3715,7 @@ const [storageMode] = useState("online");
                             <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-emerald-400/80">{e.method || "Espèces"}</td>
                             <td className="px-8 py-6 text-right font-black text-red-600">{money(e.amount)}</td>
                             <td className="px-8 py-6 text-center">
-                              <div className="flex flex-wrap items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex flex-wrap items-center justify-center gap-2 transition-all">
                                 <button
                                   onClick={() => openEditExpense(e)}
                                   className="p-2.5 rounded-xl bg-emerald-900/40 text-emerald-400/80 hover:bg-emerald-800/40 hover:text-white transition-all"
@@ -3970,8 +3970,21 @@ const [storageMode] = useState("online");
                                     className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-400 border border-orange-200 hover:bg-orange-200 transition-all"
                                   >
                                     Saisir réf.
-                                  </button>
                                 )}
+                              </td>
+                              <td className="px-8 py-6 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={async () => {
+                                      if (!(await askConfirm("Supprimer cette remise ?"))) return;
+                                      await removeDeposit(d.id);
+                                    }}
+                                    className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
