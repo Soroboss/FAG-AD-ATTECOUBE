@@ -17,9 +17,21 @@ export default async function handler(req) {
     return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
   }
 
-  const dbUrl = process.env.DATABASE_URL || process.env.INSFORGE_BASE_URL;
+  // Deno runtime: use Deno.env.get first, fallback to process.env for Node compat
+  const getEnv = (key) => {
+    try { return Deno?.env?.get?.(key); } catch { /* noop */ }
+    try { return process?.env?.[key]; } catch { /* noop */ }
+    return undefined;
+  };
+
+  const dbUrl =
+    getEnv("DATABASE_URL") ||
+    getEnv("INSFORGE_BASE_URL") ||
+    process.env.DATABASE_URL ||
+    process.env.INSFORGE_BASE_URL;
+
   if (!dbUrl) {
-    return jsonResponse({ ok: false, error: "DATABASE_URL non configuré" }, 503);
+    return jsonResponse({ ok: false, error: "DATABASE_URL non configuré - variables d'env manquantes" }, 503);
   }
 
   try {
@@ -48,6 +60,18 @@ export default async function handler(req) {
       return jsonResponse({ ok: true, users, logs, ...appData }, 200);
     }
 
+    if (action === "debugEnv") {
+      return jsonResponse({ 
+        ok: true, 
+        DenoEnv: typeof Deno !== 'undefined' ? {
+          INSFORGE_URL: Deno.env.get("INSFORGE_URL"),
+          DATABASE_URL: Deno.env.get("DATABASE_URL"),
+          INSFORGE_BASE_URL: Deno.env.get("INSFORGE_BASE_URL"),
+          API_KEY: !!Deno.env.get("API_KEY")
+        } : "No Deno"
+      }, 200);
+    }
+    
     if (action === "getAppData") {
       const appData = await loadAppData(dbUrl);
       return jsonResponse({ ok: true, ...appData }, 200);
@@ -743,16 +767,36 @@ async function handleUpdateDepositAttachment(dbUrl, payload) {
 }
 
 async function runQuery(dbUrl, query, params) {
-  const apiKey = process.env.API_KEY;
-  const res = await fetch(`${dbUrl}/api/database/advance/rawsql`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      apikey: apiKey
-    },
-    body: JSON.stringify({ query, params })
-  });
+  // Deno runtime support
+  const getEnvVal = (key) => {
+    try { return Deno?.env?.get?.(key); } catch { /* noop */ }
+    try { return process?.env?.[key]; } catch { /* noop */ }
+    return undefined;
+  };
+  const apiKey = getEnvVal("API_KEY") || getEnvVal("INSFORGE_API_KEY") || getEnvVal("INSFORGE_ADMIN_KEY") || getEnvVal("INSFORGE_SERVICE_ROLE_KEY");
+  let baseUrl = getEnvVal("INSFORGE_BASE_URL") || getEnvVal("INSFORGE_URL") || dbUrl;
+  if (baseUrl && baseUrl.startsWith("postgres")) {
+    baseUrl = "https://7sr4t2xf.eu-central.insforge.app"; // Fallback to hardcoded URL if only postgres string is available
+  }
+  // Use internal rawsql endpoint with admin API key
+  const url = `${baseUrl}/api/database/advance/rawsql`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+  let res;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        apikey: apiKey || ""
+      },
+      body: JSON.stringify({ query, params: params || [] }),
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(text || `SQL error ${res.status}`);

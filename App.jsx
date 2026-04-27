@@ -58,7 +58,7 @@ const appId = typeof __app_id !== "undefined" ? __app_id : "fag-2026-prod";
 const insforgeFunctionsBase =
   typeof __insforge_functions_base !== "undefined" && __insforge_functions_base
     ? __insforge_functions_base
-    : "https://7sr4t2xf.functions.insforge.app";
+    : "https://zx2bx4r6.functions.insforge.app";
 const managementApiUrl = `${insforgeFunctionsBase}/management-api`;
 const LANDING_IMAGES = {
   hero: "/landing/hero-eglise-ivoirienne.png",
