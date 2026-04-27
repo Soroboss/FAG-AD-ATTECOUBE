@@ -2468,15 +2468,15 @@ const [storageMode] = useState("online");
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&family=Cinzel:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
           .glass-eden {
-            background: rgba(4, 47, 46, 0.4);
+            background: rgba(6, 78, 59, 0.5); /* Lighter Emerald */
             backdrop-filter: blur(24px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.6);
           }
           .glass-eden-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12); /* Brighter for popups */
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
           }
           .text-gold-gradient {
             background: linear-gradient(135deg, #fde047 0%, #d97706 50%, #f59e0b 100%);
@@ -2494,26 +2494,26 @@ const [storageMode] = useState("online");
         <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
           {/* Main sunlight */}
           <motion.div 
-            className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-yellow-500/20 blur-[150px]"
+            className="absolute -top-[15%] -right-[5%] w-[55%] h-[55%] rounded-full bg-yellow-400/25 blur-[120px]"
             animate={{ 
-              scale: [1, 1.1, 1],
+              scale: [1, 1.15, 1],
+              opacity: [0.4, 0.6, 0.4],
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Lighter emerald ambient */}
+          <motion.div 
+            className="absolute top-[25%] -left-[15%] w-[65%] h-[65%] rounded-full bg-emerald-500/15 blur-[130px]"
+            animate={{ 
+              x: [0, 40, 0],
+              y: [0, 20, 0],
               opacity: [0.3, 0.5, 0.3],
             }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           />
-          {/* Deep green ambient */}
-          <motion.div 
-            className="absolute top-[30%] -left-[20%] w-[70%] h-[70%] rounded-full bg-emerald-900/40 blur-[150px]"
-            animate={{ 
-              x: [0, 50, 0],
-              y: [0, 30, 0],
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {/* Subtle gold glow at bottom */}
-          <motion.div 
-            className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-amber-600/10 blur-[120px]"
-          />
+          {/* Soft gold floor reflection */}
+          <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-emerald-500/20 to-transparent blur-3xl opacity-60" />
+
 
           {/* Floating particles (spores/light dust) */}
           {[...Array(15)].map((_, i) => (
