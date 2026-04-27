@@ -1644,12 +1644,15 @@ const [storageMode] = useState("online");
     const cat = config.categories.find((c) => c.id === member.categoryId);
     const monthly = member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
     const total = monthly * config.months;
-    const paid = (member.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
-    const rest = total - paid;
-    const fullMonths = monthly > 0 ? Math.floor(paid / monthly) : 0;
+    const totalPaid = (member.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+    const surplus = member.consolidatedSurplus || 0;
+    const currentPaid = Math.max(0, totalPaid - surplus);
+    const rest = Math.max(0, total - currentPaid);
+    
+    const fullMonths = monthly > 0 ? Math.floor(currentPaid / monthly) : 0;
     const role = member.churchFunction ? ` (${member.churchFunction})` : "";
     const churchUnit = member.district ? ` • Cellule/Quartier: ${member.district}` : "";
-    const progressLine = `Engagement: ${money(total)} • Versé: ${money(paid)} • Reste: ${money(rest)} • Mois soldés: ${fullMonths}/${config.months}.`;
+    const progressLine = `Engagement: ${money(total)} • Versé: ${money(currentPaid)}${surplus > 0 ? ` (+ Surplus: ${money(surplus)})` : ""} • Reste: ${money(rest)} • Mois soldés: ${fullMonths}/${config.months}.`;
     const messages = {
       welcome:
         `Shalom Bien-aimé(e) ${member.name}${role}, merci pour votre inscription au FAG ${config.year}. ` +
@@ -1705,27 +1708,27 @@ const [storageMode] = useState("online");
       if (!response.ok || !payload?.ok) {
         throw new Error(payload?.error || "Envoi backend indisponible");
       }
-      notify("success", "Message WhatsApp envoyé avec succès.");
+      notify("success", "Message WhatsApp déclenché.");
       writeAuditLog({
         action: "ENVOI_WHATSAPP",
         scope: "communication",
         targetType: "member",
         targetId: member.id,
         targetLabel: member.name,
-        details: `Message ${type} envoyé via backend.`
+        details: `Message ${type} envoyé via backend et ouverture onglet.`
       });
-      return;
+      window.open(`https://wa.me/${normalizedPhone}?text=${encodeURIComponent(finalMessage)}`, "_blank");
     } catch (error) {
       console.warn("WhatsApp backend fallback:", error?.message || error);
       window.open(`https://wa.me/${normalizedPhone}?text=${encodeURIComponent(finalMessage)}`, "_blank");
-      notify("success", "WhatsApp ouvert. Validez l'envoi manuellement.");
+      notify("success", "Ouverture WhatsApp Web dans un nouvel onglet.");
       writeAuditLog({
         action: "ENVOI_WHATSAPP",
         scope: "communication",
         targetType: "member",
         targetId: member.id,
         targetLabel: member.name,
-        details: `Fallback WhatsApp Web pour message ${type}.`
+        details: `Ouverture manuelle WhatsApp pour message ${type}.`
       });
     }
   };
@@ -3611,7 +3614,7 @@ const [storageMode] = useState("online");
                                   ))}
                                 </div>
                               </td>
-                              <td className="px-8 py-6 text-right font-black text-white">{money(paid)}</td>
+                              <td className="px-8 py-6 text-right font-black text-white">{money(currentPaid)}</td>
                               <td className="px-8 py-6">
                                 <div className="mx-auto max-w-[140px]">
                                   <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest mb-2">
