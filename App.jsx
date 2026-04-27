@@ -1123,6 +1123,8 @@ const [storageMode] = useState("online");
           });
           setIsMemberModalOpen(false);
           notify("success", "Fidèle créé avec succès.");
+          // Déclenchement automatique du message d'accueil
+          setTimeout(() => sendWhatsApp({ ...cloudMember, id: result.id }, "welcome"), 500);
         } else {
           throw new Error("Création refusée par le serveur.");
         }
@@ -1153,6 +1155,8 @@ const [storageMode] = useState("online");
         commsOptIn: true
       });
       setIsMemberModalOpen(false);
+      // Déclenchement automatique du message d'accueil (local)
+      setTimeout(() => sendWhatsApp(localMember, "welcome"), 500);
       writeAuditLog({
         action: "CREATION_FIDELE",
         scope: "finance",
@@ -1179,6 +1183,8 @@ const [storageMode] = useState("online");
       commsOptIn: true
     });
     setIsMemberModalOpen(false);
+    // Déclenchement automatique du message d'accueil (Firebase legacy)
+    setTimeout(() => sendWhatsApp(preparedMember, "welcome"), 500);
     writeAuditLog({
       action: "CREATION_FIDELE",
       scope: "finance",
@@ -1345,6 +1351,10 @@ const [storageMode] = useState("online");
         details: isEditing ? `Paiement modifié: ${money(payment.amount)} via ${payment.method}.` : `${money(payment.amount)} via ${payment.method}.`
       });
       notify("success", isEditing ? "Paiement modifié avec succès." : "Paiement enregistré avec succès.");
+      if (!isEditing) {
+        // Déclenchement automatique du message de remerciement
+        setTimeout(() => sendWhatsApp(selectedMember, "thanks"), 500);
+      }
       return;
     }
     if (storageMode === "local") {
@@ -2875,13 +2885,13 @@ const [storageMode] = useState("online");
         </aside>
 
         <main className="relative min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:ml-72 md:h-screen md:overflow-y-auto md:p-8 lg:p-10">
-          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2.5rem] border border-emerald-500/20 bg-[#042f2e]/80 backdrop-blur-xl glass-eden-card px-8 py-6 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+          <header className="sticky top-0 z-30 mb-8 flex flex-col gap-6 rounded-[2rem] border border-emerald-500/30 bg-[#064e3b] px-8 py-5 shadow-2xl md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <div className="flex items-center gap-3 mb-1">
+              <div className="flex items-center gap-3 mb-0.5">
                 <div className="h-1.5 w-1.5 rounded-full bg-fag-primary animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400/80">Système de Pilotage</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">Pilotage FAG</span>
               </div>
-              <h2 className="text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
+              <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
                 {activeTab === "dashboard" && "Dashboard"}
                 {activeTab === "members" && "Fidèles"}
                 {activeTab === "expenses" && "Dépenses"}
@@ -2889,23 +2899,17 @@ const [storageMode] = useState("online");
                 {activeTab === "marketing" && "Communication"}
                 {activeTab === "settings" && "Paramètres"}
               </h2>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-100 text-emerald-400" : "bg-red-100 text-red-400"}`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${managementBackendReady ? "bg-emerald-500/20 text-emerald-300" : "bg-red-500/20 text-red-400"}`}
                 >
-                  <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${managementBackendReady ? "bg-emerald-900/300" : "bg-red-500"}`} />
-                  {managementBackendReady ? "Service en ligne" : "Service indisponible"}
+                  {managementBackendReady ? "Online" : "Offline"}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${netOnline ? "bg-emerald-800/40 text-emerald-100" : "bg-amber-100 text-amber-800"}`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest ${netOnline ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-400"}`}
                 >
-                  {netOnline ? "Réseau OK" : "Hors ligne"}
+                  {netOnline ? "Connecté" : "Déconnecté"}
                 </span>
-                {config.financeLocked && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-orange-800">
-                    Compta verrouillée
-                  </span>
-                )}
               </div>
               <p className="mt-2 border-l-4 border-emerald-500 pl-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-400/80">
                 Trésorerie synchronisée • {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
@@ -3294,11 +3298,7 @@ const [storageMode] = useState("online");
                   <div className="rounded-[2rem] border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Module fidèles</h2>
-                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-emerald-200/80">
-                          Gérez les inscriptions, les engagements par catégorie et les encaissements. La recherche porte sur le nom, le WhatsApp,
-                          le quartier et la fonction.
-                        </p>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Gestion Fidèles</h2>
                       </div>
                       <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Vue filtrée</p>
@@ -3576,10 +3576,7 @@ const [storageMode] = useState("online");
                   <div className="rounded-[2rem] border border-red-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Module dépenses</h2>
-                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-emerald-200/80">
-                          Sorties de caisse validées : suivi par poste budgétaire et par mode de règlement. Le tableau est trié par date (plus récent en premier).
-                        </p>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Sorties de Caisse</h2>
                       </div>
                       <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Lignes filtrées</p>
@@ -3808,11 +3805,9 @@ const [storageMode] = useState("online");
                   <div className="rounded-[2rem] border border-yellow-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Module comité &amp; banque</h2>
-                        <p className="mt-1 max-w-2xl text-[11px] font-bold leading-relaxed text-emerald-200/80">
-                          Historique des décharges de caisse vers le comité : traçabilité par responsable, montant et référence de bordereau. Les lignes
-                          sans référence sont mises en évidence pour complétion rapide.
-                        </p>
+                      <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white">Comité &amp; Banque</h2>
+                      </div>
                       </div>
                       <div className="rounded-xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card/90 px-3 py-2 text-center shadow-sm md:text-left">
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Vue filtrée</p>
@@ -3990,19 +3985,19 @@ const [storageMode] = useState("online");
               {activeTab === "marketing" && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Contacts ciblés</p>
-                      <p className="mt-2 text-2xl font-black text-white">{marketingMembers.length}</p>
+                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4 shadow-sm border border-emerald-500/20">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Ciblés</p>
+                      <p className="mt-1 text-2xl font-black text-white">{marketingMembers.length}</p>
                     </div>
-                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Filtre actif</p>
-                      <p className="mt-2 text-sm font-black uppercase text-emerald-400">
-                        {marketingFilter === "all" ? "Tous les fidèles" : marketingFilter === "pending" ? "Reliquats" : "Soldés"}
+                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4 shadow-sm border border-emerald-500/20">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Filtre</p>
+                      <p className="mt-1 text-sm font-black uppercase text-emerald-400">
+                        {marketingFilter === "all" ? "Tous" : marketingFilter === "pending" ? "Reliquats" : "Soldés"}
                       </p>
                     </div>
-                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-5 shadow-sm border border-emerald-500/20">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Objectif relationnel</p>
-                      <p className="mt-2 text-sm font-black uppercase text-emerald-50">Écoute, amour, fidélité</p>
+                    <div className="rounded-3xl bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4 shadow-sm border border-emerald-500/20">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Objectif</p>
+                      <p className="mt-1 text-sm font-black uppercase text-emerald-50">Écoute & Foi</p>
                     </div>
                   </div>
 
@@ -4010,14 +4005,11 @@ const [storageMode] = useState("online");
                     <div className="relative w-full lg:max-w-xl">
                       <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                       <input className="text-white w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card py-3 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500"
-                        placeholder="Rechercher un contact (nom/WhatsApp)"
+                        placeholder="Rechercher (nom/WhatsApp)"
                         value={marketingSearchTerm}
                         onChange={(e) => setMarketingSearchTerm(e.target.value)}
                       />
                     </div>
-                    <p className="mt-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
-                      Conseil: alterner inscription puis engagement puis merci puis rappel pour un suivi fraternel complet.
-                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
