@@ -79,7 +79,8 @@ const DEFAULT_CONFIG = {
     { id: "cat2", label: "Or", amount: 15000, targetPeople: 50 },
     { id: "cat3", label: "Argent", amount: 10000, targetPeople: 50 },
     { id: "cat4", label: "Bronze", amount: 5000, targetPeople: 50 },
-    { id: "cat5", label: "Hors Gabarit", amount: 0, targetPeople: 0 }
+    { id: "cat5", label: "Hors Gabarit (Mensuel)", amount: 0, targetPeople: 0 },
+    { id: "cat6", label: "Somme Fixe Globale", amount: 0, targetPeople: 0 }
   ]
 };
 
@@ -199,6 +200,7 @@ const CHURCH_FUNCTION_OPTIONS = [
   "Responsable jeunesse",
   "Responsable femmes",
   "Chorale",
+  "Service média",
   "Instrumentiste",
   "Membre"
 ];
@@ -506,7 +508,23 @@ const [storageMode] = useState("online");
     if (Array.isArray(apiData.members)) setMembers(apiData.members);
     if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
     if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
-    if (apiData.config) setConfig((prev) => ({ ...DEFAULT_CONFIG, ...prev, ...apiData.config }));
+    if (apiData.config) {
+      setConfig((prev) => {
+        const merged = { ...DEFAULT_CONFIG, ...prev, ...apiData.config };
+        if (merged.categories && Array.isArray(merged.categories)) {
+          const c5 = merged.categories.find(c => c.id === "cat5");
+          if (!c5) {
+            merged.categories.push({ id: "cat5", label: "Hors Gabarit (Mensuel)", amount: 0, targetPeople: 0 });
+          } else if (c5.label === "Hors Gabarit") {
+            c5.label = "Hors Gabarit (Mensuel)";
+          }
+          if (!merged.categories.find(c => c.id === "cat6")) {
+            merged.categories.push({ id: "cat6", label: "Somme Fixe Globale", amount: 0, targetPeople: 0 });
+          }
+        }
+        return merged;
+      });
+    }
     if (Array.isArray(apiData.whatsAppLogs)) setWhatsAppLogs(apiData.whatsAppLogs);
   };
 
@@ -649,7 +667,7 @@ const [storageMode] = useState("online");
 
     members.forEach((member) => {
       const cat = config.categories.find((c) => c.id === member.categoryId);
-      const monthlyAmount = member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
+      const monthlyAmount = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
       const memberCommitted = monthlyAmount * config.months;
       const memberCollected = (member.payments || []).reduce((sum, p) => {
         const amount = toNumber(p.amount);
@@ -932,23 +950,40 @@ const [storageMode] = useState("online");
 
   const toggleTeamUserStatus = async (userId) => {
     const target = teamUsers.find((u) => u.id === userId);
+    if (!target) return;
+    // Empêcher l'admin de se désactiver lui-même
+    if (sessionUser?.id === userId) {
+      notify("error", "Vous ne pouvez pas désactiver votre propre compte.");
+      return;
+    }
     const nextStatus = !(target?.isActive !== false);
+    const actionLabel = nextStatus ? "activer" : "désactiver";
+    const confirmed = await askConfirm(
+      `Voulez-vous ${actionLabel} le compte de "${target.fullName || target.username}" ?
+${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne pourra plus se connecter."}`
+    );
+    if (!confirmed) return;
     if (!managementBackendReady) {
       notify("error", "Serveur de données indisponible.");
       return;
     }
-    await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
-    setTeamUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, isActive: nextStatus } : u))
-    );
-    await writeAuditLog({
-      action: nextStatus ? "ACTIVATION_COMPTE_GESTION" : "DESACTIVATION_COMPTE_GESTION",
-      scope: "users",
-      targetType: "management_user",
-      targetId: userId,
-      targetLabel: target?.fullName || target?.username || userId,
-      details: nextStatus ? "Compte réactivé." : "Compte désactivé."
-    });
+    try {
+      await callManagementApi("toggleUserStatus", { userId, isActive: nextStatus });
+      setTeamUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, isActive: nextStatus } : u))
+      );
+      notify("success", nextStatus ? `✅ Compte de ${target.fullName || target.username} activé.` : `🚫 Compte de ${target.fullName || target.username} désactivé.`);
+      await writeAuditLog({
+        action: nextStatus ? "ACTIVATION_COMPTE_GESTION" : "DESACTIVATION_COMPTE_GESTION",
+        scope: "users",
+        targetType: "management_user",
+        targetId: userId,
+        targetLabel: target?.fullName || target?.username || userId,
+        details: nextStatus ? "Compte réactivé par l'administrateur." : "Compte désactivé par l'administrateur."
+      });
+    } catch (err) {
+      notify("error", `Erreur : ${err?.message || "Impossible de modifier le statut."}`);
+    }
   };
 
   const updateTeamUserRole = async (userId, role) => {
@@ -1212,7 +1247,7 @@ const [storageMode] = useState("online");
       district: m.district || "",
       whatsapp: m.whatsapp || "",
       categoryId: m.categoryId || "cat1",
-      customAmount: m.categoryId === "cat5" ? String(m.customAmount ?? "") : "",
+      customAmount: ["cat5", "cat6"].includes(m.categoryId) ? String(m.customAmount ?? "") : "",
       commsOptIn: m.commsOptIn !== false
     });
   };
@@ -1242,7 +1277,7 @@ const [storageMode] = useState("online");
       district: (prepared.district || "").trim(),
       whatsapp: prepared.whatsapp.trim(),
       categoryId: prepared.categoryId || "cat1",
-      customAmount: prepared.categoryId === "cat5" ? toNumber(prepared.customAmount) : 0,
+      customAmount: ["cat5", "cat6"].includes(prepared.categoryId) ? toNumber(prepared.customAmount) : 0,
       commsOptIn: prepared.commsOptIn !== false
     };
     const oldMember = members.find(m => m.id === memberId);
@@ -1252,8 +1287,8 @@ const [storageMode] = useState("online");
     let consolidatedSurplus = oldMember?.consolidatedSurplus || 0;
     
     if (oldMember && oldMember.categoryId !== patch.categoryId) {
-      const oldTarget = (oldCat?.id === "cat5" ? (oldMember.customAmount || 0) : (oldCat?.amount || 0)) * config.months;
-      const newTarget = (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months;
+      const oldTarget = oldCat?.id === "cat6" ? toNumber(oldMember.customAmount) : (oldCat?.id === "cat5" ? toNumber(oldMember.customAmount) : (oldCat?.amount || 0)) * config.months;
+      const newTarget = newCat?.id === "cat6" ? toNumber(patch.customAmount) : (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months;
       
       if (newTarget < oldTarget) {
         // Ajout du cumul des paiements au surplus consolidé lors d'un changement vers une catégorie inférieure
@@ -1266,7 +1301,7 @@ const [storageMode] = useState("online");
       ...existing, 
       ...patch, 
       consolidatedSurplus,
-      targetAmount: (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months
+      targetAmount: newCat?.id === "cat6" ? toNumber(patch.customAmount) : (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months
     };
 
     if (managementBackendReady) {
@@ -1650,7 +1685,7 @@ const [storageMode] = useState("online");
       return;
     }
     const cat = config.categories.find((c) => c.id === member.categoryId);
-    const monthly = member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
+    const monthly = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
     const total = monthly * config.months;
     
     // Correction de la logique de calcul pour inclure le surplus et les paiements réels
@@ -1752,7 +1787,7 @@ const [storageMode] = useState("online");
     const q = searchTerm.trim().toLowerCase();
     return members.filter((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const cashPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
       const surplus = m.consolidatedSurplus || 0;
       const paid = cashPaid + surplus;
@@ -1777,7 +1812,7 @@ const [storageMode] = useState("online");
     let paid = 0;
     for (const m of filteredMembers) {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       promised += monthly * config.months;
       const cash = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
       paid += cash + (m.consolidatedSurplus || 0);
@@ -1789,7 +1824,7 @@ const [storageMode] = useState("online");
   const memberInsights = useMemo(() => {
     const pending = members.filter((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const total = monthly * config.months;
       const paid = ((m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)) + (m.consolidatedSurplus || 0);
       return paid < total;
@@ -1898,7 +1933,7 @@ const [storageMode] = useState("online");
     ];
     const body = filteredMembers.map((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const cashPaid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
       const surplus = m.consolidatedSurplus || 0;
       const paid = cashPaid + surplus;
@@ -1934,7 +1969,7 @@ const [storageMode] = useState("online");
     return members
       .filter((m) => {
         const cat = config.categories.find((c) => c.id === m.categoryId);
-        const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+        const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
         const total = monthly * config.months;
         const paid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
         const searchOk =
@@ -1953,7 +1988,7 @@ const [storageMode] = useState("online");
     [config.categories, newMember.categoryId]
   );
   const selectedMonthlyAmount =
-    newMember.categoryId === "cat5" ? toNumber(newMember.customAmount) : toNumber(selectedCategory?.amount);
+    newMember.categoryId === "cat6" ? toNumber(newMember.customAmount) / config.months : newMember.categoryId === "cat5" ? toNumber(newMember.customAmount) : toNumber(selectedCategory?.amount);
   const selectedTotalAmount = selectedMonthlyAmount * config.months;
 
   const editingCategory = useMemo(
@@ -1961,7 +1996,9 @@ const [storageMode] = useState("online");
     [config.categories, editingMember?.categoryId]
   );
   const editingMonthlyAmount =
-    editingMember?.categoryId === "cat5"
+    editingMember?.categoryId === "cat6"
+      ? toNumber(editingMember.customAmount) / config.months
+      : editingMember?.categoryId === "cat5"
       ? toNumber(editingMember.customAmount)
       : toNumber(editingCategory?.amount);
   const editingTotalAmount = editingMonthlyAmount * config.months;
@@ -3080,6 +3117,41 @@ const [storageMode] = useState("online");
             >
               {activeTab === "dashboard" && (
                 <div className="space-y-8">
+                  {/* DEUX GRANDES CARTES EN HAUT */}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <motion.div
+                      variants={edenItemVariants}
+                      whileHover={shouldReduceMotion ? {} : { y: -4, scale: 1.02 }}
+                      className="group relative overflow-hidden rounded-[2.5rem] border-2 border-emerald-500/30 bg-gradient-to-br from-[#064e3b] to-slate-900 p-8 shadow-2xl"
+                    >
+                      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl" />
+                      <div className="flex items-center gap-4">
+                        <div className="rounded-2xl bg-emerald-400/20 p-3 text-emerald-300">
+                          <Users size={32} />
+                        </div>
+                        <p className="text-sm font-black uppercase tracking-widest text-emerald-400">Total Inscrits</p>
+                      </div>
+                      <p className="mt-6 text-6xl font-black text-white md:text-7xl">{members.length}</p>
+                      <p className="mt-3 text-sm font-bold text-emerald-200/60 uppercase tracking-widest">Personnes engagées dans le projet</p>
+                    </motion.div>
+
+                    <motion.div
+                      variants={edenItemVariants}
+                      whileHover={shouldReduceMotion ? {} : { y: -4, scale: 1.02 }}
+                      className="group relative overflow-hidden rounded-[2.5rem] border-2 border-blue-500/30 bg-gradient-to-br from-slate-900 to-[#042f2e] p-8 shadow-2xl"
+                    >
+                      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
+                      <div className="flex items-center gap-4">
+                        <div className="rounded-2xl bg-blue-400/20 p-3 text-blue-300">
+                          <HandCoins size={32} />
+                        </div>
+                        <p className="text-sm font-black uppercase tracking-widest text-blue-400">Engagement Global (Promesses)</p>
+                      </div>
+                      <p className="mt-6 text-5xl font-black text-blue-300 md:text-6xl">{money(stats.totalCommitted)}</p>
+                      <p className="mt-3 text-sm font-bold text-blue-200/60 uppercase tracking-widest">Somme totale des promesses faites</p>
+                    </motion.div>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
                     <motion.div
                       variants={edenItemVariants}
@@ -3582,7 +3654,7 @@ const [storageMode] = useState("online");
                         )}
                         {filteredMembers.map((m) => {
                            const cat = config.categories.find((c) => c.id === m.categoryId);
-                           const monthly = m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+                           const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
                            const cashPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
                            const surplus = m.consolidatedSurplus || 0;
                            const currentPaid = cashPaid + surplus;
@@ -4358,7 +4430,7 @@ const [storageMode] = useState("online");
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant mensuel</label>
                           <input type="number"
-                            disabled={cat.id === "cat5"}
+                            disabled={["cat5", "cat6"].includes(cat.id)}
                             className="text-white w-full rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-black"
                             value={cat.amount}
                             onChange={(e) => {
@@ -4495,11 +4567,25 @@ const [storageMode] = useState("online");
                                   <td className="px-4 py-3 text-center">
                                     <button
                                       onClick={() => toggleTeamUserStatus(u.id)}
-                                      className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
-                                        u.isActive !== false ? "bg-emerald-100 text-emerald-400" : "bg-emerald-800/40 text-emerald-200/80"
+                                      disabled={sessionUser?.id === u.id}
+                                      title={sessionUser?.id === u.id ? "Vous ne pouvez pas modifier votre propre statut" : (u.isActive !== false ? "Cliquer pour désactiver ce compte" : "Cliquer pour activer ce compte")}
+                                      className={`group flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest transition-all duration-200 ${
+                                        sessionUser?.id === u.id
+                                          ? "cursor-not-allowed opacity-50 bg-slate-700/40 text-slate-400"
+                                          : u.isActive !== false
+                                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/40 cursor-pointer"
+                                          : "bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/40 cursor-pointer"
                                       }`}
                                     >
+                                      <span className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                        u.isActive !== false ? "bg-emerald-400" : "bg-red-400"
+                                      }`} />
                                       {u.isActive !== false ? "Actif" : "Inactif"}
+                                      {sessionUser?.id !== u.id && (
+                                        <span className="ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-[9px]">
+                                          {u.isActive !== false ? "→ Désactiver" : "→ Activer"}
+                                        </span>
+                                      )}
                                     </button>
                                   </td>
                                   <td className="px-4 py-3">
@@ -4819,16 +4905,16 @@ const [storageMode] = useState("online");
             >
               {config.categories.map((cat) => (
                 <option className="bg-[#022c22] text-white" key={cat.id} value={cat.id}>
-                  {cat.id === "cat5" ? `${cat.label} - Montant libre` : `${cat.label} - ${money(cat.amount)} / mois`}
+                  {cat.id === "cat5" ? `${cat.label} - Montant mensuel libre` : cat.id === "cat6" ? `${cat.label} - Montant global` : `${cat.label} - ${money(cat.amount)} / mois`}
                 </option>
               ))}
             </select>
-            {newMember.categoryId === "cat5" && (
+            {["cat5", "cat6"].includes(newMember.categoryId) && (
               <input
                 type="number"
                 min="20001"
                 required
-                placeholder="Montant libre (> 20 000)"
+                placeholder={newMember.categoryId === "cat6" ? "Entrez la somme fixe globale" : "Montant mensuel libre (> 20 000)"}
                 className="mt-4 w-full rounded-2xl border border-purple-200 bg-purple-50 px-4 py-3 font-black text-purple-700 outline-none focus:border-purple-400"
                 value={newMember.customAmount}
                 onChange={(e) => setNewMember((s) => ({ ...s, customAmount: e.target.value }))}
@@ -4928,16 +5014,16 @@ const [storageMode] = useState("online");
             >
               {config.categories.map((cat) => (
                 <option className="bg-[#022c22] text-white" key={cat.id} value={cat.id}>
-                  {cat.id === "cat5" ? `${cat.label} - Montant libre` : `${cat.label} - ${money(cat.amount)} / mois`}
+                  {cat.id === "cat5" ? `${cat.label} - Montant mensuel libre` : cat.id === "cat6" ? `${cat.label} - Montant global` : `${cat.label} - ${money(cat.amount)} / mois`}
                 </option>
               ))}
             </select>
-            {editingMember.categoryId === "cat5" && (
+            {["cat5", "cat6"].includes(editingMember.categoryId) && (
               <input
                 type="number"
                 min="20001"
                 required
-                placeholder="Montant libre (> 20 000)"
+                placeholder={editingMember.categoryId === "cat6" ? "Entrez la somme fixe globale" : "Montant mensuel libre (> 20 000)"}
                 className="mt-4 w-full rounded-2xl border border-purple-200 bg-purple-50 px-4 py-3 font-black text-purple-700 outline-none focus:border-purple-400"
                 value={editingMember.customAmount}
                 onChange={(e) => setEditingMember((s) => ({ ...s, customAmount: e.target.value }))}

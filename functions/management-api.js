@@ -528,13 +528,15 @@ async function handleSaveConfig(dbUrl, payload, ctx) {
 async function handleAddMember(dbUrl, payload, ctx) {
   const member = payload.member || {};
   const phone = nullablePhone(member.whatsapp);
-  if (phone) {
+  const phoneVariants = phoneDigitVariants(member.whatsapp);
+  if (phoneVariants.length > 0) {
+    const phoneClauses = phoneVariants.map((_, i) => `regexp_replace(coalesce(whatsapp, ''), '\\D', '', 'g') = $${i + 1}`).join(" or ");
     const dup = await runQuery(
       dbUrl,
       `select id, name from public.members
-       where regexp_replace(coalesce(whatsapp, ''), '\\D', '', 'g') = $1
+       where (${phoneClauses})
        limit 1`,
-      [phone]
+      phoneVariants
     );
     if (dup.length > 0) {
       return jsonResponse(
@@ -570,14 +572,16 @@ async function handleUpdateMember(dbUrl, payload, ctx) {
   const member = payload.member || {};
   if (!memberId) return jsonResponse({ ok: false, error: "memberId requis" }, 400);
   const phone = nullablePhone(member.whatsapp);
-  if (phone) {
+  const phoneVariants = phoneDigitVariants(member.whatsapp);
+  if (phoneVariants.length > 0) {
+    const phoneClauses = phoneVariants.map((_, i) => `regexp_replace(coalesce(whatsapp, ''), '\\D', '', 'g') = $${i + 1}`).join(" or ");
     const dup = await runQuery(
       dbUrl,
       `select id from public.members
-       where regexp_replace(coalesce(whatsapp, ''), '\\D', '', 'g') = $1
-         and id <> $2::uuid
+       where (${phoneClauses})
+         and id <> $${phoneVariants.length + 1}::uuid
        limit 1`,
-      [phone, memberId]
+      [...phoneVariants, memberId]
     );
     if (dup.length > 0) {
       return jsonResponse({ ok: false, error: "Un autre fidèle possède déjà ce numéro WhatsApp." }, 409);
