@@ -1707,6 +1707,8 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       welcome:
         `Shalom Bien-aimé(e) ${member.name}${role}, merci pour votre inscription au FAG ${config.year}. ` +
         `Votre présence est une bénédiction pour l'église.${churchUnit}\n\n` +
+        `Engagement total : ${money(total)}\n` +
+        `Mensualité (${config.months} mois) : ${money(monthly)}\n\n` +
         `"Qu'il est bon pour des frères de demeurer ensemble !" (Psaume 133:1).`,
       engagement:
         `Bien-aimé(e) ${member.name}${role}, merci d'avoir pris votre engagement FAG ${config.year}. ` +
