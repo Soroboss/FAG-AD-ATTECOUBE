@@ -253,7 +253,7 @@ function CircularProgress({ value }) {
         <motion.span 
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-4xl font-black leading-none text-white tracking-tighter"
+          className="text-4xl font-black text-white tracking-tighter"
         >
           {clamped.toFixed(1)}%
         </motion.span>
@@ -305,6 +305,164 @@ function CountdownCard({ targetDate }) {
       <div className={itemClass}><p className={valClass}>{remaining.hours}</p><p className={labelClass}>Hrs</p></div>
       <div className={itemClass}><p className={valClass}>{remaining.minutes}</p><p className={labelClass}>Min</p></div>
       <div className={itemClass}><p className={valClass}>{remaining.seconds}</p><p className={labelClass}>Sec</p></div>
+    </div>
+  );
+}
+
+function DonutChart({ data, colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"] }) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  let cumulativePercent = 0;
+
+  return (
+    <div className="relative h-48 w-48 flex items-center justify-center">
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+        {data.map((item, i) => {
+          const percent = (item.value / (total || 1)) * 100;
+          const startAngle = (cumulativePercent / 100) * 360;
+          cumulativePercent += percent;
+
+          const radius = 38;
+          const circumference = 2 * Math.PI * radius;
+          const offset = circumference - (percent / 100) * circumference;
+
+          return (
+            <motion.circle
+              key={item.label}
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="none"
+              stroke={colors[i % colors.length]}
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: offset }}
+              transition={{ duration: 1.5, delay: i * 0.1, ease: "easeOut" }}
+              style={{ transform: `rotate(${startAngle}deg)`, transformOrigin: "center" }}
+              className="hover:opacity-80 cursor-pointer transition-opacity"
+            />
+          );
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-sm font-black text-white">{money(total)}</span>
+        <span className="text-[7px] font-black uppercase tracking-[0.2em] text-slate-500">Volume Total</span>
+      </div>
+    </div>
+  );
+}
+
+function TrendChart({ data, height = 180 }) {
+  if (!data || data.length === 0) return null;
+  const paddingX = 40;
+  const paddingY = 30;
+  const width = 800;
+  const maxVal = Math.max(...data.map(d => Math.max(d.collected, d.spent)), 1);
+  const xScale = (width - paddingX * 2) / Math.max(data.length - 1, 1);
+  const yScale = (height - paddingY * 2) / maxVal;
+
+  const points = data.map((d, i) => ({
+    x: paddingX + i * xScale,
+    yColl: height - paddingY - d.collected * yScale,
+    ySpent: height - paddingY - d.spent * yScale,
+    label: d.monthKey
+  }));
+
+  const getPath = (key) => points.reduce((acc, p, i) => 
+    i === 0 ? `M ${p.x} ${p[key]}` : `${acc} L ${p.x} ${p[key]}`, "");
+
+  const getArea = (key) => `${getPath(key)} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+
+  return (
+    <div className="w-full overflow-hidden">
+      <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="overflow-visible">
+        <defs>
+          <linearGradient id="gradColl" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="gradSpent" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.1" />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        
+        {/* Horizontal Grids */}
+        {[0, 0.25, 0.5, 0.75, 1].map((p) => (
+          <line key={p} x1={paddingX} y1={height - paddingY - (height - paddingY * 2) * p} x2={width - paddingX} y2={height - paddingY - (height - paddingY * 2) * p} stroke="white" strokeOpacity="0.05" strokeWidth="1" />
+        ))}
+
+        {/* Areas */}
+        <motion.path d={getArea("yColl")} fill="url(#gradColl)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.5 }} />
+        <motion.path d={getArea("ySpent")} fill="url(#gradSpent)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.5 }} />
+
+        {/* Lines */}
+        <motion.path d={getPath("yColl")} fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2, ease: "easeInOut" }} />
+        <motion.path d={getPath("ySpent")} fill="none" stroke="#ef4444" strokeWidth="2" strokeDasharray="6 4" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2.5, ease: "easeInOut" }} />
+
+        {/* Labels & Points */}
+        {points.map((p, i) => (
+          <g key={i}>
+            <text x={p.x} y={height - 10} textAnchor="middle" fill="#64748b" fontSize="10" fontWeight="bold" className="uppercase tracking-tighter">{p.label.split("-")[1]}/{p.label.split("-")[0].slice(2)}</text>
+            <motion.circle cx={p.x} cy={p.yColl} r="5" fill="#042f2e" stroke="#10b981" strokeWidth="3" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1.5 + i * 0.1 }} />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function PivotTable({ data }) {
+  return (
+    <div className="overflow-x-auto rounded-3xl border border-emerald-500/10 bg-[#022c22]/50 backdrop-blur-xl shadow-2xl">
+      <table className="w-full text-left">
+        <thead className="bg-[#042f2e]/80 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400/70">
+          <tr>
+            <th className="px-6 py-5">Département</th>
+            <th className="px-6 py-5 text-center">Membres</th>
+            <th className="px-6 py-5 text-right">Promesses</th>
+            <th className="px-6 py-5 text-right">Encaissé</th>
+            <th className="px-6 py-5 text-center">Performance</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-emerald-500/5 text-white">
+          {data.map((row, i) => {
+            const perf = (row.collected / (row.promised || 1)) * 100;
+            return (
+              <motion.tr 
+                key={row.label}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="hover:bg-emerald-500/5 transition-colors group"
+              >
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 group-hover:scale-150 transition-transform" />
+                    <span className="text-xs font-black uppercase tracking-tight">{row.label}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-center font-bold text-emerald-200/60">{row.count}</td>
+                <td className="px-6 py-4 text-right font-medium text-slate-400">{money(row.promised)}</td>
+                <td className="px-6 py-4 text-right font-black text-emerald-400">{money(row.collected)}</td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3 justify-center">
+                    <div className="h-1.5 w-20 rounded-full bg-emerald-900/30 overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, perf)}%` }}
+                        className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+                      />
+                    </div>
+                    <span className="text-[10px] font-black w-8">{perf.toFixed(0)}%</span>
+                  </div>
+                </td>
+              </motion.tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -726,6 +884,22 @@ const [storageMode] = useState("online");
         ? ((latestMonth.collected - previousMonth.collected) / previousMonth.collected) * 100
         : 0;
 
+    const functionStatsMap = {};
+    members.forEach((member) => {
+      const fn = member.churchFunction || "Sans département";
+      if (!functionStatsMap[fn]) {
+        functionStatsMap[fn] = { label: fn, count: 0, promised: 0, collected: 0 };
+      }
+      const cat = config.categories.find((c) => c.id === member.categoryId);
+      const monthlyAmount = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
+      const memberCommitted = monthlyAmount * config.months;
+      const memberCollected = (member.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
+      
+      functionStatsMap[fn].count += 1;
+      functionStatsMap[fn].promised += memberCommitted;
+      functionStatsMap[fn].collected += memberCollected;
+    });
+
     return {
       totalCollected,
       totalCommitted,
@@ -740,7 +914,8 @@ const [storageMode] = useState("online");
       methodBreakdown,
       monthlyFinance,
       monthlyGlobalProgress,
-      categories: Object.values(catStats).sort((a, b) => b.baseAmount - a.baseAmount)
+      categories: Object.values(catStats).sort((a, b) => b.baseAmount - a.baseAmount),
+      functionStats: Object.values(functionStatsMap).sort((a, b) => b.collected - a.collected)
     };
   }, [members, deposits, expenses, config]);
 
@@ -3319,70 +3494,42 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                     <div className="min-w-0 rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm lg:col-span-8">
-                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">
-                        Courbe de performance mensuelle (encaissements vs dépenses)
-                      </h3>
+                      <div className="mb-6 flex items-center justify-between">
+                        <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">
+                          Courbe de performance mensuelle
+                        </h3>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-[9px] font-black uppercase text-emerald-500/80">Encaissements</span></div>
+                          <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-red-500" /><span className="text-[9px] font-black uppercase text-red-500/80">Dépenses</span></div>
+                        </div>
+                      </div>
                       {stats.monthlyFinance.length === 0 ? (
                         <p className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-6 text-center text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
                           Pas encore de données mensuelles
                         </p>
                       ) : (
-                        <div className="space-y-4">
-                          {stats.monthlyFinance.map((row) => (
-                            <div key={row.monthKey} className="rounded-2xl border border-emerald-500/10 bg-[#022c22] p-4">
-                              <div className="mb-2 flex items-center justify-between">
-                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">{row.monthKey}</span>
-                                <span className={`text-[10px] font-extrabold uppercase tracking-widest ${row.net >= 0 ? "text-emerald-400" : "text-red-600"}`}>
-                                  Net {money(row.net)}
-                                </span>
-                              </div>
-                              <div className="space-y-2">
-                                <div>
-                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
-                                    <span>Encaissements</span>
-                                    <span>{money(row.collected)}</span>
-                                  </div>
-                                  <div className="h-2 rounded-full bg-emerald-800/40">
-                                    <div className="h-2 rounded-full bg-emerald-900/300" style={{ width: `${(row.collected / maxMonthlyCollected) * 100}%` }} />
-                                  </div>
-                                </div>
-                                <div>
-                                  <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
-                                    <span>Dépenses</span>
-                                    <span>{money(row.spent)}</span>
-                                  </div>
-                                  <div className="h-2 rounded-full bg-emerald-800/40">
-                                    <div className="h-2 rounded-full bg-red-500" style={{ width: `${(row.spent / maxMonthlySpent) * 100}%` }} />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <TrendChart data={stats.monthlyFinance} />
                       )}
                     </div>
 
                     <div className="min-w-0 rounded-[2.5rem] bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-8 shadow-sm lg:col-span-4">
-                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">Diagramme des canaux de paiement</h3>
-                      <div className="space-y-4">
-                        {Object.entries(stats.methodBreakdown).map(([method, amount]) => {
+                      <h3 className="mb-5 text-[11px] font-extrabold uppercase tracking-widest text-emerald-50">Canaux de paiement</h3>
+                      <div className="flex items-center justify-center py-4">
+                        <DonutChart data={Object.entries(stats.methodBreakdown).map(([label, value]) => ({ label, value }))} />
+                      </div>
+                      <div className="mt-4 grid grid-cols-1 gap-2">
+                        {Object.entries(stats.methodBreakdown).map(([method, amount], i) => {
                           const total = Math.max(1, stats.totalCollected);
                           const percent = (amount / total) * 100;
+                          const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
                           return (
-                            <div key={method}>
-                              <div className="mb-1 flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80">
-                                <span>{method}</span>
-                                <span>
-                                  {percent.toFixed(1)}% • {money(amount)}
-                                </span>
+                            <div key={method} className="flex items-center justify-between rounded-xl bg-white/5 p-2 px-3">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: colors[i % colors.length] }} />
+                                <span className="text-[9px] font-black uppercase text-emerald-200/80">{method}</span>
                               </div>
-                              <div className="h-2 rounded-full bg-emerald-800/40">
-                                <div
-                                  className={`h-2 rounded-full ${method === "Espèces" ? "bg-slate-900" : method === "Mobile Money" ? "bg-emerald-900/300" : "bg-emerald-900/200"}`}
-                                  style={{ width: `${Math.max(3, percent)}%` }}
-                                />
-      </div>
-    </div>
+                              <span className="text-[10px] font-black text-white">{money(amount)}</span>
+                            </div>
                           );
                         })}
                       </div>
@@ -3392,6 +3539,16 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                         <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant moyen encaissé par membre</p>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-black uppercase tracking-tight text-white">Analyse par Département (TCD)</h3>
+                      <div className="rounded-full bg-emerald-500/10 px-4 py-1 border border-emerald-500/20">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400">{stats.functionStats.length} Groupes</span>
+                      </div>
+                    </div>
+                    <PivotTable data={stats.functionStats} />
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
