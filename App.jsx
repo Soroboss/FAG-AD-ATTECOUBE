@@ -200,6 +200,12 @@ const CHURCH_FUNCTION_OPTIONS = [
   "Responsable jeunesse",
   "Responsable femmes",
   "Chorale",
+  "Louange",
+  "Ordre et Accueil",
+  "AOC",
+  "Technicien",
+  "Ecodim",
+  "Mission",
   "Service média",
   "Instrumentiste",
   "Membre"
