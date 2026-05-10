@@ -2676,6 +2676,9 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
   };
 
   const removeMemberPayment = async (memberId, paymentId) => {
+    const currentMember = members.find((m) => m.id === memberId) || selectedMember;
+    const updated = (currentMember?.payments || []).filter((pay) => pay.id !== paymentId);
+
     if (managementBackendReady) {
       setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, payments: updated } : m)));
       setSelectedMember((prev) => ({ ...prev, payments: updated }));
@@ -2694,8 +2697,6 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       });
       return;
     }
-    const currentMember = members.find((m) => m.id === memberId) || selectedMember;
-    const updated = (currentMember?.payments || []).filter((pay) => pay.id !== paymentId);
     if (storageMode === "local") {
       setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, payments: updated } : m)));
       setSelectedMember((prev) => ({ ...prev, payments: updated }));
