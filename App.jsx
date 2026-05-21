@@ -36,7 +36,9 @@ import {
   FileClock,
   ExternalLink,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Image,
+  Upload
 } from "lucide-react";
 
 const firebaseRawConfig =
@@ -1333,7 +1335,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       try {
         const result = await callManagementApi("addMember", { member: cloudMember });
         if (result?.id) {
-          setMembers((prev) => [...prev, { ...cloudMember, id: result.id }]);
+          setMembers((prev) => [...prev, { ...cloudMember, id: result.id, reference: `FAG-${String(prev.length + 1).padStart(4, "0")}` }]);
           setNewMember({
             name: "",
             churchFunctionType: "",
@@ -1366,7 +1368,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     }
     if (storageMode === "local") {
       const localMember = { ...preparedMember, id: Date.now().toString(), dateJoined: new Date().toISOString(), payments: [] };
-      setMembers((prev) => [...prev, localMember]);
+      setMembers((prev) => [...prev, { ...localMember, reference: `FAG-${String(prev.length + 1).padStart(4, "0")}` }]);
       setNewMember({
         name: "",
         churchFunctionType: "",
@@ -3836,7 +3838,10 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                                className={`group transition-colors border-b border-emerald-500/10 hover:bg-emerald-800/20 ${isSettled ? "bg-emerald-500/10" : "bg-emerald-900/10"}`}
                              >
                                <td className="px-8 py-6">
-                                 <p className="font-black uppercase tracking-tight text-white">{m.name}</p>
+                                 <p className="font-black uppercase tracking-tight text-white">
+                                   {m.reference && <span className="mr-2 text-emerald-400">{m.reference}</span>}
+                                   {m.name}
+                                 </p>
                                  <div className="mt-1 flex flex-wrap items-center gap-2">
                                    <span className="text-[9px] font-black uppercase tracking-widest text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200">
                                      {cat?.label || "Libre"}
@@ -4330,18 +4335,31 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                                 )}
                               </td>
                               <td className="px-8 py-6 text-center">
-                                {d.bordereauRef ? (
-                                  <span className="rounded-xl bg-emerald-900/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-100 border border-emerald-500/20">
-                                    {d.bordereauRef}
-                                  </span>
-                                ) : (
-                                  <button
-                                    onClick={() => openBordereauModal(d.id)}
-                                    className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-400 border border-orange-200 hover:bg-orange-200 transition-all"
-                                  >
-                                    Saisir réf.
-                                  </button>
-                                )}
+                                <div className="flex flex-col items-center gap-2">
+                                  {d.bordereauRef ? (
+                                    <span className="rounded-xl bg-emerald-900/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-100 border border-emerald-500/20">
+                                      {d.bordereauRef}
+                                    </span>
+                                  ) : (
+                                    <button
+                                      onClick={() => openBordereauModal(d.id)}
+                                      className="rounded-xl bg-orange-100 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-orange-400 border border-orange-200 hover:bg-orange-200 transition-all"
+                                    >
+                                      Saisir réf.
+                                    </button>
+                                  )}
+                                  {d.bordereauUrl && (
+                                    <a
+                                      href={d.bordereauUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-lg bg-blue-500/20 px-2 py-1 text-[9px] font-bold text-blue-300 hover:bg-blue-500/40 transition-colors"
+                                      title="Voir la pièce jointe / image"
+                                    >
+                                      <Image size={12} /> Image/PDF
+                                    </a>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-8 py-6 text-center">
                                 <div className="flex items-center justify-center gap-2">
@@ -5516,11 +5534,38 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                 value={newDeposit.bordereauRef}
                 onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauRef: e.target.value }))}
               />
-              <input placeholder="Lien pièce jointe (optionnel, URL https://…)"
-                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
-                value={newDeposit.bordereauUrl}
-                onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
-              />
+              <div className="mt-3 flex flex-col gap-2 rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 mb-1">Pièce jointe (Image/PDF) ou Lien</p>
+                <div className="flex items-center gap-3">
+                  <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-500/30 py-3 px-4 text-[10px] font-extrabold uppercase text-emerald-400/80 hover:bg-emerald-900/30 transition-colors">
+                    <Upload size={14} />
+                    Importer fichier
+                    <input type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        const r = await tryUploadDepositFile(f);
+                        if (r.error) {
+                          notify("error", r.error);
+                          return;
+                        }
+                        if (r.url) {
+                          setNewDeposit((s) => ({ ...s, bordereauUrl: r.url || "" }));
+                          notify("success", "Fichier importé, lien ajouté.");
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-[9px] font-bold text-emerald-500/50">OU</span>
+                  <input placeholder="Lien (URL https://…)"
+                    className="text-white flex-1 rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-3 font-bold outline-none focus:border-blue-400 text-sm"
+                    value={newDeposit.bordereauUrl}
+                    onChange={(e) => setNewDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="mt-4 rounded-2xl border border-yellow-500/20 bg-emerald-900/20 p-4">
@@ -5579,11 +5624,38 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                 value={editingDeposit.bordereauRef}
                 onChange={(e) => setEditingDeposit((s) => ({ ...s, bordereauRef: e.target.value }))}
               />
-              <input placeholder="Lien pièce jointe"
-                className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
-                value={editingDeposit.bordereauUrl}
-                onChange={(e) => setEditingDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
-              />
+              <div className="mt-3 flex flex-col gap-2 rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card p-4">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 mb-1">Pièce jointe (Image/PDF) ou Lien</p>
+                <div className="flex items-center gap-3">
+                  <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-500/30 py-3 px-4 text-[10px] font-extrabold uppercase text-emerald-400/80 hover:bg-emerald-900/30 transition-colors">
+                    <Upload size={14} />
+                    Importer fichier
+                    <input type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        const r = await tryUploadDepositFile(f);
+                        if (r.error) {
+                          notify("error", r.error);
+                          return;
+                        }
+                        if (r.url) {
+                          setEditingDeposit((s) => ({ ...s, bordereauUrl: r.url || "" }));
+                          notify("success", "Fichier importé, lien ajouté.");
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-[9px] font-bold text-emerald-500/50">OU</span>
+                  <input placeholder="Lien (URL https://…)"
+                    className="text-white flex-1 rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-3 font-bold outline-none focus:border-blue-400 text-sm"
+                    value={editingDeposit.bordereauUrl}
+                    onChange={(e) => setEditingDeposit((s) => ({ ...s, bordereauUrl: e.target.value }))}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -5723,11 +5795,40 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
               value={bordereauFormModal.ref}
               onChange={(e) => setBordereauFormModal((s) => ({ ...s, ref: e.target.value }))}
             />
-            <input className="text-white mt-3 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
-              placeholder="Lien pièce jointe (optionnel)"
-              value={bordereauFormModal.url}
-              onChange={(e) => setBordereauFormModal((s) => ({ ...s, url: e.target.value }))}
-            />
+            <div className="mt-3 flex flex-col gap-2 rounded-2xl border border-emerald-500/20 bg-[#022c22]/50 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 mb-1">Pièce jointe (Image/PDF) ou Lien</p>
+              <div className="flex flex-col gap-3">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-500/30 py-3 px-4 text-[10px] font-extrabold uppercase text-emerald-400/80 hover:bg-emerald-900/30 transition-colors">
+                  <Upload size={14} />
+                  Importer fichier (Image / PDF)
+                  <input type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const r = await tryUploadDepositFile(f);
+                      if (r.error) {
+                        notify("error", r.error);
+                        return;
+                      }
+                      if (r.url) {
+                        setBordereauFormModal((s) => ({ ...s, url: r.url || "" }));
+                        notify("success", "Fichier importé, lien ajouté.");
+                      }
+                    }}
+                  />
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-bold text-emerald-500/50">OU</span>
+                  <input className="text-white flex-1 rounded-xl border border-emerald-500/20 bg-[#042f2e]/40 px-4 py-2 text-sm outline-none focus:border-emerald-400"
+                    placeholder="Lien externe URL (optionnel)"
+                    value={bordereauFormModal.url}
+                    onChange={(e) => setBordereauFormModal((s) => ({ ...s, url: e.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
             <div className="mt-6 flex justify-end gap-3">
               <button type="button" className="rounded-2xl border px-4 py-2 text-[11px] font-black uppercase" onClick={() => setBordereauFormModal(null)}>
                 Annuler

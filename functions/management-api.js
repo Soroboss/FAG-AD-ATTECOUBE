@@ -897,8 +897,9 @@ async function loadAppData(dbUrl) {
     return acc;
   }, {});
 
-  const normalizedMembers = members.map((row) => ({
+  const normalizedMembers = members.map((row, index) => ({
     id: row.id,
+    reference: `FAG-${String(index + 1).padStart(4, "0")}`,
     name: row.name,
     churchFunction: row.church_function || "",
     district: row.district || "",
