@@ -671,7 +671,9 @@ const [storageMode] = useState("online");
       }));
       setAuditLogs(logs);
     }
-    if (Array.isArray(apiData.members)) setMembers(apiData.members);
+    if (Array.isArray(apiData.members)) {
+      setMembers(apiData.members.map((m, i) => ({ ...m, reference: m.reference || `FAG-${String(i + 1).padStart(4, "0")}` })));
+    }
     if (Array.isArray(apiData.expenses)) setExpenses(apiData.expenses);
     if (Array.isArray(apiData.deposits)) setDeposits(apiData.deposits);
     if (apiData.config) {
@@ -4461,7 +4463,10 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                         {marketingMembers.map((m) => (
                           <tr key={m.id} className="group hover:bg-[#022c22] transition-colors">
                             <td className="px-8 py-6">
-                              <p className="font-black uppercase text-white tracking-tight">{m.name}</p>
+                              <p className="font-black uppercase text-white tracking-tight">
+                                {m.reference && <span className="mr-2 text-emerald-400">{m.reference}</span>}
+                                {m.name}
+                              </p>
                               <p className="mt-1 text-[10px] font-bold text-fag-primary">{m.whatsapp}</p>
                             </td>
                             <td className="px-8 py-6">
@@ -5142,7 +5147,9 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setEditingMember(null)}>
               <X />
             </button>
-            <h3 className="text-2xl font-black uppercase text-white">Modifier le fidèle</h3>
+            <h3 className="text-2xl font-black uppercase text-white">
+              Modifier {editingMember.reference && <span className="text-emerald-400">[{editingMember.reference}]</span>}
+            </h3>
             <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-emerald-500/80">
               Mettre à jour les informations et l&apos;engagement (les versements enregistrés sont conservés).
             </p>
@@ -5260,7 +5267,9 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsPaymentModalOpen(false)}>
               <X />
             </button>
-            <h3 className="mb-6 text-xl font-black uppercase">Encaissement - {selectedMember.name}</h3>
+            <h3 className="mb-6 text-xl font-black uppercase">
+              Encaissement - {selectedMember.reference && <span className="text-emerald-400 mr-2">[{selectedMember.reference}]</span>} {selectedMember.name}
+            </h3>
             <div className="grid grid-cols-2 gap-3">
               <input type="date"
                 required
@@ -5302,7 +5311,9 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
             <button type="button" className="absolute right-6 top-6 text-emerald-500/80" onClick={() => setIsHistoryModalOpen(false)}>
               <X />
             </button>
-            <h3 className="mb-6 text-xl font-black uppercase">Grand livre - {selectedMember.name}</h3>
+            <h3 className="mb-6 text-xl font-black uppercase">
+              Grand livre - {selectedMember.reference && <span className="text-emerald-400 mr-2">[{selectedMember.reference}]</span>} {selectedMember.name}
+            </h3>
             <div className="max-h-[50vh] overflow-y-auto">
               <table className="w-full">
                 <thead className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">
