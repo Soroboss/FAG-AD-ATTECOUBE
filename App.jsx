@@ -2546,7 +2546,11 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       return { error: "Le service de fichiers est momentanément indisponible. Réessayez plus tard." };
     }
     const { createClient } = await import("@insforge/sdk");
-    const insforge = createClient({ baseUrl: base, anonKey: ak });
+    const insforge = createClient({
+      baseUrl: base,
+      anonKey: ak,
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
     const { data, error } = await insforge.storage.from("fag-attachments").uploadAuto(file);
     if (error) return { error: error.message || String(error) };
     return { url: data?.url || "" };
@@ -5790,7 +5794,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
           >
             <h3 className="text-lg font-black uppercase text-white">Bordereau comité</h3>
             <input required
-              className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 px-4 py-3"
+              className="text-white mt-4 w-full rounded-2xl border border-emerald-500/20 bg-[#042f2e]/40 backdrop-blur-md glass-eden-card px-4 py-3 font-bold outline-none focus:border-blue-400"
               placeholder="Référence bordereau"
               value={bordereauFormModal.ref}
               onChange={(e) => setBordereauFormModal((s) => ({ ...s, ref: e.target.value }))}
