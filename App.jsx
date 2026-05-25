@@ -81,6 +81,7 @@ const DEFAULT_CONFIG = {
     { id: "cat2", label: "Or", amount: 15000, targetPeople: 50 },
     { id: "cat3", label: "Argent", amount: 10000, targetPeople: 50 },
     { id: "cat4", label: "Bronze", amount: 5000, targetPeople: 50 },
+    { id: "cat7", label: "Spécial (Moins de 5 000)", amount: 0, targetPeople: 0 },
     { id: "cat5", label: "Hors Gabarit (Mensuel)", amount: 0, targetPeople: 0 },
     { id: "cat6", label: "Somme Fixe Globale", amount: 0, targetPeople: 0 }
   ]
@@ -689,6 +690,9 @@ const [storageMode] = useState("online");
           if (!merged.categories.find(c => c.id === "cat6")) {
             merged.categories.push({ id: "cat6", label: "Somme Fixe Globale", amount: 0, targetPeople: 0 });
           }
+          if (!merged.categories.find(c => c.id === "cat7")) {
+            merged.categories.push({ id: "cat7", label: "Spécial (Moins de 5 000)", amount: 0, targetPeople: 0 });
+          }
         }
         return merged;
       });
@@ -835,7 +839,7 @@ const [storageMode] = useState("online");
 
     members.forEach((member) => {
       const cat = config.categories.find((c) => c.id === member.categoryId);
-      const monthlyAmount = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
+      const monthlyAmount = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : ["cat5", "cat7"].includes(member.categoryId) ? toNumber(member.customAmount) : toNumber(cat?.amount);
       const memberCommitted = monthlyAmount * config.months;
       const memberCollected = (member.payments || []).reduce((sum, p) => {
         const amount = toNumber(p.amount);
@@ -895,7 +899,7 @@ const [storageMode] = useState("online");
         functionStatsMap[fn] = { label: fn, count: 0, promised: 0, collected: 0 };
       }
       const cat = config.categories.find((c) => c.id === member.categoryId);
-      const monthlyAmount = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
+      const monthlyAmount = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : ["cat5", "cat7"].includes(member.categoryId) ? toNumber(member.customAmount) : toNumber(cat?.amount);
       const memberCommitted = monthlyAmount * config.months;
       const memberCollected = (member.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
       
@@ -1432,7 +1436,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       district: m.district || "",
       whatsapp: m.whatsapp || "",
       categoryId: m.categoryId || "cat1",
-      customAmount: ["cat5", "cat6"].includes(m.categoryId) ? String(m.customAmount ?? "") : "",
+      customAmount: ["cat5", "cat6", "cat7"].includes(m.categoryId) ? String(m.customAmount ?? "") : "",
       commsOptIn: m.commsOptIn !== false
     });
   };
@@ -1462,7 +1466,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       district: (prepared.district || "").trim(),
       whatsapp: prepared.whatsapp.trim(),
       categoryId: prepared.categoryId || "cat1",
-      customAmount: ["cat5", "cat6"].includes(prepared.categoryId) ? toNumber(prepared.customAmount) : 0,
+      customAmount: ["cat5", "cat6", "cat7"].includes(prepared.categoryId) ? toNumber(prepared.customAmount) : 0,
       commsOptIn: prepared.commsOptIn !== false
     };
     const oldMember = members.find(m => m.id === memberId);
@@ -1472,8 +1476,8 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     let consolidatedSurplus = oldMember?.consolidatedSurplus || 0;
     
     if (oldMember && oldMember.categoryId !== patch.categoryId) {
-      const oldTarget = oldCat?.id === "cat6" ? toNumber(oldMember.customAmount) : (oldCat?.id === "cat5" ? toNumber(oldMember.customAmount) : (oldCat?.amount || 0)) * config.months;
-      const newTarget = newCat?.id === "cat6" ? toNumber(patch.customAmount) : (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months;
+      const oldTarget = oldCat?.id === "cat6" ? toNumber(oldMember.customAmount) : (["cat5", "cat7"].includes(oldCat?.id) ? toNumber(oldMember.customAmount) : (oldCat?.amount || 0)) * config.months;
+      const newTarget = newCat?.id === "cat6" ? toNumber(patch.customAmount) : (["cat5", "cat7"].includes(newCat?.id) ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months;
       
       if (newTarget < oldTarget) {
         // Ajout du cumul des paiements au surplus consolidé lors d'un changement vers une catégorie inférieure
@@ -1486,7 +1490,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       ...existing, 
       ...patch, 
       consolidatedSurplus,
-      targetAmount: newCat?.id === "cat6" ? toNumber(patch.customAmount) : (newCat?.id === "cat5" ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months
+      targetAmount: newCat?.id === "cat6" ? toNumber(patch.customAmount) : (["cat5", "cat7"].includes(newCat?.id) ? toNumber(patch.customAmount) : (newCat?.amount || 0)) * config.months
     };
 
     if (managementBackendReady) {
@@ -1870,7 +1874,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       return;
     }
     const cat = config.categories.find((c) => c.id === member.categoryId);
-    const monthly = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : member.categoryId === "cat5" ? toNumber(member.customAmount) : toNumber(cat?.amount);
+    const monthly = member.categoryId === "cat6" ? toNumber(member.customAmount) / config.months : ["cat5", "cat7"].includes(member.categoryId) ? toNumber(member.customAmount) : toNumber(cat?.amount);
     const total = monthly * config.months;
     
     // Correction de la logique de calcul pour inclure le surplus et les paiements réels
@@ -1974,7 +1978,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     const q = searchTerm.trim().toLowerCase();
     return members.filter((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : ["cat5", "cat7"].includes(m.categoryId) ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const cashPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
       const surplus = m.consolidatedSurplus || 0;
       const paid = cashPaid + surplus;
@@ -1999,7 +2003,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     let paid = 0;
     for (const m of filteredMembers) {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : ["cat5", "cat7"].includes(m.categoryId) ? toNumber(m.customAmount) : toNumber(cat?.amount);
       promised += monthly * config.months;
       const cash = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
       paid += cash + (m.consolidatedSurplus || 0);
@@ -2011,7 +2015,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
   const memberInsights = useMemo(() => {
     const pending = members.filter((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : ["cat5", "cat7"].includes(m.categoryId) ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const total = monthly * config.months;
       const paid = ((m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0)) + (m.consolidatedSurplus || 0);
       return paid < total;
@@ -2120,7 +2124,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     ];
     const body = filteredMembers.map((m) => {
       const cat = config.categories.find((c) => c.id === m.categoryId);
-      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+      const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : ["cat5", "cat7"].includes(m.categoryId) ? toNumber(m.customAmount) : toNumber(cat?.amount);
       const cashPaid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
       const surplus = m.consolidatedSurplus || 0;
       const paid = cashPaid + surplus;
@@ -2156,7 +2160,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     return members
       .filter((m) => {
         const cat = config.categories.find((c) => c.id === m.categoryId);
-        const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+        const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : ["cat5", "cat7"].includes(m.categoryId) ? toNumber(m.customAmount) : toNumber(cat?.amount);
         const total = monthly * config.months;
         const paid = (m.payments || []).reduce((s, p) => s + toNumber(p.amount), 0);
         const searchOk =
@@ -2175,7 +2179,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     [config.categories, newMember.categoryId]
   );
   const selectedMonthlyAmount =
-    newMember.categoryId === "cat6" ? toNumber(newMember.customAmount) / config.months : newMember.categoryId === "cat5" ? toNumber(newMember.customAmount) : toNumber(selectedCategory?.amount);
+    newMember.categoryId === "cat6" ? toNumber(newMember.customAmount) / config.months : ["cat5", "cat7"].includes(newMember.categoryId) ? toNumber(newMember.customAmount) : toNumber(selectedCategory?.amount);
   const selectedTotalAmount = selectedMonthlyAmount * config.months;
 
   const editingCategory = useMemo(
@@ -2185,7 +2189,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
   const editingMonthlyAmount =
     editingMember?.categoryId === "cat6"
       ? toNumber(editingMember.customAmount) / config.months
-      : editingMember?.categoryId === "cat5"
+      : ["cat5", "cat7"].includes(editingMember?.categoryId)
       ? toNumber(editingMember.customAmount)
       : toNumber(editingCategory?.amount);
   const editingTotalAmount = editingMonthlyAmount * config.months;
@@ -3828,7 +3832,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                         )}
                         {filteredMembers.map((m) => {
                            const cat = config.categories.find((c) => c.id === m.categoryId);
-                           const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : m.categoryId === "cat5" ? toNumber(m.customAmount) : toNumber(cat?.amount);
+                           const monthly = m.categoryId === "cat6" ? toNumber(m.customAmount) / config.months : ["cat5", "cat7"].includes(m.categoryId) ? toNumber(m.customAmount) : toNumber(cat?.amount);
                            const cashPaid = (m.payments || []).reduce((sum, p) => sum + toNumber(p.amount), 0);
                            const surplus = m.consolidatedSurplus || 0;
                            const currentPaid = cashPaid + surplus;
@@ -4623,7 +4627,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                         <div className="md:col-span-4">
                           <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500/80">Montant mensuel</label>
                           <input type="number"
-                            disabled={["cat5", "cat6"].includes(cat.id)}
+                            disabled={["cat5", "cat6", "cat7"].includes(cat.id)}
                             className="text-white w-full rounded-xl border border-emerald-500/20 bg-[#022c22] px-3 py-2 font-black"
                             value={cat.amount}
                             onChange={(e) => {
@@ -5102,12 +5106,19 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                 </option>
               ))}
             </select>
-            {["cat5", "cat6"].includes(newMember.categoryId) && (
+            {["cat5", "cat6", "cat7"].includes(newMember.categoryId) && (
               <input
                 type="number"
-                min="20001"
+                min={newMember.categoryId === "cat7" ? "1" : newMember.categoryId === "cat5" ? "20001" : "1"}
+                max={newMember.categoryId === "cat7" ? "4999" : undefined}
                 required
-                placeholder={newMember.categoryId === "cat6" ? "Entrez la somme fixe globale" : "Montant mensuel libre (> 20 000)"}
+                placeholder={
+                  newMember.categoryId === "cat6"
+                    ? "Entrez la somme fixe globale"
+                    : newMember.categoryId === "cat7"
+                    ? "Montant mensuel libre (< 5 000)"
+                    : "Montant mensuel libre (> 20 000)"
+                }
                 className="mt-4 w-full rounded-2xl border border-purple-200 bg-purple-50 px-4 py-3 font-black text-purple-700 outline-none focus:border-purple-400"
                 value={newMember.customAmount}
                 onChange={(e) => setNewMember((s) => ({ ...s, customAmount: e.target.value }))}
@@ -5213,12 +5224,19 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                 </option>
               ))}
             </select>
-            {["cat5", "cat6"].includes(editingMember.categoryId) && (
+            {["cat5", "cat6", "cat7"].includes(editingMember.categoryId) && (
               <input
                 type="number"
-                min="20001"
+                min={editingMember.categoryId === "cat7" ? "1" : editingMember.categoryId === "cat5" ? "20001" : "1"}
+                max={editingMember.categoryId === "cat7" ? "4999" : undefined}
                 required
-                placeholder={editingMember.categoryId === "cat6" ? "Entrez la somme fixe globale" : "Montant mensuel libre (> 20 000)"}
+                placeholder={
+                  editingMember.categoryId === "cat6"
+                    ? "Entrez la somme fixe globale"
+                    : editingMember.categoryId === "cat7"
+                    ? "Montant mensuel libre (< 5 000)"
+                    : "Montant mensuel libre (> 20 000)"
+                }
                 className="mt-4 w-full rounded-2xl border border-purple-200 bg-purple-50 px-4 py-3 font-black text-purple-700 outline-none focus:border-purple-400"
                 value={editingMember.customAmount}
                 onChange={(e) => setEditingMember((s) => ({ ...s, customAmount: e.target.value }))}
