@@ -555,7 +555,8 @@ const [storageMode] = useState("online");
   const [paymentData, setPaymentData] = useState({
     amount: "",
     date: new Date().toISOString().split("T")[0],
-    method: "Espèces"
+    method: "Espèces",
+    comment: ""
   });
   const [newExpense, setNewExpense] = useState({
     description: "",
@@ -1574,6 +1575,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       amount: toNumber(paymentData.amount),
       method: paymentData.method,
       date: paymentData.date,
+      comment: paymentData.comment || "",
       timestamp: isEditing ? paymentData.timestamp : new Date().toISOString()
     };
     
@@ -1590,7 +1592,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
         prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: updatedPayments } : m))
       );
       setSelectedMember((prev) => ({ ...prev, payments: updatedPayments }));
-      setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
+      setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces", comment: "" });
       setIsPaymentModalOpen(false);
       try {
         await callManagementApi("replaceMemberPayments", { memberId: selectedMember.id, payments: updatedPayments });
@@ -1617,7 +1619,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
         prev.map((m) => (m.id === selectedMember.id ? { ...m, payments: updatedPayments } : m))
       );
       setSelectedMember((prev) => ({ ...prev, payments: updatedPayments }));
-      setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
+      setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces", comment: "" });
       setIsPaymentModalOpen(false);
       writeAuditLog({
         action: isEditing ? "MODIFICATION_PAIEMENT" : "ENREGISTREMENT_PAIEMENT",
@@ -1633,7 +1635,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
     await updateDoc(doc(db, "artifacts", appId, "public", "data", "members", selectedMember.id), {
       payments: updatedPayments
     });
-    setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces" });
+    setPaymentData({ amount: "", date: new Date().toISOString().split("T")[0], method: "Espèces", comment: "" });
     setIsPaymentModalOpen(false);
     writeAuditLog({
       action: isEditing ? "MODIFICATION_PAIEMENT" : "ENREGISTREMENT_PAIEMENT",
@@ -5315,6 +5317,14 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                 onChange={(e) => setPaymentData((s) => ({ ...s, amount: e.target.value }))}
               />
             </div>
+            <div className="mt-4">
+              <input
+                placeholder="Commentaire / Enfant (ex: Enfant #14)"
+                className="text-white w-full rounded-2xl border-2 border-emerald-500/20 bg-[#022c22] px-4 py-3 font-bold outline-none focus:border-emerald-500"
+                value={paymentData.comment || ""}
+                onChange={(e) => setPaymentData((s) => ({ ...s, comment: e.target.value }))}
+              />
+            </div>
             <button type="submit" className="mt-6 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-white">
               Valider
             </button>
@@ -5338,6 +5348,7 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                   <tr>
                     <th className="pb-3 text-left">Date</th>
                     <th className="pb-3 text-left">Mode</th>
+                    <th className="pb-3 text-left">Commentaire / Enfant</th>
                     <th className="pb-3 text-right">Montant</th>
                     <th className="pb-3 text-center">Action</th>
                   </tr>
@@ -5347,12 +5358,13 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
                     <tr key={p.id}>
                       <td className="py-3 font-bold text-emerald-400/80">{new Date(p.date).toLocaleDateString("fr-FR")}</td>
                       <td className="py-3 font-extrabold">{p.method}</td>
+                      <td className="py-3 text-left text-sm text-slate-300 font-bold">{p.comment || "-"}</td>
                       <td className="py-3 text-right font-black">{money(p.amount)}</td>
                       <td className="py-3 text-center">
                         {canManageUsers && (
                           <button
                             onClick={() => {
-                              setPaymentData({ id: p.id, amount: p.amount, method: p.method, date: p.date, timestamp: p.timestamp });
+                              setPaymentData({ id: p.id, amount: p.amount, method: p.method, date: p.date, comment: p.comment || "", timestamp: p.timestamp });
                               setIsHistoryModalOpen(false);
                               setIsPaymentModalOpen(true);
                             }}

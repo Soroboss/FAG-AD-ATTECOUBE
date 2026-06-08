@@ -633,13 +633,14 @@ async function handleReplaceMemberPayments(dbUrl, payload) {
   for (const pay of payments) {
     await runQuery(
       dbUrl,
-      `insert into public.payments (member_id, amount, method, payment_date)
-       values ($1::uuid, $2, $3, $4)`,
+      `insert into public.payments (member_id, amount, method, payment_date, comment)
+       values ($1::uuid, $2, $3, $4, $5)`,
       [
         memberId,
         Number(pay.amount || 0),
         pay.method || "Espèces",
-        pay.date || new Date().toISOString().slice(0, 10)
+        pay.date || new Date().toISOString().slice(0, 10),
+        pay.comment || null
       ]
     );
   }
@@ -857,7 +858,7 @@ async function loadAppData(dbUrl) {
   );
   const payments = await runQuery(
     dbUrl,
-    `select id, member_id, amount, method, payment_date, created_at
+    `select id, member_id, amount, method, payment_date, comment, created_at
      from public.payments
      order by created_at asc`,
     []
@@ -892,6 +893,7 @@ async function loadAppData(dbUrl) {
       amount: Number(row.amount || 0),
       method: row.method || "Espèces",
       date: row.payment_date,
+      comment: row.comment || "",
       timestamp: row.created_at
     });
     return acc;
