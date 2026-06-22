@@ -2554,9 +2554,11 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
       return { error: "Le service de fichiers est momentanément indisponible. Réessayez plus tard." };
     }
     const { createClient } = await import("@insforge/sdk");
+    const token = getSessionTokenFromStorage();
     const insforge = createClient({
       baseUrl: base,
       anonKey: ak,
+      global: { headers: token ? { Authorization: `Bearer ${token}` } : {} },
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
     });
     const { data, error } = await insforge.storage.from("fag-attachments").uploadAuto(file);
