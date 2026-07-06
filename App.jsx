@@ -1896,35 +1896,42 @@ ${nextStatus ? "Ce collaborateur pourra se reconnecter." : "Ce collaborateur ne 
 
     const messages = {
       welcome:
-        `Shalom Bien-aimé(e) ${member.name}${role}, merci pour votre inscription au FAG ${config.year}. ` +
-        `Votre présence est une bénédiction pour l'église.${churchUnit}\n\n` +
-        `Engagement total : ${money(total)}\n` +
-        `Mensualité (${config.months} mois) : ${money(monthly)}\n\n` +
-        `"Qu'il est bon pour des frères de demeurer ensemble !" (Psaume 133:1).`,
+        `✨ *Shalom Bien-aimé(e) ${member.name}${role} !* ✨\n\n` +
+        `Le Seigneur Jésus t'a appelé par ton nom, et Il se réjouit de te voir prendre ta place dans Sa grande famille. Chaque fois que tu t'impliques, c'est un sourire que tu offres au ciel. Merci d'avoir répondu "présent(e)" pour le FAG ${config.year}. Ton cœur disposé est un trésor inestimable pour l'œuvre de Dieu.${churchUnit}\n\n` +
+        `📖 *"Je t'ai aimé d'un amour éternel, c'est pourquoi je te conserve ma bonté."* (Jérémie 31:3)\n\n` +
+        `*Ton alliance d'amour avec l'œuvre :*\n` +
+        `🔹 Engagement total : ${money(total)}\n` +
+        `🔹 Mensualité (${config.months} mois) : ${money(monthly)}\n\n` +
+        `Que Sa grâce t'enveloppe à chaque instant ! 🙏🏽`,
       engagement:
-        `Bien-aimé(e) ${member.name}${role}, merci d'avoir pris votre engagement FAG ${config.year}. ` +
-        `Nous avançons ensemble par la foi et l'amour fraternel.\n\n` +
-        `${progressLine}\n` +
-        `"Accomplis tes vœux envers le Très-Haut." (Psaume 50:14).`,
+        `🌟 *Dieu te voit, ${member.name}${role}...* 🌟\n\n` +
+        `Et Il voit l'amour que tu mets dans cet engagement pour le FAG ${config.year}. Dans le royaume de Dieu, ce ne sont pas juste des chiffres, mais ce sont des briques d'amour avec lesquelles nous bâtissons ensemble la maison de notre Père. Ta participation est précieuse et Jésus chérit ta fidélité.\n\n` +
+        `📖 *"Recommande ton sort à l'Éternel, mets en lui ta confiance, et il agira."* (Psaume 37:5)\n\n` +
+        `*Le point de ta marche de foi :*\n${progressLine}\n\n` +
+        `Demeure abondamment béni(e) ! 🙌🏽`,
       thanks:
-        `Paix à vous ${member.name}${role}. Merci pour votre ${paymentAction} au FAG ${config.year}. ` +
-        `Chaque don fortifie l'œuvre de Dieu.\n\n` +
-        `${progressLine}\n` +
-        `"Dieu aime celui qui donne avec joie." (2 Cor 9:7).`,
+        `🕊️ *Paix profonde à toi, ${member.name}${role} !* 🕊️\n\n` +
+        `Aujourd'hui, le ciel a enregistré ton geste. Merci infiniment pour ton récent ${paymentAction} au FAG ${config.year}. Imagine la joie du cœur de Jésus de te voir donner avec autant d'amour et de simplicité pour soutenir Son œuvre. C'est grâce à des cœurs vaillants et dévoués comme le tien que l'Évangile avance avec puissance.\n\n` +
+        `📖 *"Que le Seigneur te réponde au jour de la détresse... qu'il se souvienne de toutes tes offrandes !"* (Psaume 20:2-4)\n\n` +
+        `*Le point de ta marche de foi :*\n${progressLine}\n\n` +
+        `Que Ses fleuves d'eau vive débordent dans ta vie ! 💧`,
       reminder:
-        `Cher(e) ${member.name}${role}, petit rappel fraternel pour votre engagement FAG ${config.year}. ` +
-        `Votre fidélité nous aide à atteindre notre objectif commun.\n\n` +
-        `${progressLine}\n` +
-        `"Ne nous lassons pas de faire le bien." (Galates 6:9).`,
+        `🌻 *Coucou ${member.name}${role}, juste une petite pensée lumineuse...* 🌻\n\n` +
+        `Le Seigneur connaît tes défis, tes luttes, mais aussi la beauté de tes intentions. Nous voulions t'encourager aujourd'hui et te rappeler fraternellement ton bel engagement pour le FAG ${config.year}. Ton soutien est le pilier sur lequel repose notre vision commune, et ton amour pour Jésus transparaît dans ta persévérance. Ne baisse pas les bras, tu es précieux(se) pour nous et pour Lui.\n\n` +
+        `📖 *"L'Éternel est ma force et mon bouclier ; en lui mon cœur se confie, et je suis secouru."* (Psaume 28:7)\n\n` +
+        `*Le point de ta marche de foi :*\n${progressLine}\n\n` +
+        `Nous t'aimons et prions pour toi. Courage ! 💪🏽`,
       congrats:
-        `Alléluia ${member.name}${role} ! Votre engagement FAG ${config.year} est honoré. ` +
-        `Merci pour ce témoignage de foi et d'obéissance.\n\n` +
-        `"Offrande de bonne odeur que Dieu accepte." (Phil 4:18).`,
+        `🎉 *Alléluia ! Le ciel célèbre avec toi, ${member.name}${role} !* 🎉\n\n` +
+        `Quel témoignage éclatant ! Tu as honoré ton engagement FAG ${config.year} jusqu'au bout. Jésus, qui voit dans le secret de ton cœur et connaît tes sacrifices, sourit devant ta fidélité. Tu viens de planter une graine incorruptible d'amour et d'obéissance, et la moisson sera glorieuse. Merci, du fond du cœur, pour ton dévouement inspirant.\n\n` +
+        `📖 *"Son maître lui dit : C'est bien, bon et fidèle serviteur... entre dans la joie de ton maître."* (Matthieu 25:21)\n\n` +
+        `Que les écluses des cieux s'ouvrent sur ta maison ! 🌧️✨`,
       encourage:
-        `Bien-aimé(e) ${member.name}${role}, merci pour vos efforts déjà visibles. ` +
-        `Continuez avec foi, nous prions pour vous et avec vous.\n\n` +
-        `${progressLine}\n` +
-        `"Fortifiez-vous dans le Seigneur." (Éphésiens 6:10).`
+        `🔥 *Tiens bon, vaillant(e) héros(ïne) de la foi, ${member.name}${role} !* 🔥\n\n` +
+        `Chaque pas que tu fais dans ton engagement pour le FAG ${config.year} laisse une trace de lumière. Nous voyons tes efforts, mais surtout, ton Père céleste les voit et s'en réjouit. Même si le chemin semble parfois long, rappelle-toi que c'est Jésus qui tient ta main. Continue de briller par ta constance, car ton amour pour l'œuvre bâtit des miracles.\n\n` +
+        `📖 *"Car Dieu n'est pas injuste, pour oublier votre travail et l'amour que vous avez montré pour son nom."* (Hébreux 6:10)\n\n` +
+        `*Le point de ta marche de foi :*\n${progressLine}\n\n` +
+        `Sois fortifié(e) de Sa force toute-puissante ! 🕊️`
     };
     const finalMessage = messages[type] || messages.thanks;
     const normalizedPhone = normalizeWhatsAppNumber(member.whatsapp);
