@@ -60,7 +60,7 @@ const appId = typeof __app_id !== "undefined" ? __app_id : "fag-2026-prod";
 const insforgeFunctionsBase =
   typeof __insforge_functions_base !== "undefined" && __insforge_functions_base
     ? __insforge_functions_base
-    : "https://zx2bx4r6.functions.insforge.app";
+    : "https://7sr4t2xf.function2.insforge.app";
 const managementApiUrl = `${insforgeFunctionsBase}/management-api`;
 const LANDING_IMAGES = {
   hero: "/landing/hero-eglise-ivoirienne.png",
@@ -493,7 +493,7 @@ const App = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-const [storageMode] = useState("online");
+  const [storageMode] = useState("online");
   const [isAppAuthenticated, setIsAppAuthenticated] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
